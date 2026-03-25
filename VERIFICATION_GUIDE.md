@@ -21,6 +21,11 @@ For release-surface questions, use this guide as the source of truth for:
 - what command is canonical
 - where retained release evidence lives
 
+For release `1.2.2`, reviewers should traverse this path: `make gate` for the
+canonical gate, [docs/replay/tooling.md](docs/replay/tooling.md) for released
+replay-tooling boundaries, and [docs/verification/releases/1.2.2/](docs/verification/releases/1.2.2/)
+for the retained release evidence bundle.
+
 The rest of the release-adjacent documentation is supporting only:
 
 - `README.md`: entry routing

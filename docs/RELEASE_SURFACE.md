@@ -14,6 +14,7 @@ For release decisions, use:
 - contract: [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
 - canonical operator path: `make gate`
 - retained release evidence: [docs/verification/releases/](verification/releases/)
+- current retained release record for release `1.2.2`: [docs/verification/releases/1.2.2/](verification/releases/1.2.2/)
 
 If a descriptive document conflicts with a normative document, the normative
 document wins.
