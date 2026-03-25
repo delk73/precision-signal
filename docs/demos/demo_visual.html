@@ -1,0 +1,448 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Precision-DPW Divergence Visual</title>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --panel: #111a2b;
+      --text: #e6edf8;
+      --muted: #96a7c1;
+      --line: #24344f;
+      --accent: #52a8ff;
+      --danger: #ff5d73;
+      --ok: #57d39b;
+    }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #09101d 0%, #0f1728 100%);
+    }
+    .wrap {
+      max-width: 900px;
+      margin: 28px auto;
+      padding: 0 16px 28px;
+    }
+    h1 {
+      margin: 0 0 12px;
+      font-size: 1.45rem;
+    }
+    .sub {
+      margin: 0 0 18px;
+      color: var(--muted);
+    }
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px 14px;
+    }
+    .k {
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-bottom: 2px;
+    }
+    .v {
+      font-weight: 600;
+      font-size: 1rem;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+    .timeline {
+      margin-top: 14px;
+      position: relative;
+      height: 48px;
+    }
+    .track {
+      position: absolute;
+      top: 18px;
+      left: 0;
+      right: 0;
+      height: 8px;
+      border-radius: 6px;
+      background: #1d2b42;
+      border: 1px solid #2d3e5d;
+    }
+    .marker {
+      position: absolute;
+      top: 10px;
+      width: 2px;
+      height: 24px;
+      background: var(--danger);
+    }
+    .marker::before {
+      content: "";
+      position: absolute;
+      top: -5px;
+      left: -4px;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--danger);
+    }
+    .marker-label {
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      padding: 1px 6px;
+      font-size: 0.75rem;
+      border-radius: 10px;
+      background: #3a1b22;
+      color: #ffc6cf;
+      border: 1px solid #6a2b37;
+      white-space: nowrap;
+    }
+    #aName, #bName {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.92rem;
+    }
+    @media (max-width: 640px) {
+      .wrap {
+        margin: 16px auto;
+      }
+      .panel {
+        padding: 12px;
+      }
+      .row {
+        grid-template-columns: 1fr;
+      }
+      .pill {
+        margin-bottom: 6px;
+      }
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 6px 4px;
+      text-align: left;
+    }
+    tr.hit {
+      background: #331924;
+    }
+    .pill {
+      display: inline-block;
+      font-size: 0.78rem;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      margin-right: 6px;
+      cursor: pointer;
+      background: #0f1728;
+    }
+    .pill.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      font-weight: 600;
+      background: #10213b;
+    }
+    .delta {
+      color: var(--ok);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .details {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+    .details strong {
+      color: var(--text);
+    }
+    .artifact-links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .artifact-links a {
+      display: inline-block;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      color: var(--accent);
+      text-decoration: none;
+      background: #0f1728;
+      font-size: 0.85rem;
+    }
+    pre {
+      margin: 10px 0 0;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: #0a1221;
+      color: var(--text);
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 0.88rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>Precision-DPW Replay Divergence Prototype</h1>
+    <p class="sub">Two artifacts match until frame <strong>N</strong>, then diverge exactly there.</p>
+
+    <div class="panel">
+      <span class="pill active" data-demo="natural">Demo V1</span>
+      <span class="pill" data-demo="persistent">Demo V2</span>
+      <span class="pill" data-demo="v3">Demo V3</span>
+      <span class="pill" data-demo="v4">Demo V4</span>
+      <span class="pill" data-demo="v5">Demo V5</span>
+      <span class="pill" data-demo="captured">Captured Divergence</span>
+    </div>
+
+    <div class="panel">
+      <div class="row">
+        <div><div class="k">Artifact A</div><div class="v" id="aName"></div></div>
+        <div><div class="k">Artifact B</div><div class="v" id="bName"></div></div>
+        <div><div class="k">Total Frames</div><div class="v" id="totalFrames"></div></div>
+        <div><div class="k">First Divergence Frame</div><div class="v" id="divFrame"></div></div>
+        <div><div class="k">Classification</div><div class="v" id="classLabel"></div></div>
+      </div>
+      <div class="timeline">
+        <div class="track"></div>
+        <div class="marker" id="marker"></div>
+        <div class="marker-label" id="markerLabel"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="k">Field-Level Delta</div>
+      <div class="v">sample: <span id="sampleA"></span> → <span id="sampleB"></span> <span class="delta" id="delta"></span></div>
+      <div class="k" style="margin-top:8px;">Comparer Summary</div>
+      <div id="summary"></div>
+      <div class="details" id="details"></div>
+      <div class="artifact-links" id="artifactLinks"></div>
+      <pre id="diffOutput"></pre>
+    </div>
+
+    <div class="panel">
+      <div class="k">Frame Window Around Divergence</div>
+      <table>
+        <thead>
+          <tr><th>Frame</th><th>Sample A</th><th>Sample B</th><th>Status</th></tr>
+        </thead>
+        <tbody id="windowRows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    const demos = {
+      // "natural" key retained for compatibility with existing demo artifacts
+      natural: {
+        title: "Controlled Capture Perturbation Demo (V1)",
+        aName: "artifacts/demo_natural/run_A.rpl",
+        bName: "artifacts/demo_natural/run_B.rpl",
+        totalFrames: 10000,
+        divergenceFrame: 4096,
+        sampleA: "0x00000000",
+        sampleB: "0x00000001",
+        classification: "transient",
+        window: [
+          { f: 4093, a: "0x000000FD", b: "0x000000FD" },
+          { f: 4094, a: "0x000000FE", b: "0x000000FE" },
+          { f: 4095, a: "0x000000FF", b: "0x000000FF" },
+          { f: 4096, a: "0x00000000", b: "0x00000001" },
+          { f: 4097, a: "0x00000001", b: "0x00000001" },
+          { f: 4098, a: "0x00000002", b: "0x00000002" },
+          { f: 4099, a: "0x00000003", b: "0x00000003" }
+        ],
+        summary: "Execution-time perturbation in firmware (feature-gated)."
+      },
+      persistent: {
+        title: "Demo V2 - Localization",
+        aName: "artifacts/demo_persistent/run_A.rpl",
+        bName: "artifacts/demo_persistent/run_B.rpl",
+        totalFrames: 10000,
+        divergenceFrame: 4096,
+        sampleA: "0x00000000",
+        sampleB: "0x00000001",
+        window: [
+          { f: 4093, a: "0x000000FD", b: "0x000000FD" },
+          { f: 4094, a: "0x000000FE", b: "0x000000FE" },
+          { f: 4095, a: "0x000000FF", b: "0x000000FF" },
+          { f: 4096, a: "0x00000000", b: "0x00000001" },
+          { f: 4097, a: "0x00000001", b: "0x00000002" },
+          { f: 4098, a: "0x00000002", b: "0x00000003" },
+          { f: 4099, a: "0x00000003", b: "0x00000004" }
+        ],
+        classification: "persistent_offset",
+        summary: "Constructed persistent-divergence fixture pair demonstrating exact first-divergence localization. Displayed sample values illustrate the divergence pattern; the authoritative verification comes from artifact_diff and inspect commands."
+      },
+      v3: {
+        title: "Demo V3 - Shape Classification",
+        aName: "artifacts/demo_v3/offset_A.rpl",
+        bName: "artifacts/demo_v3/offset_B.rpl",
+        totalFrames: 10000,
+        divergenceFrame: 4096,
+        sampleA: "0x00000000",
+        sampleB: "0x00000001",
+        classification: "persistent_offset",
+        window: [
+          { f: 4093, a: "0x000000FD", b: "0x000000FD" },
+          { f: 4094, a: "0x000000FE", b: "0x000000FE" },
+          { f: 4095, a: "0x000000FF", b: "0x000000FF" },
+          { f: 4096, a: "0x00000000", b: "0x00000001" },
+          { f: 4097, a: "0x00000001", b: "0x00000002" },
+          { f: 4098, a: "0x00000002", b: "0x00000003" },
+          { f: 4099, a: "0x00000003", b: "0x00000004" }
+        ],
+        summary: "Demo V3 classifies post-divergence shape with deterministic labels across three fixture pairs: transient, persistent_offset, and rate_divergence. This panel shows the persistent_offset pair."
+      },
+      v4: {
+        title: "Demo V4 - Region Attribution",
+        aName: "artifacts/demo_v4/sample_payload_A.rpl",
+        bName: "artifacts/demo_v4/sample_payload_B.rpl",
+        totalFrames: 10000,
+        divergenceFrame: 4096,
+        sampleA: "0x00000000",
+        sampleB: "0x00000001",
+        classification: "transient",
+        window: [
+          { f: 4093, a: "0x000000FD", b: "0x000000FD" },
+          { f: 4094, a: "0x000000FE", b: "0x000000FE" },
+          { f: 4095, a: "0x000000FF", b: "0x000000FF" },
+          { f: 4096, a: "0x00000000", b: "0x00000001" },
+          { f: 4097, a: "0x00000001", b: "0x00000001" },
+          { f: 4098, a: "0x00000002", b: "0x00000002" },
+          { f: 4099, a: "0x00000003", b: "0x00000003" }
+        ],
+        summary: "Demo V4 adds first-divergence region attribution. This sample pair shows the mismatch localized to sample_payload while preserving the divergence-shape label.",
+        details: "Demo V4 extends the ladder from shape classification to region attribution so the first divergent frame can be tied to the supported artifact region that changed.",
+        artifacts: [
+          { href: "../artifacts/demo_v4/sample_payload_A.rpl", label: "sample_payload_A.rpl" },
+          { href: "../artifacts/demo_v4/sample_payload_B.rpl", label: "sample_payload_B.rpl" }
+        ],
+        diffOutput: "first_divergence_frame: 4096\nshape_class: transient\nprimary_region: sample_payload\nall_regions_at_first_divergence: [sample_payload]\nregion_summary: sample_payload"
+      },
+      v5: {
+        title: "Demo V5 - Evolution Semantics",
+        aName: "artifacts/demo_v5/self_healing_A.rpl",
+        bName: "artifacts/demo_v5/self_healing_B.rpl",
+        totalFrames: 10000,
+        divergenceFrame: 4096,
+        sampleA: "0x00000000",
+        sampleB: "0x00000001",
+        classification: "transient",
+        window: [
+          { f: 4093, a: "0x000000FD", b: "0x000000FD" },
+          { f: 4094, a: "0x000000FE", b: "0x000000FE" },
+          { f: 4095, a: "0x000000FF", b: "0x000000FF" },
+          { f: 4096, a: "0x00000000", b: "0x00000001" },
+          { f: 4097, a: "0x00000001", b: "0x00000001" },
+          { f: 4098, a: "0x00000002", b: "0x00000002" },
+          { f: 4099, a: "0x00000003", b: "0x00000003" }
+        ],
+        summary: "Demo V5 classifies what happens after divergence begins: self-healing, bounded persistence, monotonic growth, or region transition. This panel shows the self_healing pair.",
+        details: "Demo V5 extends the explanatory ladder past the first divergent frame so the comparer can say whether the runs re-align, stay bounded, grow, or move into another supported region.",
+        artifacts: [
+          { href: "../artifacts/demo_v5/self_healing_A.rpl", label: "self_healing_A.rpl" },
+          { href: "../artifacts/demo_v5/self_healing_B.rpl", label: "self_healing_B.rpl" }
+        ],
+        diffOutput: "first_divergence_frame: 4096\nshape_class: transient\nprimary_region: sample_payload\nall_regions_at_first_divergence: [sample_payload]\nregion_summary: sample_payload\nevolution_class: self_healing\ntimeline_summary: divergence resolves within 1 frame"
+      },
+      captured: {
+        title: "Captured Divergence Demonstration",
+        aName: "artifacts/demo_captured/run_A.rpl",
+        bName: "artifacts/demo_captured/run_B.rpl",
+        totalFrames: 10000,
+        divergenceFrame: 4096,
+        sampleA: "0x00000000",
+        sampleB: "0x00000001",
+        classification: "transient",
+        window: [
+          { f: 4093, a: "0x000000FD", b: "0x000000FD" },
+          { f: 4094, a: "0x000000FE", b: "0x000000FE" },
+          { f: 4095, a: "0x000000FF", b: "0x000000FF" },
+          { f: 4096, a: "0x00000000", b: "0x00000001" },
+          { f: 4097, a: "0x00000001", b: "0x00000001" },
+          { f: 4098, a: "0x00000002", b: "0x00000002" },
+          { f: 4099, a: "0x00000003", b: "0x00000003" }
+        ],
+        summary: "Captured Divergence applies the same divergence classification flow to artifacts captured from two separate STM32 executions. The artifact pair is hardware capture evidence shown here with the current comparer output, including evolution semantics.",
+        details: "Run <strong>make demo-captured-release</strong> to compare the hardware-captured artifact pair. The first divergence lands in <strong>sample_payload</strong> at frame <strong>4096</strong>, and the combined shape and evolution output shows that the runs differ for one sample before re-aligning.",
+        artifacts: [
+          { href: "../artifacts/demo_captured/run_A.rpl", label: "run_A.rpl" },
+          { href: "../artifacts/demo_captured/run_B.rpl", label: "run_B.rpl" }
+        ],
+        diffOutput: "first_divergence_frame: 4096\nshape_class: transient\nprimary_region: sample_payload\nall_regions_at_first_divergence: [sample_payload]\nregion_summary: sample_payload\nevolution_class: self_healing\ntimeline_summary: divergence resolves within 1 frame"
+      }
+    };
+
+    function parseHexU32(v) {
+      return Number.parseInt(v, 16) >>> 0;
+    }
+
+    function render(key) {
+      const d = demos[key];
+      document.getElementById("aName").textContent = d.aName;
+      document.getElementById("bName").textContent = d.bName;
+      document.getElementById("totalFrames").textContent = d.totalFrames.toLocaleString();
+      document.getElementById("divFrame").textContent = d.divergenceFrame.toLocaleString();
+      document.getElementById("classLabel").textContent = d.classification || "not-scoped";
+      document.getElementById("sampleA").textContent = d.sampleA;
+      document.getElementById("sampleB").textContent = d.sampleB;
+      const delta = (parseHexU32(d.sampleB) - parseHexU32(d.sampleA));
+      document.getElementById("delta").textContent = `(Δ +${delta})`;
+      document.getElementById("summary").textContent = d.summary;
+      const details = document.getElementById("details");
+      details.innerHTML = d.details || "";
+      details.style.display = d.details ? "block" : "none";
+      const diffOutput = document.getElementById("diffOutput");
+      diffOutput.textContent = d.diffOutput || "";
+      diffOutput.style.display = d.diffOutput ? "block" : "none";
+      const artifactLinks = document.getElementById("artifactLinks");
+      artifactLinks.innerHTML = "";
+      (d.artifacts || []).forEach((artifact) => {
+        const a = document.createElement("a");
+        a.href = artifact.href;
+        a.textContent = artifact.label;
+        artifactLinks.appendChild(a);
+      });
+      artifactLinks.style.display = (d.artifacts || []).length ? "flex" : "none";
+
+      const ratio = d.divergenceFrame / d.totalFrames;
+      const px = Math.max(0, Math.min(100, ratio * 100));
+      const marker = document.getElementById("marker");
+      const label = document.getElementById("markerLabel");
+      marker.style.left = `calc(${px}% - 1px)`;
+      label.style.left = `${px}%`;
+      label.textContent = `N=${d.divergenceFrame}`;
+
+      const rows = document.getElementById("windowRows");
+      rows.innerHTML = "";
+      d.window.forEach((r) => {
+        const tr = document.createElement("tr");
+        const hit = r.f === d.divergenceFrame;
+        if (hit) tr.className = "hit";
+        tr.innerHTML = `<td>${r.f}</td><td>${r.a}</td><td>${r.b}</td><td>${hit ? "DIVERGENCE" : "match"}</td>`;
+        rows.appendChild(tr);
+      });
+
+      document.querySelectorAll(".pill").forEach((el) => {
+        el.classList.toggle("active", el.dataset.demo === key);
+      });
+    }
+
+    document.querySelectorAll(".pill").forEach((el) => {
+      el.addEventListener("click", () => render(el.dataset.demo));
+    });
+
+    render("natural");
+  </script>
+</body>
+</html>

@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+
+    steps:
+      - name: Checkout
+        # pinned commit from actions/checkout v4 series
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+
+      - name: Install Rust toolchain (pinned)
+        # pinned commit from dtolnay/rust-toolchain stable series
+        uses: dtolnay/rust-toolchain@0f44b27771c32bda9f458f75a1e241b09791b331
+        with:
+          toolchain: 1.91.1
+          targets: thumbv7em-none-eabihf
+
+      - name: Cache cargo/target
+        # pinned commit from Swatinem/rust-cache v2 series
+        uses: Swatinem/rust-cache@779680da715d629ac1d338a641029a2f4372abb5
+
+      - name: Mechanical no_std Build Oracle
+        run: |
+          cargo check -p dpw4 --no-default-features --target thumbv7em-none-eabihf --locked
+
+      - name: Workspace Check
+        run: make check-workspace
+
+      - name: Documentation Link Integrity
+        run: make doc-link-check
+
+      - name: Core Float Quarantine (no-default-features)
+        run: |
+          # compile-surface quarantine; avoids token/grep false positives.
+          cargo check --workspace --no-default-features --locked
+
+      - name: P5B Artifact Boundary — AST Hygiene (WARN; CORE-LEAK=STOP)
+        run: cargo run --locked -p audit-float-boundary -- --mode phase5b
+
+      - name: Dependency DAG Oracle (no replay backedges)
+        run: python3 scripts/check_no_replay_backedges.py
+
+      - name: Replay no_std Oracle (thumbv7em-none-eabihf)
+        run: |
+          cargo check -p replay-core --no-default-features --target thumbv7em-none-eabihf --locked
+          cargo check -p replay-embed --no-default-features --target thumbv7em-none-eabihf --locked
+
+      - name: Workspace Test
+        run: make test
+
+      - name: Test (cli bin)
+        run: cargo test --locked -p dpw4 --features cli --bin precision
+
+      - name: Embedded Firmware Build Oracle (F446)
+        run: |
+          cargo build -p replay-fw-f446 \
+            --target thumbv7em-none-eabihf \
+            --locked
+          ELF=target/thumbv7em-none-eabihf/debug/replay-fw-f446
+          test -f "$ELF"
+          SECTIONS="$(readelf -S "$ELF")"
+          echo "$SECTIONS" | grep -q '\.text'
+          echo "$SECTIONS" | grep -Eq '\.vector_table|\.isr_vector'
+          EP="$(readelf -h "$ELF" | awk '/Entry point address:/ {print $NF; exit}')"
+          test "$EP" != "0x0"
+
+      - name: Replay Baseline Verify (phase8)
+        run: |
+          python3 scripts/artifact_tool.py verify artifacts/baseline.bin --signal-model phase8
+          python3 scripts/artifact_tool.py hash artifacts/baseline.bin \
+            --expect f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765
+
+      - name: Replay Artifact Parser Adversarial Tests
+        run: python3 scripts/test_artifact_parser_adversarial.py
+
+      - name: Replay Artifact Parser Valid v1 Coverage
+        run: python3 scripts/test_artifact_parser_valid_v1.py
+
+      - name: Replay Artifact Parser Mutation Corpus
+        run: python3 scripts/test_artifact_parser_mutation_corpus.py
+
+      - name: Replay Artifact Tool Verify CLI Regression
+        run: python3 scripts/test_artifact_tool_verify.py
+
+      - name: Replay Artifact Tool Hash CLI Regression
+        run: python3 scripts/test_artifact_tool_hash.py
+
+      - name: Documentation Link Integrity Regression
+        run: python3 scripts/test_doc_link_check.py
+
+      - name: Replay Artifact Compare CLI Regression
+        run: python3 scripts/test_compare_artifact.py
+
+      - name: Replay Baseline Metadata Consistency
+        run: |
+          python3 -c 'import json,hashlib,pathlib; d=json.load(open("artifacts/baseline.json")); b=pathlib.Path("artifacts/baseline.bin").read_bytes(); h=hashlib.sha256(b).hexdigest(); s=pathlib.Path("artifacts/baseline.sha256").read_text().strip().split()[0]; assert d["artifact_file"]=="baseline.bin" and d["signal_model"]=="phase8" and d["sha256"]==h==s; print("PASS: replay baseline metadata")'
+
+      - name: Canonical Gate
+        run: make gate
+
+      - name: Build Release Binary
+        run: cargo build --release -p dpw4 --features cli --locked
+
+      - name: Hash Artifact
+        run: |
+          echo "rustc: $(rustc -Vv | head -1)"
+          echo "cargo: $(cargo -V)"
+          echo "target: x86_64-unknown-linux-gnu"
+          sha256sum target/release/precision
+
+      - name: Dual-Build Repro Canary
+        run: bash verify_release_repro.sh
+
+      - name: Forensic Audit
+        run: cargo test --locked -p dpw4 --test forensic_audit

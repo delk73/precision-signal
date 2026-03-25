@@ -1,0 +1,12 @@
+[package]
+name = "replay-embed"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description = "Experimental replay embedded scaffolding outside the v1 release surface"
+
+[dependencies]
+replay-core = { path = "../replay-core" }
+
+[features]
+default = []

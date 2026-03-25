@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "usb-report.v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "overall",
+    "checks",
+    "events"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "usb-report.v1"
+    },
+    "overall": {
+      "type": "string",
+      "enum": [
+        "PASS",
+        "WARN",
+        "FAIL"
+      ]
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "status",
+          "check_id",
+          "message",
+          "hint"
+        ],
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "PASS",
+              "WARN",
+              "FAIL"
+            ]
+          },
+          "check_id": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "hint": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      }
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "kind",
+          "text"
+        ],
+        "properties": {
+          "kind": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

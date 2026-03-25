@@ -1,0 +1,29 @@
+[package]
+name = "geom-signal"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description = "High-precision fixed-point math library for deterministic signal processing"
+
+[features]
+verification = []
+
+[dependencies]
+fixed = { version = "1.27", features = ["num-traits"] }
+
+[dev-dependencies]
+proptest = "1.4"
+criterion = "0.5"
+dpw4 = { workspace = true }
+
+# Allow Kani configuration flags
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
+
+[[bench]]
+name = "trig_throughput"
+harness = false
+
+[[bench]]
+name = "signal_inner_loop"
+harness = false

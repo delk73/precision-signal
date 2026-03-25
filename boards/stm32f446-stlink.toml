@@ -1,0 +1,6 @@
+chip = "STM32F446"
+flash_base = 0x08000000
+preferred_backend = "stlink"
+
+[ports]
+stutil = 4242

@@ -1,0 +1,50 @@
+[package]
+name = "dpw4"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description = "Reference oscillator crate with validation and artifact tooling entry points"
+
+[lib]
+name = "dpw4"
+path = "src/lib.rs"
+
+[dependencies]
+# Core is Zero-Dependency.
+# CLI dependencies are optional and gated behind the "cli" feature.
+clap = { version = "4.5", features = ["derive"], optional = true }
+libm = { version = "0.2", optional = true }
+geom-signal = { path = "../geom-signal" }
+# Hashing dependencies for verification utilities.
+sha2 = { version = "0.10.9", optional = true, default-features = false }
+hex = { version = "0.4", optional = true }
+
+[dev-dependencies]
+sha2 = "0.10.9"
+hex = "0.4"
+rppal = "0.22.1"
+geom-spatial = { workspace = true }
+# libm is needed for dev-tests (verification) but not for the library core
+libm = "0.2"
+
+[features]
+default = []
+float-ingest = []
+cli = ["dep:clap", "dep:libm", "dep:sha2", "dep:hex", "verification-runtime"]
+verification = []
+audit = []
+verification-runtime = []
+
+[[bin]]
+name = "precision"
+path = "src/bin/precision.rs"
+# The binary is strictly ignored unless the "cli" feature is active.
+required-features = ["cli"]
+
+[[bin]]
+name = "header_audit"
+path = "src/bin/header_audit.rs"
+required-features = ["cli"]
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

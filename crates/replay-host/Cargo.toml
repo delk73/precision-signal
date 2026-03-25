@@ -1,0 +1,14 @@
+[package]
+name = "replay-host"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description = "Experimental replay host scaffolding outside the v1 release surface"
+
+[dependencies]
+replay-core = { path = "../replay-core" }
+sha2 = "0.10.9"
+
+[[bin]]
+name = "replay-host"
+path = "src/main.rs"

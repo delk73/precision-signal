@@ -1,0 +1,294 @@
+# Precision-DPW & Geom-Signal
+
+## Geometric Signal
+
+**Reference Baseline (v1.0.0-rc5)**
+
+This repository contains the **Canonical Reference Implementation** of a deterministic signal system grounded in **128-bit Euclidean geometry**. It defines a signal class in which **geometry, phase (time), and energy** are enforced invariants.
+
+Conformance is defined at the **normative observation boundary**: all conformant implementations must emit a bit-identical **`S32LE`** stream under the **reference build**.
+
+**Reference build (normative):**
+* Toolchain: `1.91.1` (normative; see `rust-toolchain.toml`)
+* Build: `--release`
+* Features: `--features cli`
+* Target scope: x86_64 and ARMv8/AArch64 LE
+* Endianness: little-endian only
+
+The repository contains:
+1. A deterministic geometric core (`geom-signal`, `geom-spatial`)
+2. A DSP reference implementation (`dpw4`) built on that core
+
+---
+
+## The Geometric Signal Paradigm
+
+Most audio and motion systems operate on a playback model:
+
+> Increment a counter → sample a function → accept accumulated error.
+
+Precision-DPW operates on a simulation model:
+
+> Maintain a conserved geometric state → evolve it causally → project it into observable domains.
+
+A signal is treated as a **vector rotating in 128-bit space**, not as a floating-point accumulator tied to wall-clock time.
+
+### Consequences
+
+* No floating-point phase drift.
+* Precision does not degrade over long durations.
+* Cross-modal coherence (audio, motion, visual) is preserved.
+* Spectral energy is controlled across differentiation stages.
+
+---
+
+## The Three-Layer Signal Stack
+
+Traditional geometric systems describe spatial shape only.  
+Precision-DPW defines three enforced layers:
+
+```text
+Geometry
+ └── Phase (Time / Causality)
+      └── Energy (Spectral Law)
+```
+
+### 1. Geometry
+
+* Spatial coordinates in a fixed reference frame.
+* Represented in `I64F64` (128-bit fixed point).
+
+### 2. Phase (Time as State)
+
+* Signals evolve by causal phase rotation.
+* Phase is:
+
+  * continuous
+  * unbounded (spatial magnitude may saturate)
+  * conserved
+  * deterministic
+* Evolution is defined by state, not scheduler timing.
+
+### 3. Energy (Spectral Conservation)
+
+* Differentiation preserves defined spectral power under the fixed gain/truncation/headroom policies listed below.
+* Enforced by:
+
+  * `i128` differentiation buffers
+  * fixed truncation policy
+  * fixed gain normalization (`DPW4_GAIN_FACTOR = 1/24`)
+  * fixed headroom policy (`HEADROOM_BITS = 1`)
+
+---
+
+## Stack Structure
+
+### 1. `crates/geom-signal`
+
+Pure deterministic math core.
+
+* **Scalar Type**: `I64F64` (signed, two’s-complement, wraparound)
+* **CORDIC Engine**:
+
+  * `sin`, `cos`, `sqrt`
+  * Angle domain: radians
+  * Reduction guarantees final angles in **[-π, π]**
+* **Determinism**:
+
+  * No floating-point
+  * `no_std`
+  * Bit-exact across supported architectures
+
+---
+
+### 2. `crates/geom-spatial`
+
+High-dynamic-range spatial operations built on `Scalar`.
+
+* **Vector3** with `Scalar` components
+* **Dynamic shift-scaling (0–32 bits)** to prevent overflow during squaring
+* **Overflow pre-detection**:
+
+  * Trigger: MSB of maximum component > bit 112
+  * Action: saturate to `Scalar::MAX`
+  * Safe operational magnitude ≈ **2.8 × 10¹⁴ meters**
+
+---
+
+### 3. `crates/dpw4`
+
+4th-order Differentiated Polynomial Waveform kernel.
+
+#### Dataflow Structure
+
+```text
+Wide Input   → Narrow Compute → Wide State → Narrow Egress
+(128-bit)       (32-bit)        (128-bit)     (32-bit)
+```
+
+* **Phase Engine**: `Scalar` (`I64F64`)
+* **Projection Grid**: Q31
+* **Differentiation State**: `i128` (Q124)
+* **Egress Format**: `S32LE`
+
+#### Normative Narrowing Rules
+
+* Phase-domain truncation: `s_q31 >> 1`
+* Output headroom: `sample >> HEADROOM_BITS` (HEADROOM_BITS = 1)
+* Saturation to `i32`
+* Gain factor:
+
+  * `DPW4_GAIN_FACTOR = 1/24`
+  * Stored as `I64F64`
+  * Exact bit-pattern:
+    `0x0000000000000000_0aaaaaaaaaaaaaaab`
+
+Projection width, truncation, gain, and saturation rules are fixed in the reference and are not configurable.
+
+These rules define the normative observation boundary.
+
+---
+
+## Determinism & Governance
+
+This repository defines a canonical reference.
+
+### Rules
+
+1. **Fixed-Point Only**
+   Floating-point operations are forbidden in the signal path.
+2. **Bit-Exact Identity**
+   Conformant implementations must match the canonical `S32LE` stream under the reference build.
+3. **Explicit Saturation Boundaries**
+   Wraparound is permitted internally; saturation is allowed only at defined boundaries.
+
+---
+
+## Verification Protocol (Normative)
+
+### 1. Formal Verification (Kani)
+
+Required for defined kernel boundaries in `dpw4`:
+
+* polynomial evaluation
+* truncation
+* saturation
+
+Known exclusions:
+
+* CORDIC convergence bounds
+* `sqrt` internal loops
+
+`geom-signal` and `geom-spatial` are currently outside Kani CI scope.
+
+---
+
+### 2. Forensic Verification (Hashing)
+
+* SHA-256 over raw `S32LE` sample bytes
+* Serialization via `to_le_bytes()`
+* Endianness normalization required
+* Container formats (CSV, WAV) are derived artifacts and must not be used for primary conformance testing.
+* Only the raw `S32LE` sample byte stream defines normative identity.
+
+---
+
+### 3. Physical Verification
+
+* Raspberry Pi GPIO harness
+* Validates 128-bit phase evolution against physical time mapping
+
+---
+
+## CLI Tooling
+
+The `precision` binary generates and audits canonical signals.
+
+### Determinism Gate
+
+```bash
+cargo run --release -p dpw4 --features cli --bin precision -- validate --mode quick
+```
+
+Normative artifacts (pinned gate set):
+
+* `saw_20_headroom.det.csv`
+* `pulse_relational_8k.det.csv`
+* `triangle_linearity_1k.det.csv`
+* `sine_linearity_1k.det.csv`
+* `long_run_0_1hz.det.csv`
+* `master_sweep_20_20k.det.csv`
+
+---
+
+## Architectural Invariants (v1.0.0-rc5)
+
+1. Fixed 4th-order DPW kernel
+2. `i128` (Q124) differentiation buffers
+3. `Scalar` (`I64F64`) phase engine with O(1) modulo normalization
+4. Pure fixed-point arithmetic
+5. `S32LE` normative egress
+6. Advisory `f64` shadow model (non-normative; excluded from hashing)
+
+---
+
+## Canonical Signal Flow
+
+```text
+[ Phase Engine (Scalar 128) ]
+             |
+             v
+      [ Truncation (Q31 → Q30) ]
+             |
+             v
+      [ x² Polynomial (Q124) ]
+             |
+             v
+      [ x⁴ Polynomial (Q124) ]
+             |
+             v
+ [ 3rd-Order Differentiation (i128) ]
+             |
+             v
+  [ Gain (1/24) ]
+             |
+             v
+  [ Egress Headroom (>> HEADROOM_BITS) ]
+             |
+             v
+      [ Saturation → i32 (S32LE) ]
+```
+
+The `S32LE` egress is the normative observation boundary.
+Internal state remains 128-bit and `i128`.
+
+Higher-precision taps must not alter evolution or participate in reference hashing.
+
+---
+
+## Environment Segmentation
+
+### Pure Logic
+
+* `crates/geom-signal`
+* `crates/geom-spatial`
+* `crates/dpw4/src`
+
+### Hardware Harness
+
+* `crates/dpw4/examples/rpi_verify_logic.rs`
+* Raspberry Pi only
+
+---
+
+## Feature Summary
+
+* 128-bit fixed-point geometry
+* Deterministic CORDIC trigonometry
+* Controlled spatial saturation
+* Energy-controlled DPW synthesis
+* Hash-locked deterministic identity
+
+---
+
+**Status**: Reference Baseline Frozen — **v1.0.0-rc5**

@@ -1,0 +1,17 @@
+[package]
+name = "geom-spatial"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description = "128-bit Spatial Coordinate engine for Precision-DPW"
+
+[dependencies]
+fixed = { version = "1.27", features = ["num-traits"] }
+geom-signal = { path = "../geom-signal" }
+
+[dev-dependencies]
+proptest = "1.4"
+
+[features]
+default = []
+float-ingest = []

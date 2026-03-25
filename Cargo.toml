@@ -1,0 +1,42 @@
+[workspace]
+# Multi-crate platform workspace. The public v1 release boundary is the
+# deterministic replay infrastructure, not every workspace member.
+members = [
+    "crates/audit-float-boundary",
+    "crates/dpw4",
+    "crates/geom-signal",
+    "crates/geom-spatial",
+    "crates/replay-core",
+    "crates/replay-embed",
+    "crates/replay-host",
+    "crates/replay-cli",
+    "crates/replay-fw-f446",
+    "crates/xtask",
+]
+default-members = [
+    "crates/dpw4",
+    "crates/geom-signal",
+    "crates/geom-spatial",
+    "crates/audit-float-boundary",
+]
+resolver = "2"
+
+[workspace.package]
+version = "1.2.2"
+edition = "2021"
+authors = ["Dan Elkins <dan.elkins@gmail.com>"]
+license = "MIT"
+
+[workspace.dependencies]
+dpw4 = { path = "crates/dpw4" }
+geom-signal = { path = "crates/geom-signal" }
+geom-spatial = { path = "crates/geom-spatial" }
+
+[profile.release]
+codegen-units = 1
+lto = "thin"
+panic = "abort"
+incremental = false
+debug = 0
+strip = "symbols"
+overflow-checks = false

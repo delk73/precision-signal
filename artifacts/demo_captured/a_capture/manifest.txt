@@ -1,0 +1,6 @@
+# phase8 repeat_capture manifest
+signal_model=phase8
+serial=/dev/ttyACM0 runs=1
+reset_mode=stlink
+# fields: run file bytes sha256 status
+run=01 file=run_01.bin bytes=160016 sha256=b246aa88e5ffdfff32ff32bb39c6aa517601888772e278a285b1b42674430bf3 status=PASS

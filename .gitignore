@@ -1,0 +1,35 @@
+/target*
+
+**/*.rs.bk
+*.swp
+*.csv
+.DS_Store
+diff.txt
+*.png
+!docs/img/divergence_demo.png
+docs/verification/plots/gibbs_proof.png
+forensic_audit.ipynb
+docs/verification/*
+!docs/verification/*.md
+docs/audits/runlogs/*
+!docs/audits/runlogs/.gitkeep
+# binary artifacts
+*.bin
+
+# replay canonical artifacts (tracked)
+!artifacts/baseline.bin
+!artifacts/baseline.sha256
+!artifacts/baseline.json
+!artifacts/manifest.txt
+
+# allow release evidence
+!docs/verification/releases/
+!docs/verification/releases/**
+
+# replay experiment captures
+artifacts/phase_*/
+kani_logs/*
+.vscode/settings.json
+st-util.log
+scripts/__pycache__/
+artifacts/replay_runs

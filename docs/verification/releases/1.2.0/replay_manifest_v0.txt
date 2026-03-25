@@ -1,0 +1,11 @@
+contract_version=replay_capture_v0
+signal_model=phase8
+baseline_path=artifacts/baseline.bin
+baseline_sha256=b246aa88e5ffdfff32ff32bb39c6aa517601888772e278a285b1b42674430bf3
+requested_runs=3
+completed_runs=3
+final_status=PASS
+failure_class=-
+baseline_hash_match=true
+timestamp_utc=2026-03-19T04:47:54Z
+run_dir=/home/dce/src/precision-dpw/artifacts/replay_runs/run_20260319T044754Z

@@ -1,0 +1,2 @@
+gate_result=PASS
+command=make gate
