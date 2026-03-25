@@ -1,5 +1,5 @@
 # precision-signal: Canonical Verification Protocol
-**Version: 1.2.1 (Active Release Baseline)**
+**Version: 1.2.2 (Active Release Baseline)**
 **Status: Frozen Definition**
 
 ## Purpose

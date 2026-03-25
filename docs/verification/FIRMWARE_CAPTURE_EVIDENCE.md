@@ -4,7 +4,7 @@
 
 - Audit date: 2026-03-18
 - Hardware context: committed STM32F446 capture artifacts in `artifacts/demo_captured/`
-- Local execution context: `/home/dce/src/precision-dpw`
+- Historical local execution context from the retained audit log: `/home/dce/src/precision-dpw`
 
 ## Commands
 

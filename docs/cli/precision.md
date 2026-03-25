@@ -1,5 +1,5 @@
 # Precision CLI Reference (Normative)
-**Version:** v1.2.1  
+**Version:** v1.2.2  
 **Status:** Normative (Tooling Surface Lock)
 
 ## Overview

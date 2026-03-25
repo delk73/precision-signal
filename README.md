@@ -6,7 +6,7 @@
 rustup toolchain install 1.91.1
 git clone <repo-url>
 cd precision-signal
-make ci-local
+make gate
 ```
 
 Expected:
