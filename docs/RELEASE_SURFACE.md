@@ -33,7 +33,7 @@ Release
 - `precision inspect` (operator-path evidence: [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md))
 - `precision verify` (operator-path evidence: [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md))
 - `header_audit` (operator-path evidence: [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md))
-- `replay-fw-f446` (firmware capture surface for the active RPL0 `version = 1` operator path; normative contract: [docs/replay/FW_F446_CAPTURE_v1.md](replay/FW_F446_CAPTURE_v1.md); active retained evidence record: [docs/verification/releases/1.2.2/firmware_release_evidence.md](verification/releases/1.2.2/firmware_release_evidence.md); that `1.2.2` bundle explicitly promotes previously retained hardware-backed hashes without claiming a fresh hardware rerun)
+- `replay-fw-f446` (firmware capture surface for the active RPL0 `version = 1` operator path; normative contract: [docs/replay/FW_F446_CAPTURE_v1.md](replay/FW_F446_CAPTURE_v1.md); active retained evidence record: [docs/verification/releases/1.2.2/firmware_release_evidence.md](verification/releases/1.2.2/firmware_release_evidence.md); the release `1.2.2` bundle records a direct hardware-backed rerun)
 
 Experimental
 

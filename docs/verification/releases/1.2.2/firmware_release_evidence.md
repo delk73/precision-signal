@@ -3,7 +3,7 @@
 This directory is the canonical retained release-evidence location for the
 `1.2.2` release record.
 
-Hardware capture and verification were re-executed for `v1.2.2`.
+Hardware capture and verification were re-executed for release `1.2.2`.
 This retained bundle records the direct hardware-backed run for:
 
 - board: `NUCLEO-F446RE`

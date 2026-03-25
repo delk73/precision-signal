@@ -4,7 +4,7 @@ Bare-metal STM32F446RE capture firmware for the active released replay path.
 
 Release classification is owned by `docs/RELEASE_SURFACE.md`. The active
 capture contract is `docs/replay/FW_F446_CAPTURE_v1.md`, and retained release
-evidence lives under `docs/verification/releases/1.2.1/`.
+evidence for release `1.2.2` lives under `docs/verification/releases/1.2.2/`.
 
 ## Current capture path
 
