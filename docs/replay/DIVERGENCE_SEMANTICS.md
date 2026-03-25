@@ -1,5 +1,14 @@
 # Divergence Semantics
 
+**Document revision:** 1.2.2  
+**Applies to:** release 1.2.2 (content unchanged)
+
+## Versioning Terminology
+
+- Document revision labels editorial history for this explanation contract.
+- Release versions identify the shipped software release.
+- Artifact/header versions remain part of the artifact contract and do not version this explanation document.
+
 This document defines the normative explanation contract emitted by
 `scripts/artifact_diff.py`.
 

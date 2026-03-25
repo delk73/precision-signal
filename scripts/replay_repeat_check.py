@@ -183,7 +183,7 @@ def write_manifest(
                 f"artifact_version={artifact_version}",
                 f"schema_hash={schema_hash}",
                 f"signal_model={signal_model}",
-                f"baseline_path={baseline_path}",
+                f"baseline_path={repo_relative_path(baseline_path)}",
                 f"baseline_sha256={baseline_sha}",
                 f"requested_runs={requested_runs}",
                 f"completed_runs={completed_runs}",

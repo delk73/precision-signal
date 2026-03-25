@@ -26,7 +26,7 @@ final_status=PASS
 failure_class=-
 baseline_hash_match=true
 timestamp_utc=2026-03-19T04:47:54Z
-run_dir=/home/dce/src/precision-dpw/artifacts/replay_runs/run_20260319T044754Z
+run_dir=artifacts/replay_runs/run_20260319T044754Z
 
 ## explicit hash check
 b246aa88e5ffdfff32ff32bb39c6aa517601888772e278a285b1b42674430bf3  artifacts/baseline.bin

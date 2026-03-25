@@ -1,8 +1,16 @@
 # Control Scheduler Benchmarking Plan
 
-**Status:** Normative  
+**Document revision:** v1.0.0-rc5  
+**Applies to:** historical pre-release planning material (not current release 1.2.2)  
+**Status:** Historical reference  
 **Scope:** Control-plane (outside-control) scheduler only  
 **Out of Scope:** Hot-path signal/DSP kernel benchmarking
+
+## Versioning Terminology
+
+- Document revision labels the historical planning snapshot captured in this file.
+- Release versions identify shipped software releases.
+- This file is historical roadmap/reference material and does not define the current release `1.2.2` surface.
 
 > **Implementation Status (v1.0.0-rc5)**
 >

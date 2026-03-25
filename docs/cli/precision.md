@@ -1,6 +1,14 @@
 # Precision CLI Reference (Normative)
+**Document revision:** 1.2.2  
+**Applies to:** release 1.2.2 (content unchanged)  
 **Surface status:** Normative (release 1.2.2)  
 **Status:** Normative (Tooling Surface Lock)
+
+## Versioning Terminology
+
+- Document revision labels editorial history for this CLI reference.
+- Release versions identify the shipped software release.
+- Artifact/header versions referenced by this CLI are part of the artifact contracts and are not CLI document revisions.
 
 ## Overview
 The `precision` binary is the reference Rust CLI for generation, inspection,

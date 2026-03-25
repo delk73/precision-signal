@@ -8,4 +8,4 @@ final_status=PASS
 failure_class=-
 baseline_hash_match=true
 timestamp_utc=2026-03-19T04:47:54Z
-run_dir=/home/dce/src/precision-dpw/artifacts/replay_runs/run_20260319T044754Z
+run_dir=artifacts/replay_runs/run_20260319T044754Z

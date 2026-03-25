@@ -194,7 +194,7 @@ version, not artifact spec filename — NAM-003 does not apply.
 ### Finding W-1: Retained manifest has absolute non-portable run_dir
 
 The `replay_manifest_v1.txt` in the 1.2.2 release bundle contains
-`run_dir=/home/dce/src/precision-signal/artifacts/replay_runs/run_20260325T184038Z`,
+`run_dir=artifacts/replay_runs/run_20260325T184038Z`,
 an absolute host-specific path. `make release-bundle-check` flags this as WARN.
 
 Evidence:

@@ -7,7 +7,7 @@ pre-ejection repository identity (`precision-dpw`).
 
 - Audit date: 2026-03-18
 - Hardware context: committed STM32F446 capture artifacts in `artifacts/demo_captured/`
-- Historical local execution context from the retained audit log: `/home/dce/src/precision-dpw`
+- Historical local execution context from the retained audit log: repo root `precision-dpw/`
 
 ## Commands
 

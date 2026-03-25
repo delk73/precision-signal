@@ -1,8 +1,16 @@
 # Hot Path Execution and Benchmarking Plan
 
-**Status:** Normative  
+**Document revision:** v1.0.0-rc5  
+**Applies to:** historical pre-release planning material (not current release 1.2.2)  
+**Status:** Historical reference  
 **Scope:** Signal / geometry hot paths (inner loops)  
 **Related:** CONTROL_SCHEDULER_BENCHMARKING.md
+
+## Versioning Terminology
+
+- Document revision labels the historical planning snapshot captured in this file.
+- Release versions identify shipped software releases.
+- This file is historical roadmap/reference material and does not define the current release `1.2.2` surface.
 
 > **Implementation Status (v1.0.0-rc5)**
 >

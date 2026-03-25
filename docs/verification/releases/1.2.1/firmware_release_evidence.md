@@ -34,7 +34,7 @@ final_status=PASS
 failure_class=-
 baseline_hash_match=true
 timestamp_utc=2026-03-20T16:08:31Z
-run_dir=/home/dce/src/precision-dpw/artifacts/replay_runs/run_20260320T160831Z
+run_dir=artifacts/replay_runs/run_20260320T160831Z
 COMMAND_PATH=docs/replay/FW_F446_CAPTURE_v1.md
 
 ## explicit hash check
