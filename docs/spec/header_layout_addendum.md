@@ -1,6 +1,14 @@
 # Header Layout Addendum (DP32)
-**Version:** v1.0.0-rc5  
+**Document revision:** v1.0.0-rc5  
+**Applies to:** release 1.2.2 (content unchanged)  
 **Status:** Normative (Contract Surface Lock)
+
+## Versioning Terminology
+
+- Document revision labels editorial history for this specification.
+- Release versions identify the shipped software release.
+- The `version` field described below is the artifact/header contract version, not the software release version.
+- Unchanged content remains applicable to release `1.2.2`.
 
 ## Scope
 This addendum clarifies the canonical layout and alignment rules for `SignalFrameHeader`.

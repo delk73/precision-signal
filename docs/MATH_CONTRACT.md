@@ -2,6 +2,7 @@
 **Status:** LOCKED normative contract.
 **Revision:** Revision 2 (frozen at lock cut)
 **Lock Status:** LOCKED
+**Carry-forward note:** This contract was locked at release `1.2.1` and is carried forward unchanged for release `1.2.2`.
 
 ---
 
