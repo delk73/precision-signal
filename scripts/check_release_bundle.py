@@ -11,10 +11,18 @@ from pathlib import Path
 
 RUN_ID_RE = re.compile(r"run_\d{8}T\d{6}Z")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
+RUN_DIR_REL_RE = re.compile(r"^artifacts/replay_runs/(run_\d{8}T\d{6}Z)$")
 
 
 def load_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
+
+
+def display_path(path: Path, repo_root: Path) -> str:
+    try:
+        return path.relative_to(repo_root).as_posix()
+    except ValueError:
+        return str(path)
 
 
 def parse_manifest(path: Path) -> dict[str, str]:
@@ -66,7 +74,53 @@ def parse_hash_check(path: Path) -> list[tuple[str, str]]:
     return entries
 
 
-def validate_bundle(bundle_dir: Path, repo_root: Path) -> list[str]:
+def validate_run_dir(
+    run_dir_value: str,
+    run_id: str,
+    repo_root: Path,
+    strict_paths: bool,
+) -> tuple[Path, list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    manifest_run_dir = Path(run_dir_value)
+
+    if manifest_run_dir.is_absolute():
+        resolved_run_dir = manifest_run_dir.resolve()
+        if strict_paths:
+            errors.append(
+                f"replay_manifest_v1.txt run_dir must be repo-relative in --strict-paths mode: {run_dir_value}"
+            )
+            return resolved_run_dir, errors, warnings
+        warnings.append(
+            f"replay_manifest_v1.txt run_dir is absolute and non-portable: {run_dir_value}"
+        )
+        if resolved_run_dir.name != run_id:
+            errors.append(
+                f"replay_manifest_v1.txt run_dir basename does not match retained run id {run_id}: {run_dir_value}"
+            )
+        if not resolved_run_dir.is_dir():
+            errors.append(f"replay_manifest_v1.txt run_dir does not exist: {run_dir_value}")
+        return resolved_run_dir, errors, warnings
+
+    normalized_run_dir = manifest_run_dir.as_posix()
+    match = RUN_DIR_REL_RE.fullmatch(normalized_run_dir)
+    if match is None:
+        errors.append(
+            "replay_manifest_v1.txt run_dir must match artifacts/replay_runs/run_<timestamp>: "
+            f"{run_dir_value}"
+        )
+        return (repo_root / manifest_run_dir).resolve(), errors, warnings
+    if match.group(1) != run_id:
+        errors.append(
+            f"replay_manifest_v1.txt run_dir does not match retained run id {run_id}: {run_dir_value}"
+        )
+    resolved_run_dir = (repo_root / manifest_run_dir).resolve()
+    if not resolved_run_dir.is_dir():
+        errors.append(f"replay_manifest_v1.txt run_dir does not exist: {run_dir_value}")
+    return resolved_run_dir, errors, warnings
+
+
+def validate_bundle(bundle_dir: Path, repo_root: Path, strict_paths: bool) -> tuple[list[str], list[str]]:
     required = {
         "firmware_release_evidence.md": bundle_dir / "firmware_release_evidence.md",
         "replay_manifest_v1.txt": bundle_dir / "replay_manifest_v1.txt",
@@ -74,11 +128,12 @@ def validate_bundle(bundle_dir: Path, repo_root: Path) -> list[str]:
         "hash_check.txt": bundle_dir / "hash_check.txt",
     }
     errors: list[str] = []
+    warnings: list[str] = []
     for name, path in required.items():
         if not path.is_file():
             errors.append(f"missing required retained file: {name}")
     if errors:
-        return errors
+        return errors, warnings
 
     evidence_text = load_text(required["firmware_release_evidence.md"])
     manifest_text = load_text(required["replay_manifest_v1.txt"])
@@ -89,7 +144,7 @@ def validate_bundle(bundle_dir: Path, repo_root: Path) -> list[str]:
     run_ids.update(RUN_ID_RE.findall(hash_check_text))
     if len(run_ids) != 1:
         errors.append(f"expected exactly one run id across retained files, found: {sorted(run_ids)}")
-        return errors
+        return errors, warnings
     run_id = next(iter(run_ids))
 
     manifest = parse_manifest(required["replay_manifest_v1.txt"])
@@ -97,21 +152,25 @@ def validate_bundle(bundle_dir: Path, repo_root: Path) -> list[str]:
         if key not in manifest:
             errors.append(f"replay_manifest_v1.txt missing required key: {key}")
     if errors:
-        return errors
+        return errors, warnings
 
     baseline_sha, summary_runs = parse_sha256_summary(required["sha256_summary.txt"])
     hash_entries = parse_hash_check(required["hash_check.txt"])
     hash_map = {path: sha for sha, path in hash_entries}
     expected_baseline_path = manifest["baseline_path"]
     baseline_path = repo_root / expected_baseline_path
-    run_dir = Path(manifest["run_dir"])
+    run_dir_value = manifest["run_dir"]
+    run_dir, run_dir_errors, run_dir_warnings = validate_run_dir(
+        run_dir_value,
+        run_id,
+        repo_root,
+        strict_paths,
+    )
+    errors.extend(run_dir_errors)
+    warnings.extend(run_dir_warnings)
 
-    if run_id not in manifest["run_dir"]:
-        errors.append("replay_manifest_v1.txt run_dir does not match retained run id")
-    if not run_dir.is_dir():
-        errors.append(f"manifest run_dir does not exist: {run_dir}")
     if not baseline_path.is_file():
-        errors.append(f"manifest baseline_path does not exist: {baseline_path}")
+        errors.append(f"replay_manifest_v1.txt baseline_path does not exist: {expected_baseline_path}")
 
     manifest_baseline_sha = manifest["baseline_sha256"]
     if baseline_sha != manifest_baseline_sha:
@@ -138,10 +197,14 @@ def validate_bundle(bundle_dir: Path, repo_root: Path) -> list[str]:
     if len(summary_map) != len(summary_runs):
         errors.append("sha256_summary.txt contains duplicate run filenames")
     for expected_path in expected_run_paths:
-        repo_path = repo_root / expected_path
+        repo_path = (repo_root / expected_path).resolve()
         if not repo_path.is_file():
-            errors.append(f"referenced run artifact does not exist: {repo_path}")
+            errors.append(f"referenced run artifact does not exist: {expected_path}")
             continue
+        if repo_path.parent != run_dir:
+            errors.append(
+                f"referenced run artifact is not located under replay_manifest_v1.txt run_dir {run_dir_value}: {expected_path}"
+            )
         expected_name = repo_path.name
         if expected_name not in summary_map:
             errors.append(f"sha256_summary.txt missing retained run entry: {expected_name}")
@@ -164,12 +227,13 @@ def validate_bundle(bundle_dir: Path, repo_root: Path) -> list[str]:
         evidence_run_dir_value = evidence_run_dir.group(1).strip()
         allowed_run_dirs = {
             f"artifacts/replay_runs/{run_id}",
+            run_dir_value,
             str(run_dir),
         }
         if evidence_run_dir_value not in allowed_run_dirs:
             errors.append("firmware_release_evidence.md RUN_DIR does not match retained run path")
 
-    return errors
+    return errors, warnings
 
 
 def main() -> int:
@@ -189,6 +253,11 @@ def main() -> int:
         type=Path,
         help="explicit retained bundle directory",
     )
+    parser.add_argument(
+        "--strict-paths",
+        action="store_true",
+        help="require repo-relative replay_manifest_v1.txt run_dir values",
+    )
     args = parser.parse_args()
 
     repo_root = args.root.resolve()
@@ -200,18 +269,20 @@ def main() -> int:
         parser.error("pass --version or --bundle-dir")
 
     try:
-        errors = validate_bundle(bundle_dir, repo_root)
+        errors, warnings = validate_bundle(bundle_dir, repo_root, args.strict_paths)
     except ValueError as exc:
-        print(f"FAIL: retained release bundle coherence: {bundle_dir.relative_to(repo_root)}")
+        print(f"FAIL: retained release bundle coherence: {display_path(bundle_dir, repo_root)}")
         print(f"- {exc}")
         return 1
     if errors:
-        print(f"FAIL: retained release bundle coherence: {bundle_dir.relative_to(repo_root)}")
+        print(f"FAIL: retained release bundle coherence: {display_path(bundle_dir, repo_root)}")
         for error in errors:
             print(f"- {error}")
         return 1
 
-    print(f"PASS: retained release bundle coherence: {bundle_dir.relative_to(repo_root)}")
+    print(f"PASS: retained release bundle coherence: {display_path(bundle_dir, repo_root)}")
+    for warning in warnings:
+        print(f"WARN: {warning}")
     return 0
 
 
