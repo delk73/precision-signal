@@ -276,6 +276,10 @@ For `1.2.0`, `release_reproducibility.txt` is supporting-only and is not
 required for release admissibility. If present, it remains supporting evidence
 in the same retained release directory.
 
+Reviewer sequence for a retained release bundle: inspect the retained evidence
+summary in `docs/verification/releases/<version>/`, then run
+`make release-bundle-check VERSION=<version>` against that same directory.
+
 ### 6.6 Non-Normative Canary Scenario
 
 `phase_wrap_440` is a non-normative determinism canary.

@@ -24,6 +24,11 @@ COMMAND_PATH=docs/replay/FW_F446_CAPTURE_v1.md
 The retained hashes in this record derive from the 2026-03-25
 `run_20260325T184038Z` recorded session identified above.
 
+Post-release integrity repair note: this retained bundle originally carried a
+stale `hash_check.txt` path set from an earlier capture export. The retained
+hash inventory was corrected to the archived `run_20260325T184038Z` files
+listed in this directory. No retained hashes or release claims changed.
+
 ## commands
 
 - `make flash-ur`
