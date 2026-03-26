@@ -15,6 +15,11 @@ Normative behavior is defined outside this index:
 
 - [docs/MATH_CONTRACT.md](MATH_CONTRACT.md): arithmetic, signal-path, narrowing, and saturation contract
 - [docs/spec/rpl0_artifact_contract.md](spec/rpl0_artifact_contract.md): normative replay artifact format
+- [docs/spec/dpw_gain.md](spec/dpw_gain.md): gain model invariants and domain specification
+- [docs/spec/oscillator_api.md](spec/oscillator_api.md): oscillator dispatch contract
+- [docs/spec/reference_invariants.md](spec/reference_invariants.md): mathematical reference invariants
+- [docs/spec/pulse_implementation_spec.md](spec/pulse_implementation_spec.md): pulse and square waveform spec
+- [docs/spec/header_layout_addendum.md](spec/header_layout_addendum.md): header layout addendum
 - [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md): conformance governance and verification protocol
 
 If a descriptive document disagrees with a normative one, the normative document
@@ -29,6 +34,7 @@ wins.
 - [docs/architecture/float_boundary.md](architecture/float_boundary.md): float quarantine and allowed surfaces
 - [docs/architecture/system_surfaces.md](architecture/system_surfaces.md): build surfaces, environment segmentation,
   and implementation routing (not a release classifier)
+- [docs/system_architecture_disclosure.md](system_architecture_disclosure.md): system architecture overview
 
 ## Replay
 
@@ -88,6 +94,7 @@ wins.
 
 ## Performance
 
+- [docs/architecture/performance/README.md](architecture/performance/README.md): performance benchmarking index
 - [docs/architecture/performance/CONTROL_SCHEDULER_BENCHMARKING.md](architecture/performance/CONTROL_SCHEDULER_BENCHMARKING.md): control scheduler benchmarking notes
 - [docs/architecture/performance/HOT_PATH_EXECUTION_AND_BENCHMARKING.md](architecture/performance/HOT_PATH_EXECUTION_AND_BENCHMARKING.md): hot-path execution and benchmarking notes
 
