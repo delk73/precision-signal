@@ -1,0 +1,9 @@
+PASS: artifact structure is valid
+magic: RPL0
+version: 0
+header_len: 16
+schema_len: 0
+frame_count: 10000
+frame_size: 16
+canonical_len: 160016
+signal_model: none

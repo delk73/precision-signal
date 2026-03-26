@@ -1,0 +1,17 @@
+DIVERGENCE DETECTED
+First divergence frame: 4096
+Classification: transient
+Sample A: 0x00000000
+Sample B: 0x00000001
+Raw A: 0010000002000000e803000000000000
+Raw B: 0010000002000000e803000001000000
+Differing fields: sample, raw
+Total frames: 10000
+first_divergence_frame: 4096
+shape_class: transient
+primary_region: sample_payload
+all_regions_at_first_divergence: [sample_payload]
+region_summary: sample_payload
+evolution_class: self_healing
+timeline_summary: divergence resolves within 1 frame
+reconvergence_summary: reconverged_at_frame=4097

@@ -1,0 +1,15 @@
+DIVERGENCE DETECTED
+First divergence frame: 4096
+Classification: none
+Delta A/B: 1000 / 1001
+Raw A: 0010000002000000e803000000000000
+Raw B: 0010000002000000e903000000000000
+Differing fields: delta, raw
+Total frames: 10000
+first_divergence_frame: 4096
+shape_class: none
+primary_region: timer_delta
+all_regions_at_first_divergence: [timer_delta]
+region_summary: timer_delta
+evolution_class: region_transition
+timeline_summary: divergence reaches sample_payload at frame 4098
