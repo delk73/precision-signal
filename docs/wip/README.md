@@ -1,16 +1,15 @@
-# WIP (Non-Normative)
+# NON-NORMATIVE / EXPERIMENTAL
 
-All documents in this directory are experimental.
+This directory is a non-normative surface for exploratory WIP and experiment logging.
+Contents here are provisional, may be wrong, and may be abandoned without promotion.
+Nothing under `docs/wip/` changes release surface, specification, or verification authority.
 
-They:
-- Are NOT part of any locked contract.
-- Are NOT part of the current release surface for the active RPL0 `version = 1` operator path.
-- Do NOT define release semantics.
-- Do NOT participate in CI determinism gates.
-- May change without versioning guarantees.
+Canonical authority remains with:
 
-Promotion to normative requires:
-1. Spec freeze proposal.
-2. Review.
-3. Explicit LOCK decision.
-4. Relocation out of `wip/`.
+- [README.md](../../README.md)
+- [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md)
+- [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md)
+- [docs/spec/](../spec/) or [docs/MATH_CONTRACT.md](../MATH_CONTRACT.md), as applicable
+
+Use [experiment_log.md](experiment_log.md) as the append-only WIP index and
+[templates/experiment_entry.md](templates/experiment_entry.md) for new entries.
