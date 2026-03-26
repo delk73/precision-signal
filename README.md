@@ -1,5 +1,7 @@
 # precision-signal
 
+A deterministic execution validation system that captures runtime artifacts and verifies replay equivalence across contexts.
+
 ## First 5 Minutes
 
 ```bash
