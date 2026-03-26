@@ -7,7 +7,7 @@
 
 ## [Unreleased]
 
-## [1.2.2] - 2026-03-24
+## [1.2.2] - 2026-03-26
 
 ### Added
 
@@ -29,7 +29,8 @@
   documentation link checking.
 
 ### Fixed
-
+* **[Docs] Fixed GitHub Pages routing for retained release evidence link.**
+  
 * **[Docs] Fixed non-clickable public documentation references.**
 
 * **[Audit] Fixed ambiguous audit evidence formatting expectations.**
