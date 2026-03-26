@@ -3,9 +3,11 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>precision-signal Routing</title>
+    <title>precision-signal</title>
     <style>
-      :root { color-scheme: dark; }
+      :root {
+        color-scheme: dark;
+      }
       body {
         margin: 0;
         padding: 32px 20px;
@@ -14,60 +16,52 @@
         font-family: "IBM Plex Sans", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
         line-height: 1.5;
       }
-      main { max-width: 920px; margin: 0 auto; }
-      h1 { margin: 0 0 12px 0; font-size: 2rem; }
-      h2 { margin: 0 0 12px 0; font-size: 1.15rem; }
-      p { margin: 0 0 20px 0; color: #b6c2d1; }
-      ul { margin: 0; padding-left: 18px; color: #d7e3f1; }
-      li + li { margin-top: 6px; }
-      .panel { margin: 0 0 20px 0; padding: 12px; border: 1px solid #2b3a60; border-radius: 12px; background: rgba(10, 14, 28, 0.92); }
-      .links { display: grid; gap: 10px; }
-      .links a { display: block; padding: 12px 14px; border: 1px solid #2b3a60; border-radius: 10px; background: rgba(13, 20, 38, 0.9); color: #7cc7ff; text-decoration: none; }
-      .links a:hover { border-color: #3f5e9a; text-decoration: underline; }
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+      }
+      h1 {
+        margin: 0 0 12px 0;
+        font-size: 2rem;
+      }
+      p {
+        margin: 0 0 20px 0;
+        color: #b6c2d1;
+      }
+      .links {
+        display: grid;
+        gap: 10px;
+      }
+      .links a {
+        display: block;
+        padding: 12px 14px;
+        border: 1px solid #2b3a60;
+        border-radius: 10px;
+        background: rgba(13, 20, 38, 0.9);
+        color: #7cc7ff;
+        text-decoration: none;
+      }
+      .links a:hover {
+        border-color: #3f5e9a;
+        text-decoration: underline;
+      }
+      .note {
+        margin-top: 18px;
+        font-size: 0.95rem;
+      }
     </style>
   </head>
   <body>
     <main>
       <h1>precision-signal</h1>
-      <p>Routing page for the canonical release, verification, replay-tooling, and firmware-capture authorities.</p>
-      <div class="panel">
-        <h2>Canonical Authorities</h2>
-        <ul>
-          <li><a href="RELEASE_SURFACE.md">docs/RELEASE_SURFACE.md</a></li>
-          <li><a href="../VERIFICATION_GUIDE.md">VERIFICATION_GUIDE.md</a></li>
-          <li><a href="replay/tooling.md">docs/replay/tooling.md</a></li>
-          <li><a href="replay/FW_F446_CAPTURE_v1.md">docs/replay/FW_F446_CAPTURE_v1.md</a></li>
-        </ul>
-      </div>
-      <div class="panel">
-        <h2>Release Evidence</h2>
-        <ul>
-          <li><a href="verification/releases/1.2.2/firmware_release_evidence.md">1.2.2 retained release evidence</a></li>
-          <li><a href="verification/releases/1.2.2/">docs/verification/releases/1.2.2/</a></li>
-        </ul>
-      </div>
-      <div class="panel">
-        <h2>Secondary Pages</h2>
-        <ul>
-          <li><a href="demos/demo_visual.html">Interactive visual demo</a></li>
-          <li><a href="demos/demo_capture_perturbation.md">Demo V1 walkthrough</a></li>
-          <li><a href="demos/demo_persistent_divergence.md">Demo V2 walkthrough</a></li>
-          <li><a href="demos/demo_v3_divergence_classification.md">Demo V3 walkthrough</a></li>
-          <li><a href="demos/demo_v4_region_attribution.md">Demo V4 walkthrough</a></li>
-          <li><a href="demos/demo_v5_evolution.md">Demo V5 walkthrough</a></li>
-          <li><a href="demos/demo_captured_divergence.md">Captured divergence walkthrough</a></li>
-        </ul>
-      </div>
-      <div class="panel">
-        <h2>Scope Note</h2>
-        <p>This page intentionally avoids restating release classification. The canonical docs above decide current release surface, verification, and replay-tooling boundaries.</p>
-      </div>
+      <p>precision-signal is a deterministic execution analysis system, and this page is the release-aligned router for the current published documentation surfaces.</p>
       <div class="links">
-        <a href="RELEASE_SURFACE.md">Release surface classifier</a>
-        <a href="../VERIFICATION_GUIDE.md">Verification contract</a>
-        <a href="replay/tooling.md">Replay tooling boundary</a>
-        <a href="replay/FW_F446_CAPTURE_v1.md">F446 capture contract</a>
+        <a href="README.md">Documentation entry</a>
+        <a href="RELEASE_SURFACE.md">Release surface</a>
+        <a href="https://github.com/delk73/precision-signal/blob/main/VERIFICATION_GUIDE.md">Verification guide</a>
+        <a href="replay/tooling.md">Replay tooling</a>
       </div>
+      <p class="note">Current retained release evidence: <a href="verification/releases/1.2.2/">docs/verification/releases/1.2.2/</a></p>
     </main>
   </body>
 </html>
