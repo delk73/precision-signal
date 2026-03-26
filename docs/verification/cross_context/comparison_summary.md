@@ -6,6 +6,7 @@
 ## Setup
 
 - External target: existing synthetic RPL0 v1 fixture generator `scripts/generate_demo_v5_fixtures.py`
+- Here, `v1` refers to RPL0 format version 1 container framing, not a replay-semantics revision.
 - Contexts:
   - `context_a`
   - `context_b`

@@ -8,6 +8,7 @@ multiple execution contexts.
 
 - Artifact format: existing RPL0 v1 container artifacts with legacy
   `EventFrame0` replay semantics
+- Here, `v1` refers to RPL0 format version 1 container framing, not a replay-semantics revision.
 - External target: existing synthetic fixture generator
   `scripts/generate_demo_v5_fixtures.py`
 - Canonical context: Python replay tooling

@@ -48,7 +48,16 @@ wins.
 - [docs/verification/build_reproducibility.md](verification/build_reproducibility.md): pinned toolchain, release build, and
   reproducibility checks
 - [docs/verification/CI_EVIDENCE.md](verification/CI_EVIDENCE.md): CI evidence notes
+- [docs/verification/CROSS_CONTEXT_INVARIANCE.md](verification/CROSS_CONTEXT_INVARIANCE.md): cross-context replay invariance check for RPL0 format version 1 artifacts
+- [docs/verification/chaos_probes.md](verification/chaos_probes.md): chaos-probe verification notes
+- [docs/verification/FIRMWARE_CAPTURE_EVIDENCE.md](verification/FIRMWARE_CAPTURE_EVIDENCE.md): retained firmware capture evidence routing
+- [docs/verification/D-03_TriangleDPW4_Audit.md](verification/D-03_TriangleDPW4_Audit.md): retained TriangleDPW4 audit note
 - [docs/verification/releases/](verification/releases/): retained release evidence bundles
+
+## CLI
+
+- [docs/cli/precision.md](cli/precision.md): `precision` CLI reference
+- [docs/cli/examples.md](cli/examples.md): CLI usage examples
 
 ## Demo
 
@@ -59,6 +68,7 @@ wins.
 - [docs/demos/demo_v4_region_attribution.md](demos/demo_v4_region_attribution.md): divergence region attribution demo
 - [docs/demos/demo_v5_evolution.md](demos/demo_v5_evolution.md): divergence evolution semantics demo
 - [docs/demos/demo_captured_divergence.md](demos/demo_captured_divergence.md): hardware capture evidence demo
+- [docs/demos/demo_visual.html](demos/demo_visual.html): visual demo artifact retained for local inspection
 - [docs/architecture/replay_explained.md](architecture/replay_explained.md): narrative replay explanation ladder
 - [docs/replay/DIVERGENCE_SEMANTICS.md](replay/DIVERGENCE_SEMANTICS.md): normative replay explanation contract
 - [docs/demos/demo_claim_matrix.md](demos/demo_claim_matrix.md): claims-to-evidence map for reference demo surfaces
@@ -91,3 +101,7 @@ wins.
 
 - [docs/audits/README.md](audits/README.md): audit ledger index and runlog retention
 - [docs/audits/PRE_RELEASE_AUDIT.md](audits/PRE_RELEASE_AUDIT.md): release audit process
+
+## Roadmap
+
+- [docs/roadmap/witness_model_direction.md](roadmap/witness_model_direction.md): witness-model direction note
