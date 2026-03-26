@@ -1,19 +1,18 @@
-# Repository Health Audit — 1.2.2
+# Repository Health Audit — 1.2.2 (post-remediation)
 
 **Audit date:** 2026-03-25
 **Auditor:** automated agent (Claude Opus 4.6)
 **Workspace version:** 1.2.2
 **Toolchain:** rustc 1.91.1 (pinned via rust-toolchain.toml)
 **Branch:** feat/release-1.2.2
-**HEAD:** 6111fde
+**HEAD:** d03be96
 
 ---
 
 ## 1. Audit Scope Summary
 
-This audit covers the `precision-signal` repository at workspace version 1.2.2.
-Evidence is drawn from executable code, build/test/verification commands, normative
-specs, and public documentation.
+This audit covers the `precision-signal` repository at workspace version 1.2.2
+after remediation of all four findings from the prior audit baseline (HEAD `6111fde`).
 
 Scope:
 - Cargo workspace (10 crates, 4 default members)
@@ -25,9 +24,9 @@ Scope:
 - Documentation set under `docs/`
 - Retained release evidence under `docs/verification/releases/1.2.2/`
 
-Prior audit: The existing `docs/audits/repository_health_1.2.2.md` was a terse
-change record (29 lines) from a documentation remediation pass, not a structured
-health audit baseline. This audit replaces it as the first full baseline for 1.2.2.
+Prior audit: `docs/audits/repository_health_1.2.2.md` at HEAD `6111fde`.
+Four findings (W-1 through W-4) were identified. All four have been remediated
+in commits `b9321ea` through `d03be96`.
 
 ---
 
@@ -37,17 +36,17 @@ health audit baseline. This audit replaces it as the first full baseline for 1.2
 |---|---:|---|---|
 | Engineering integrity | 88 | Pinned toolchain, `#![forbid(unsafe_code)]`, determinism hashes locked to semver bumps | file: `rust-toolchain.toml`; file: `VERIFICATION_GUIDE.md` §1.2 |
 | Determinism / reproducibility | 90 | 7 golden hashes pass, 5/5 hardware runs identical, fixture-drift gate | command-output: `make gate => VERIFICATION PASSED`; file: `docs/verification/releases/1.2.2/sha256_summary.txt` |
-| Specification quality | 82 | RPL0 contract has versioning terminology block, byte-level layout, hard invariants; MATH_CONTRACT is dense and locked | file: `docs/spec/rpl0_artifact_contract.md`; file: `docs/MATH_CONTRACT.md` |
-| Verification discipline | 87 | Multi-tier gate (cargo test + parser suites + tool regression + determinism gate + fixture drift + doc-link); Kani harness runner retained | command-output: `make gate => PASS`; command-output: `make replay-tests => PASS` |
-| Codebase maintainability | 78 | Workspace is well-factored (core crates zero-dep); some crates are stubs; 10 members with only 4 default | file: `Cargo.toml` workspace members |
-| Architecture clarity | 80 | Clear release/experimental boundary in RELEASE_SURFACE.md; workspace.md routes well; system_architecture_disclosure is accurate | file: `docs/RELEASE_SURFACE.md`; file: `docs/architecture/workspace.md` |
-| Documentation depth | 80 | Normative specs are thorough; replay docs cover operator workflows; architecture docs exist for most surfaces | file: `docs/README.md` (index routing) |
-| Documentation organization | 76 | Good top-level routing through docs/README.md; some deep docs (performance/) are frozen at v1.0.0-rc5; internal/ has normalization notes | file: `docs/README.md`; file: `docs/architecture/performance/` |
-| Repository presentation | 82 | README is terse and correctly routes; no inflated claims; release surface is distinct from experimental | file: `README.md` |
-| Developer onboarding | 84 | "First 5 Minutes" block with `make gate`; VERIFICATION_GUIDE anchors the release contract | file: `README.md` §First 5 Minutes |
-| Conceptual coherence | 85 | Consistent use of "deterministic execution analysis infrastructure"; normative/advisory distinction maintained | file: `VERIFICATION_GUIDE.md` §1.1; file: `docs/README.md` |
+| Specification quality | 85 | All 6 spec docs now have versioning terminology blocks; RPL0 contract byte-level; MATH_CONTRACT dense and locked with carry-forward note | file: `docs/spec/rpl0_artifact_contract.md`; file: `docs/MATH_CONTRACT.md` |
+| Verification discipline | 87 | Multi-tier gate chain; `make release-bundle-check` now passes cleanly (no WARN) | command-output: `make gate => PASS`; command-output: `make release-bundle-check VERSION=1.2.2 => PASS` |
+| Codebase maintainability | 78 | Workspace well-factored (core crates zero-dep); some crates are stubs; 10 members with 4 default | file: `Cargo.toml` workspace members |
+| Architecture clarity | 80 | Clear release/experimental boundary; workspace.md routes well | file: `docs/RELEASE_SURFACE.md`; file: `docs/architecture/workspace.md` |
+| Documentation depth | 80 | Normative specs thorough; replay docs cover operator workflows | file: `docs/README.md` (index routing) |
+| Documentation organization | 80 | Top-level routing clear; performance docs now correctly classified as historical reference; versioning terminology blocks present throughout | file: `docs/README.md`; file: `docs/architecture/performance/CONTROL_SCHEDULER_BENCHMARKING.md` line 5 |
+| Repository presentation | 82 | README terse and correct; no inflated claims; release surface distinct from experimental | file: `README.md` |
+| Developer onboarding | 85 | "First 5 Minutes" block; carry-forward notes eliminate version-label confusion; all versioning terminology blocks present | file: `README.md` §First 5 Minutes; file: `docs/MATH_CONTRACT.md` carry-forward note |
+| Conceptual coherence | 85 | Consistent "deterministic execution analysis infrastructure"; normative/advisory distinction maintained | file: `VERIFICATION_GUIDE.md` §1.1; file: `docs/README.md` |
 | Research / innovation value | 75 | Phase-domain fixed-point oscillator with formal proofs; hardware-backed determinism; novel but narrow domain | file: `docs/MATH_CONTRACT.md`; file: `verify_kani.sh` |
-| OSS trustworthiness signals | 80 | MIT license, pinned toolchain, hash-locked releases, retained evidence bundles, doc-link CI; no CI badge or GitHub Actions visible on branch | file: `LICENSE`; file: `docs/verification/CI_EVIDENCE.md` |
+| OSS trustworthiness signals | 81 | MIT license, pinned toolchain, hash-locked releases, retained evidence bundles, doc-link CI, all manifests repo-relative | file: `LICENSE`; file: `docs/verification/releases/1.2.2/replay_manifest_v1.txt` |
 
 ---
 
@@ -63,7 +62,7 @@ health audit baseline. This audit replaces it as the first full baseline for 1.2
 | `header_audit` | yes | Release | `header_audit <file>` | CLI_SURFACE_EVIDENCE.md | file: `crates/dpw4/src/bin/header_audit.rs` |
 | `artifact_tool.py` | yes | Release | `python3 scripts/artifact_tool.py verify ...` | `make replay-tool-tests` | file: `scripts/artifact_tool.py` |
 | `artifact_diff.py` | yes | Release | `python3 scripts/artifact_diff.py ...` | `make replay-tool-tests` | file: `scripts/artifact_diff.py` |
-| `replay-host diff` | yes | Experimental | `cargo run -p replay-host -- diff ...` | not in release gate | file: `crates/replay-host/src/main.rs`; command-output: `first divergence at frame 0` |
+| `replay-host diff` | yes | Experimental | `cargo run -p replay-host -- diff ...` | not in release gate | file: `crates/replay-host/src/main.rs` |
 | `replay-fw-f446` | yes | Release | `make flash-ur` | retained evidence: `docs/verification/releases/1.2.2/firmware_release_evidence.md` | file: `crates/replay-fw-f446/` |
 
 ---
@@ -73,7 +72,7 @@ health audit baseline. This audit replaces it as the first full baseline for 1.2
 | Command | Entrypoint | Type | Runnable | Verification Path | Classification |
 |---|---|---|---|---|---|
 | `precision validate --mode quick` | `crates/dpw4/src/bin/precision.rs` | rust-bin | observed | `make gate` | Release |
-| `precision validate --mode full` | `crates/dpw4/src/bin/precision.rs` | rust-bin | observed (not exercised this session) | none observed | Release |
+| `precision validate --mode full` | `crates/dpw4/src/bin/precision.rs` | rust-bin | not exercised this session | none observed | Release |
 | `precision generate` | `crates/dpw4/src/bin/precision.rs` | rust-bin | observed | `docs/verification/CLI_SURFACE_EVIDENCE.md` | Release |
 | `precision artifacts` | `crates/dpw4/src/bin/precision.rs` | rust-bin | observed | `docs/verification/CLI_SURFACE_EVIDENCE.md` | Release |
 | `precision inspect` | `crates/dpw4/src/bin/precision.rs` | rust-bin | observed | `docs/verification/CLI_SURFACE_EVIDENCE.md` | Release |
@@ -109,8 +108,8 @@ health audit baseline. This audit replaces it as the first full baseline for 1.2
 | 3 | Rust replay is experimental and not part of release surface | docs/RELEASE_SURFACE.md, docs/replay/tooling.md | exact | — | direct | `replay-host` description: "outside the v1 release surface"; not in `make gate` |
 | 4 | Hardware capture re-executed for 1.2.2 | docs/verification/releases/1.2.2/firmware_release_evidence.md | exact | — | retained-evidence | 5/5 runs identical, SHA256 `f79e71d...` consistent across all retained files |
 | 5 | Deterministic repeatability: PASS (5/5 runs identical) | docs/verification/releases/1.2.2/firmware_release_evidence.md | exact | — | retained-evidence | sha256_summary.txt shows 6 identical hashes including baseline |
-| 6 | MATH_CONTRACT frozen at v1.2.1 | docs/MATH_CONTRACT.md title | partial | credibility | direct | Workspace is 1.2.2; contract title says v1.2.1; status says LOCKED. Likely intentional (no math changes in 1.2.2) but the version gap is visible to reviewers |
-| 7 | Spec docs frozen at v1.0.0-rc5 | docs/spec/dpw_gain.md, docs/spec/oscillator_api.md, docs/spec/header_layout_addendum.md | partial | onboarding | direct | Document version headers say v1.0.0-rc5 while workspace is 1.2.2. Content may still be accurate but version label is stale |
+| 6 | MATH_CONTRACT locked at v1.2.1, carried forward to 1.2.2 | docs/MATH_CONTRACT.md | exact | — | direct | Carry-forward note and versioning terminology block now present; axis ambiguity resolved |
+| 7 | Spec docs applicable to release 1.2.2 | docs/spec/*.md | exact | — | direct | All spec docs now carry "Applies to: release 1.2.2 (content unchanged)" and versioning terminology blocks |
 
 ---
 
@@ -126,15 +125,22 @@ health audit baseline. This audit replaces it as the first full baseline for 1.2
 | docs/spec/rpl0_artifact_contract.md | Binary artifact format spec | normative | public | none | canonical |
 | docs/replay/tooling.md | Replay-tooling boundary | release-classification | public | minor with RELEASE_SURFACE.md | supporting |
 | docs/replay/README.md | Replay subsystem index | index | public | none | supporting |
+| docs/replay/FW_F446_CAPTURE_v1.md | Capture contract | normative | public | none | canonical |
+| docs/replay/DIVERGENCE_SEMANTICS.md | Divergence explanation contract | normative | public | none | canonical |
+| docs/cli/precision.md | CLI reference | normative | public | none | supporting |
 | docs/architecture/workspace.md | Workspace framing | deep-architecture | public | none | supporting |
 | docs/system_architecture_disclosure.md | Architecture overview | descriptive | public | minor (architecture overview) | supporting |
 | docs/verification/build_reproducibility.md | Build identity checks | workflow | public | none | supporting |
 | docs/verification/CI_EVIDENCE.md | Historical CI evidence | historical-audit | public | none | historical |
 | docs/verification/CLI_SURFACE_EVIDENCE.md | CLI promotion evidence | workflow | public | none | supporting |
 | docs/verification/releases/1.2.2/ | Retained release evidence bundle | normative | public | none | canonical |
+| docs/governance/DESIGN_AXIOMS.md | Governance axioms | normative | public | none | supporting |
 | docs/spec/dpw_gain.md | Gain spec | normative | public | none | supporting |
 | docs/spec/oscillator_api.md | Oscillator dispatch contract | normative | public | none | supporting |
-| docs/architecture/performance/ | Performance benchmarking docs | roadmap | internal | none | historical |
+| docs/spec/reference_invariants.md | Mathematical invariants | normative | public | none | supporting |
+| docs/spec/pulse_implementation_spec.md | Pulse/square spec | normative | public | none | supporting |
+| docs/spec/header_layout_addendum.md | Header layout | normative | public | none | supporting |
+| docs/architecture/performance/ | Performance benchmarking docs | historical-reference | internal | none | historical |
 | docs/internal/ | Internal normalization notes | reference | internal | none | supporting |
 
 ---
@@ -143,167 +149,133 @@ health audit baseline. This audit replaces it as the first full baseline for 1.2
 
 | Rule | File | Line | Classification | Severity | Evidence | Notes |
 |---|---|---:|---|---|---|---|
-| NAM-004 | docs/spec/rpl0_artifact_contract.md | 52 | ambiguous-version | info | "v1 parsing path" | Adequately disambiguated by Versioning Terminology block at top of same file |
-| NAM-004 | docs/spec/dpw_gain.md | 2 | ambiguous-version | warn | "Version: v1.0.0-rc5" | Document version vs release version unclear; stale label |
-| NAM-004 | docs/spec/oscillator_api.md | 2 | ambiguous-version | warn | "Version: v1.0.0-rc5" | Same as above |
-| NAM-004 | docs/spec/header_layout_addendum.md | 2 | ambiguous-version | warn | "Version: v1.0.0-rc5" | Same as above |
-| NAM-004 | docs/spec/oscillator_api.md | 6 | ambiguous-version | info | "v1.x line" | Refers to release version range; context adequate |
-| NAM-005 | docs/spec/dpw_gain.md | — | missing-terminology-block | warn | No versioning terminology block | Compare to rpl0_artifact_contract.md which has one |
-| NAM-005 | docs/spec/oscillator_api.md | — | missing-terminology-block | warn | No versioning terminology block | Same |
-| NAM-005 | docs/spec/header_layout_addendum.md | — | missing-terminology-block | warn | No versioning terminology block | Same |
+| NAM-004 | docs/spec/rpl0_artifact_contract.md | 55 | ambiguous-version | info | "v1 parsing path" | Adequately disambiguated by Versioning Terminology block at top of file |
+| NAM-004 | docs/spec/oscillator_api.md | 14 | ambiguous-version | info | "v1.x line" | Refers to release version range; context adequate with terminology block |
 
 No NAM-001 (artifact vX), NAM-002 (replay vX), NAM-003 (_vX.md artifact spec),
-or NAM-006 (capability statement) violations found in public-facing documents.
-`FW_F446_CAPTURE_v1.md` uses `v1` in filename but refers to capture contract
-version, not artifact spec filename — NAM-003 does not apply.
+NAM-005 (missing terminology block), or NAM-006 (capability statement) violations
+found in public-facing documents.
+
+Prior findings resolved:
+- NAM-004 warn on stale `Version: v1.0.0-rc5` headers → now `Document revision: v1.0.0-rc5` with "Applies to" and terminology blocks (all 5 files)
+- NAM-005 on 3 spec docs → all 6 spec docs now have Versioning Terminology blocks
 
 ---
 
-## 9. Strengths
+## 9. Prior Finding Disposition
+
+| Finding | Prior Status | Current Status | Evidence |
+|---|---|---|---|
+| W-1: Retained manifest absolute run_dir | medium | **improved** | `replay_manifest_v1.txt` now `run_dir=artifacts/replay_runs/...`; `replay_repeat_check.py` uses `repo_relative_path()`; `make release-bundle-check VERSION=1.2.2 => PASS` (no WARN); all three release bundles (1.2.0, 1.2.1, 1.2.2) corrected |
+| W-2: Stale v1.0.0-rc5 version headers + NAM-005 | low | **improved** | All spec docs now have `Document revision:` + `Applies to:` + Versioning Terminology blocks |
+| W-3: MATH_CONTRACT v1.2.1 label gap | low | **improved** | Carry-forward note, versioning terminology block, and "Applies to: release 1.2.2 (content unchanged)" added |
+| W-4: Performance docs classification | low | **improved** | Reclassified from "Normative" to "Historical reference" with terminology blocks |
+
+---
+
+## 10. Strengths
 
 1. **Determinism discipline is exemplary.** 7 golden hashes locked to semver bumps,
    hardware-backed 5/5 repeatability, fixture-drift gate prevents silent regression.
    Evidence: `make gate => VERIFICATION PASSED` (observed-this-session);
-   `docs/verification/releases/1.2.2/sha256_summary.txt`.
+   file: `docs/verification/releases/1.2.2/sha256_summary.txt`.
 
 2. **Release/experimental boundary is well-drawn.** `RELEASE_SURFACE.md` explicitly
    classifies every surface; `replay-host` description says "outside the v1 release
    surface"; `docs/replay/tooling.md` reinforces this. No inflation observed.
 
 3. **Verification gate chain is layered and runnable.** `make ci-local` chains
-   `doc-link-check fw test replay-tests gate fixture-drift-check` — covering
-   doc integrity, compilation, unit tests, parser/tool regression, determinism,
-   and fixture stability in a single command.
+   `doc-link-check fw test replay-tests gate fixture-drift-check`.
+   Evidence: `make gate => PASS`; `make replay-tests => PASS`; `make release-bundle-check => PASS`.
 
 4. **Documentation routing is clear.** README → docs/README.md → RELEASE_SURFACE.md
-   and VERIFICATION_GUIDE.md. Normative vs descriptive distinction is maintained
-   consistently across index pages.
+   and VERIFICATION_GUIDE.md. Normative vs descriptive distinction maintained.
 
 5. **Normative specs are binding and precise.** `rpl0_artifact_contract.md` has
    byte-level layout, versioning terminology block, and hard invariants.
    `MATH_CONTRACT.md` has code-line references and Kani proof citations.
 
-6. **Retained release evidence is structured.** `docs/verification/releases/1.2.2/`
-   contains firmware evidence, hash inventory, manifest, and SHA256 summary.
-   `make release-bundle-check VERSION=1.2.2` validates bundle coherence.
+6. **Retained release evidence is structured and portable.** All manifests now use
+   repo-relative paths. `make release-bundle-check VERSION=1.2.2` passes cleanly.
+
+7. **Version-axis hygiene is comprehensive.** All 6 spec docs, MATH_CONTRACT,
+   performance docs, CLI reference, governance axioms, capture contract, and
+   divergence semantics now have versioning terminology blocks distinguishing
+   document revision from release version.
 
 ---
 
-## 10. Weaknesses
+## 11. Weaknesses
 
-### Finding W-1: Retained manifest has absolute non-portable run_dir
+No findings at medium or higher severity.
 
-The `replay_manifest_v1.txt` in the 1.2.2 release bundle contains
-`run_dir=artifacts/replay_runs/run_20260325T184038Z`,
-an absolute host-specific path. `make release-bundle-check` flags this as WARN.
+### Finding W-5: `precision validate --mode full` not exercised
 
-Evidence:
-- file: `docs/verification/releases/1.2.2/replay_manifest_v1.txt` line 13
-- command-output: `make release-bundle-check VERSION=1.2.2 => WARN: run_dir is absolute and non-portable`
-
-Impact: `credibility`
-Severity: `medium`
-Classification: `documentation`
-Confidence: `direct`
-Recommended Direction: Emit `run_dir` as repo-relative path in capture tooling.
-
-### Finding W-2: Spec docs carry stale v1.0.0-rc5 version headers
-
-Three spec documents under `docs/spec/` carry `Version: v1.0.0-rc5` in their
-headers. The workspace is at 1.2.2. Even if the spec content has not changed,
-the stale version label creates an axis-mixing signal for reviewers.
+The `--mode full` validation path is implemented but was not exercised in this
+audit session or observed in any Makefile verification target.
 
 Evidence:
-- file: `docs/spec/dpw_gain.md` line 2
-- file: `docs/spec/oscillator_api.md` line 2
-- file: `docs/spec/header_layout_addendum.md` line 2
+- file: `crates/dpw4/src/bin/precision.rs` enum ValidateMode::Full
+- `make gate` invokes `--mode quick` only
 
-Impact: `onboarding`
+Impact: `release-risk`
 Severity: `low`
-Classification: `terminology`
+Classification: `implementation`
 Confidence: `direct`
-Recommended Direction: Either update the version header to the current release
-or add an explicit note distinguishing document revision from release version.
-Adding a versioning terminology block (per NAM-005) would resolve both issues.
+Recommended Direction: Consider adding a `make gate-full` target or documenting
+when `--mode full` should be used.
 
-### Finding W-3: MATH_CONTRACT.md title says v1.2.1 while workspace is 1.2.2
+### Finding W-6: Kani verification not re-executed this session
 
-The math contract title line reads "DPW4 Math Contract — v1.2.1" and its status
-line reads "v1.2.1 (LOCKED)". The workspace version is 1.2.2. The contract is
-intentionally frozen (no math changes in 1.2.2), but the visible version
-discrepancy is a reviewer question.
+Formal verification via `verify_kani.sh` was not re-run. Retained CI evidence
+records it passing at v1.2.0-rc1.
 
 Evidence:
-- file: `docs/MATH_CONTRACT.md` line 1 ("v1.2.1")
-- file: `docs/MATH_CONTRACT.md` line 279 ("v1.2.1 (LOCKED)")
-- file: `Cargo.toml` line 24 (`version = "1.2.2"`)
+- file: `verify_kani.sh`
+- doc: `docs/verification/CI_EVIDENCE.md` (v1.2.0-rc1, CI run 23230032284)
 
-Impact: `onboarding`
+Impact: `release-risk`
 Severity: `low`
-Classification: `terminology`
-Confidence: `direct`
-Recommended Direction: Add a one-line note clarifying the contract was locked at
-1.2.1 and carried forward unchanged into 1.2.2, or update the title to
-"v1.2.2 (content unchanged from v1.2.1)".
-
-### Finding W-4: Performance docs are roadmap material frozen at v1.0.0-rc5
-
-`docs/architecture/performance/CONTROL_SCHEDULER_BENCHMARKING.md` and
-`HOT_PATH_EXECUTION_AND_BENCHMARKING.md` describe planned features explicitly
-marked as not implemented. Their v1.0.0-rc5 status headers are accurate to
-their era but may mislead readers about current scope.
-
-Evidence:
-- file: `docs/architecture/performance/CONTROL_SCHEDULER_BENCHMARKING.md` line 7-10
-- file: `docs/architecture/performance/HOT_PATH_EXECUTION_AND_BENCHMARKING.md` line 7-14
-
-Impact: `onboarding`
-Severity: `low`
-Classification: `documentation`
-Confidence: `direct`
-Recommended Direction: Add a directory-level note or move to `docs/roadmap/`.
-No action required if these are considered internal reference material.
+Classification: `implementation`
+Confidence: `inference` (retained evidence exists but is from an earlier version)
+Recommended Direction: Re-execute `bash verify_kani.sh` and retain a current
+Kani evidence record under the 1.2.2 evidence bundle.
 
 ---
 
-## 11. Remediation Priorities
+## 12. Remediation Priorities
 
 | Priority | Finding | Effort | Impact |
 |---:|---|---|---|
-| 1 | W-1: run_dir portability in retained manifest | low (tooling change) | credibility |
-| 2 | W-2: Stale v1.0.0-rc5 version headers + NAM-005 | low (3 file headers + terminology blocks) | onboarding |
-| 3 | W-3: MATH_CONTRACT version label gap | trivial (one-line note) | onboarding |
-| 4 | W-4: Performance docs classification | trivial (directory note or move) | onboarding |
+| 1 | W-6: Re-execute Kani verification for 1.2.2 | medium (Kani install + runtime) | release-risk |
+| 2 | W-5: Document or gate `--mode full` | low (Makefile target or doc note) | release-risk |
 
 ---
 
-## 12. Evidence and Unknowns
+## 13. Evidence and Unknowns
 
 ### Direct evidence (observed-this-session)
 
 - command: `make gate` => `VERIFICATION PASSED` (7 determinism hashes)
 - command: `make replay-tests` => all parser + tool suites PASS
-- command: `make release-bundle-check VERSION=1.2.2` => `PASS` with `WARN` on run_dir
-- command: `make test` => all workspace tests pass (49 tests, 3 ignored)
+- command: `make release-bundle-check VERSION=1.2.2` => `PASS` (no warnings)
+- command: `make test` => all workspace tests pass (64 tests, 4 ignored)
 - command: `python3 scripts/check_doc_links.py` => `PASS`
-- command: `cargo run -p replay-host -- diff artifacts/demo_v4/header_schema_B.rpl artifacts/demo_v4/header_schema_sample_payload_B.rpl` => `first divergence at frame 0`
-- command: `cargo run --locked --release -p dpw4 --features cli --bin precision -- --version` => `precision 1.2.2`
 
 ### Retained evidence
 
 - file: `docs/verification/releases/1.2.2/firmware_release_evidence.md` — hardware capture 5/5 PASS
 - file: `docs/verification/releases/1.2.2/sha256_summary.txt` — 6 identical hashes
-- file: `docs/verification/releases/1.2.2/replay_manifest_v1.txt` — manifest with `final_status=PASS`
+- file: `docs/verification/releases/1.2.2/replay_manifest_v1.txt` — manifest with `final_status=PASS`, `run_dir=artifacts/replay_runs/run_20260325T184038Z`
 - file: `docs/verification/CI_EVIDENCE.md` — CI run 23230032284 at v1.2.0-rc1
 
 ### Unknowns
 
-- Kani formal verification was not re-executed this session. `verify_kani.sh` exists
-  and is documented in VERIFICATION_GUIDE.md §3.1. Retained CI evidence at v1.2.0-rc1
-  records it as passing.
+- Kani formal verification was not re-executed this session. Retained CI evidence
+  at v1.2.0-rc1 records it as passing. No code changes to verified harnesses since
+  that run, but no fresh evidence exists at 1.2.2.
 - `verify_release_repro.sh` (dual-build identity check) was not re-executed.
-  It is documented as supporting-only in `docs/verification/build_reproducibility.md`.
-- `make ci-local` was not run as a single command (individual components were verified).
+- `make ci-local` was not run as a single command (individual components verified).
 - No GitHub Actions workflow file was inspected (branch-local only).
 
 ---
@@ -324,16 +296,16 @@ No action required if these are considered internal reference material.
 
 ### 2. How accurately does the repository communicate those capabilities?
 
-Accurately. The README is terse and correctly routes to VERIFICATION_GUIDE.md
-and RELEASE_SURFACE.md. The release/experimental boundary is explicitly drawn
-and consistently maintained across routing documents. No inflated claims were
-found. Minor terminology drift exists in spec version headers (W-2, W-3) but
-no claim-reality contradictions were identified.
+Accurately. All four findings from the prior audit have been remediated. The
+release/experimental boundary is explicitly drawn and consistently maintained.
+Version-axis terminology is now systematically disambiguated across specs,
+normative contracts, and historical reference material. No claim-reality
+contradictions were identified. No inflated claims were found.
 
 ### 3. What single sprint would most improve repository credibility and clarity?
 
-**Normalize version headers across specs and retained evidence.**
-In one pass: (1) make run_dir repo-relative in capture tooling output,
-(2) add versioning terminology blocks to the three v1.0.0-rc5 spec docs,
-(3) add a carry-forward note to MATH_CONTRACT.md. This clears all four
-findings with minimal churn and no behavioral changes.
+**Re-execute Kani formal verification and retain fresh evidence for 1.2.2.**
+The retained CI evidence is from v1.2.0-rc1. Running `bash verify_kani.sh` and
+archiving the result under `docs/verification/releases/1.2.2/` would close the
+last evidence-freshness gap. Optionally, add a `make gate-full` target to
+exercise `precision validate --mode full`.
