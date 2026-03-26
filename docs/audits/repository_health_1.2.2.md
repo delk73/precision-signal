@@ -72,7 +72,7 @@ in commits `b9321ea` through `d03be96`.
 | Command | Entrypoint | Type | Runnable | Verification Path | Classification |
 |---|---|---|---|---|---|
 | `precision validate --mode quick` | `crates/dpw4/src/bin/precision.rs` | rust-bin | observed | `make gate` | Release |
-| `precision validate --mode full` | `crates/dpw4/src/bin/precision.rs` | rust-bin | not exercised this session | none observed | Release |
+| `precision validate --mode full` | `crates/dpw4/src/bin/precision.rs` | rust-bin | observed | `make gate-full` (supplementary) | Release |
 | `precision generate` | `crates/dpw4/src/bin/precision.rs` | rust-bin | observed | `docs/verification/CLI_SURFACE_EVIDENCE.md` | Release |
 | `precision artifacts` | `crates/dpw4/src/bin/precision.rs` | rust-bin | observed | `docs/verification/CLI_SURFACE_EVIDENCE.md` | Release |
 | `precision inspect` | `crates/dpw4/src/bin/precision.rs` | rust-bin | observed | `docs/verification/CLI_SURFACE_EVIDENCE.md` | Release |
@@ -95,7 +95,7 @@ in commits `b9321ea` through `d03be96`.
 | Python replay operator tooling | yes | Release | `artifact_tool.py`, `artifact_diff.py` | `make replay-tool-tests` => PASS | command-output: observed-this-session | direct |
 | Hardware capture (F446) | yes | Release | `make flash-ur` | retained evidence: `docs/verification/releases/1.2.2/firmware_release_evidence.md` | file: retained-evidence | direct |
 | Rust replay (v0 frames) | yes | Experimental | `cargo run -p replay-host -- diff` | none in release gate | command-output: observed-this-session | direct |
-| Formal verification (Kani) | yes | Release | `bash verify_kani.sh` | retained from prior evidence | file: `verify_kani.sh`; doc: `docs/verification/CI_EVIDENCE.md` | retained-evidence |
+| Formal verification (Kani) | yes | Release | `bash verify_kani.sh` | retained evidence: `docs/verification/releases/1.2.2/kani_evidence.md` | file: `verify_kani.sh`; file: `docs/verification/releases/1.2.2/kani_evidence.md` | direct |
 
 ---
 
@@ -209,37 +209,40 @@ Prior findings resolved:
 
 No findings at medium or higher severity.
 
-### Finding W-5: `precision validate --mode full` not exercised
+### Finding W-5: improved — supplementary `precision validate --mode full` evidence retained
 
-The `--mode full` validation path is implemented but was not exercised in this
-audit session or observed in any Makefile verification target.
+The `--mode full` validation path was exercised and a supplementary Makefile
+target now exists to run it without changing the canonical release gate.
 
 Evidence:
 - file: `crates/dpw4/src/bin/precision.rs` enum ValidateMode::Full
-- `make gate` invokes `--mode quick` only
+- command: `make gate-full` => `VERIFICATION PASSED`
+- file: `docs/verification/releases/1.2.2/gate_full_evidence.md`
 
-Impact: `release-risk`
+Disposition: `improved`
+Impact: `bounded`
 Severity: `low`
 Classification: `implementation`
 Confidence: `direct`
-Recommended Direction: Consider adding a `make gate-full` target or documenting
-when `--mode full` should be used.
+Resolution note: `make gate` remains canonical; `make gate-full` is documented
+as supplementary validation only.
 
-### Finding W-6: Kani verification not re-executed this session
+### Finding W-6: improved — Kani verification refreshed for 1.2.2
 
-Formal verification via `verify_kani.sh` was not re-run. Retained CI evidence
-records it passing at v1.2.0-rc1.
+Formal verification via `verify_kani.sh` was re-run successfully and a fresh
+retained evidence file now exists under the `1.2.2` release bundle.
 
 Evidence:
+- command: `bash verify_kani.sh` => `PASS`
 - file: `verify_kani.sh`
-- doc: `docs/verification/CI_EVIDENCE.md` (v1.2.0-rc1, CI run 23230032284)
+- file: `docs/verification/releases/1.2.2/kani_evidence.md`
 
-Impact: `release-risk`
+Disposition: `improved`
+Impact: `bounded`
 Severity: `low`
 Classification: `implementation`
-Confidence: `inference` (retained evidence exists but is from an earlier version)
-Recommended Direction: Re-execute `bash verify_kani.sh` and retain a current
-Kani evidence record under the 1.2.2 evidence bundle.
+Confidence: `direct`
+Resolution note: canonical Tier-1 Kani evidence is now fresh for release `1.2.2`.
 
 ---
 
@@ -247,8 +250,8 @@ Kani evidence record under the 1.2.2 evidence bundle.
 
 | Priority | Finding | Effort | Impact |
 |---:|---|---|---|
-| 1 | W-6: Re-execute Kani verification for 1.2.2 | medium (Kani install + runtime) | release-risk |
-| 2 | W-5: Document or gate `--mode full` | low (Makefile target or doc note) | release-risk |
+| 1 | W-6: Re-execute Kani verification for 1.2.2 | completed this session | improved |
+| 2 | W-5: Document or gate `--mode full` | completed this session | improved |
 
 ---
 
@@ -257,24 +260,25 @@ Kani evidence record under the 1.2.2 evidence bundle.
 ### Direct evidence (observed-this-session)
 
 - command: `make gate` => `VERIFICATION PASSED` (7 determinism hashes)
+- command: `make gate-full` => `VERIFICATION PASSED` (supplementary full-mode execution)
 - command: `make replay-tests` => all parser + tool suites PASS
 - command: `make release-bundle-check VERSION=1.2.2` => `PASS` (no warnings)
 - command: `make test` => all workspace tests pass (64 tests, 4 ignored)
 - command: `python3 scripts/check_doc_links.py` => `PASS`
+- command: `bash verify_kani.sh` => `PASS` (Tier-1 runner; 23 harnesses executed, 5 heavy harnesses skipped by default)
+- command: `bash verify_release_repro.sh` => `PASS` (dual-build identity retained as supporting evidence)
 
 ### Retained evidence
 
 - file: `docs/verification/releases/1.2.2/firmware_release_evidence.md` — hardware capture 5/5 PASS
+- file: `docs/verification/releases/1.2.2/kani_evidence.md` — fresh Tier-1 Kani evidence for `1.2.2`
+- file: `docs/verification/releases/1.2.2/gate_full_evidence.md` — supplementary `--mode full` retained record
 - file: `docs/verification/releases/1.2.2/sha256_summary.txt` — 6 identical hashes
 - file: `docs/verification/releases/1.2.2/replay_manifest_v1.txt` — manifest with `final_status=PASS`, `run_dir=artifacts/replay_runs/run_20260325T184038Z`
 - file: `docs/verification/CI_EVIDENCE.md` — CI run 23230032284 at v1.2.0-rc1
 
 ### Unknowns
 
-- Kani formal verification was not re-executed this session. Retained CI evidence
-  at v1.2.0-rc1 records it as passing. No code changes to verified harnesses since
-  that run, but no fresh evidence exists at 1.2.2.
-- `verify_release_repro.sh` (dual-build identity check) was not re-executed.
 - `make ci-local` was not run as a single command (individual components verified).
 - No GitHub Actions workflow file was inspected (branch-local only).
 
@@ -304,8 +308,7 @@ contradictions were identified. No inflated claims were found.
 
 ### 3. What single sprint would most improve repository credibility and clarity?
 
-**Re-execute Kani formal verification and retain fresh evidence for 1.2.2.**
-The retained CI evidence is from v1.2.0-rc1. Running `bash verify_kani.sh` and
-archiving the result under `docs/verification/releases/1.2.2/` would close the
-last evidence-freshness gap. Optionally, add a `make gate-full` target to
-exercise `precision validate --mode full`.
+**Evidence freshness closure for release 1.2.2 is now complete.**
+Fresh Kani evidence has been retained under the `1.2.2` release bundle, and
+`precision validate --mode full` is now exercised via a documented
+supplementary `make gate-full` target while `make gate` remains canonical.

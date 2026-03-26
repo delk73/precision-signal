@@ -217,6 +217,14 @@ This is the canonical operator-facing release gate.
 It runs `cargo run --release -p dpw4 --features cli --bin precision -- validate --mode quick`.
 Exit code is authoritative (`0` pass, `1` fail).
 `--mode full` is currently identical to `--mode quick` and reserved for future extension.
+If explicitly exercised, use:
+
+```bash
+make gate-full
+```
+
+`make gate-full` is supplementary validation only. It does not replace `make gate`
+as the canonical release gate and should be retained separately when used.
 For retained release evidence, archive the release-ready gate record under
 `docs/verification/releases/<version>/`.
 

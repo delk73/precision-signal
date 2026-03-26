@@ -11,6 +11,8 @@ Use:
 - [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md) for the release contract
 - `make gate` for the canonical operator-facing release gate
 - `docs/verification/releases/<version>/` for retained release evidence
+- [docs/verification/releases/1.2.2/kani_evidence.md](releases/1.2.2/kani_evidence.md) for fresh local Kani evidence at `1.2.2`
+- [docs/verification/releases/1.2.2/gate_full_evidence.md](releases/1.2.2/gate_full_evidence.md) for supplementary `--mode full` evidence at `1.2.2`
 
 - Baseline: v1.2.0-rc1
 - Workspace version: 1.2.0-rc1
