@@ -1,0 +1,58 @@
+EXECUTED_AT_UTC=2026-03-26T01:21:22Z
+
+python3 scripts/generate_demo_v5_fixtures.py --out-dir docs/verification/cross_context/context_a
+python3 scripts/generate_demo_v5_fixtures.py --out-dir docs/verification/cross_context/context_b
+
+python3 scripts/artifact_tool.py verify docs/verification/cross_context/context_a/self_healing_A.rpl --signal-model none
+python3 scripts/artifact_tool.py verify docs/verification/cross_context/context_a/self_healing_B.rpl --signal-model none
+python3 scripts/artifact_tool.py verify docs/verification/cross_context/context_a/bounded_persistent_A.rpl --signal-model none
+python3 scripts/artifact_tool.py verify docs/verification/cross_context/context_a/bounded_persistent_B.rpl --signal-model none
+python3 scripts/artifact_tool.py verify docs/verification/cross_context/context_a/monotonic_growth_A.rpl --signal-model none
+python3 scripts/artifact_tool.py verify docs/verification/cross_context/context_a/monotonic_growth_B.rpl --signal-model none
+python3 scripts/artifact_tool.py verify docs/verification/cross_context/context_a/region_transition_A.rpl --signal-model none
+python3 scripts/artifact_tool.py verify docs/verification/cross_context/context_a/region_transition_B.rpl --signal-model none
+
+python3 scripts/artifact_tool.py verify docs/verification/cross_context/context_b/self_healing_A.rpl --signal-model none
+python3 scripts/artifact_tool.py verify docs/verification/cross_context/context_b/self_healing_B.rpl --signal-model none
+python3 scripts/artifact_tool.py verify docs/verification/cross_context/context_b/bounded_persistent_A.rpl --signal-model none
+python3 scripts/artifact_tool.py verify docs/verification/cross_context/context_b/bounded_persistent_B.rpl --signal-model none
+python3 scripts/artifact_tool.py verify docs/verification/cross_context/context_b/monotonic_growth_A.rpl --signal-model none
+python3 scripts/artifact_tool.py verify docs/verification/cross_context/context_b/monotonic_growth_B.rpl --signal-model none
+python3 scripts/artifact_tool.py verify docs/verification/cross_context/context_b/region_transition_A.rpl --signal-model none
+python3 scripts/artifact_tool.py verify docs/verification/cross_context/context_b/region_transition_B.rpl --signal-model none
+
+python3 scripts/artifact_tool.py hash docs/verification/cross_context/context_a/self_healing_A.rpl
+python3 scripts/artifact_tool.py hash docs/verification/cross_context/context_a/self_healing_B.rpl
+python3 scripts/artifact_tool.py hash docs/verification/cross_context/context_a/bounded_persistent_A.rpl
+python3 scripts/artifact_tool.py hash docs/verification/cross_context/context_a/bounded_persistent_B.rpl
+python3 scripts/artifact_tool.py hash docs/verification/cross_context/context_a/monotonic_growth_A.rpl
+python3 scripts/artifact_tool.py hash docs/verification/cross_context/context_a/monotonic_growth_B.rpl
+python3 scripts/artifact_tool.py hash docs/verification/cross_context/context_a/region_transition_A.rpl
+python3 scripts/artifact_tool.py hash docs/verification/cross_context/context_a/region_transition_B.rpl
+
+python3 scripts/artifact_tool.py hash docs/verification/cross_context/context_b/self_healing_A.rpl
+python3 scripts/artifact_tool.py hash docs/verification/cross_context/context_b/self_healing_B.rpl
+python3 scripts/artifact_tool.py hash docs/verification/cross_context/context_b/bounded_persistent_A.rpl
+python3 scripts/artifact_tool.py hash docs/verification/cross_context/context_b/bounded_persistent_B.rpl
+python3 scripts/artifact_tool.py hash docs/verification/cross_context/context_b/monotonic_growth_A.rpl
+python3 scripts/artifact_tool.py hash docs/verification/cross_context/context_b/monotonic_growth_B.rpl
+python3 scripts/artifact_tool.py hash docs/verification/cross_context/context_b/region_transition_A.rpl
+python3 scripts/artifact_tool.py hash docs/verification/cross_context/context_b/region_transition_B.rpl
+
+python3 scripts/artifact_diff.py docs/verification/cross_context/context_a/self_healing_A.rpl docs/verification/cross_context/context_a/self_healing_B.rpl
+python3 scripts/artifact_diff.py docs/verification/cross_context/context_a/bounded_persistent_A.rpl docs/verification/cross_context/context_a/bounded_persistent_B.rpl
+python3 scripts/artifact_diff.py docs/verification/cross_context/context_a/monotonic_growth_A.rpl docs/verification/cross_context/context_a/monotonic_growth_B.rpl
+python3 scripts/artifact_diff.py docs/verification/cross_context/context_a/region_transition_A.rpl docs/verification/cross_context/context_a/region_transition_B.rpl
+python3 scripts/artifact_diff.py docs/verification/cross_context/context_b/self_healing_A.rpl docs/verification/cross_context/context_b/self_healing_B.rpl
+python3 scripts/artifact_diff.py docs/verification/cross_context/context_b/bounded_persistent_A.rpl docs/verification/cross_context/context_b/bounded_persistent_B.rpl
+python3 scripts/artifact_diff.py docs/verification/cross_context/context_b/monotonic_growth_A.rpl docs/verification/cross_context/context_b/monotonic_growth_B.rpl
+python3 scripts/artifact_diff.py docs/verification/cross_context/context_b/region_transition_A.rpl docs/verification/cross_context/context_b/region_transition_B.rpl
+
+cargo run --quiet --locked -p replay-host -- diff docs/verification/cross_context/context_a/self_healing_A.rpl docs/verification/cross_context/context_a/self_healing_B.rpl
+cargo run --quiet --locked -p replay-host -- diff docs/verification/cross_context/context_a/bounded_persistent_A.rpl docs/verification/cross_context/context_a/bounded_persistent_B.rpl
+cargo run --quiet --locked -p replay-host -- diff docs/verification/cross_context/context_a/monotonic_growth_A.rpl docs/verification/cross_context/context_a/monotonic_growth_B.rpl
+cargo run --quiet --locked -p replay-host -- diff docs/verification/cross_context/context_a/region_transition_A.rpl docs/verification/cross_context/context_a/region_transition_B.rpl
+cargo run --quiet --locked -p replay-host -- diff docs/verification/cross_context/context_b/self_healing_A.rpl docs/verification/cross_context/context_b/self_healing_B.rpl
+cargo run --quiet --locked -p replay-host -- diff docs/verification/cross_context/context_b/bounded_persistent_A.rpl docs/verification/cross_context/context_b/bounded_persistent_B.rpl
+cargo run --quiet --locked -p replay-host -- diff docs/verification/cross_context/context_b/monotonic_growth_A.rpl docs/verification/cross_context/context_b/monotonic_growth_B.rpl
+cargo run --quiet --locked -p replay-host -- diff docs/verification/cross_context/context_b/region_transition_A.rpl docs/verification/cross_context/context_b/region_transition_B.rpl

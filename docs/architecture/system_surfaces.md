@@ -34,7 +34,7 @@ Release classification is defined only in [docs/RELEASE_SURFACE.md](../RELEASE_S
 
 The active operator-facing firmware capture contract is
 [docs/replay/FW_F446_CAPTURE_v1.md](../replay/FW_F446_CAPTURE_v1.md), and retained release evidence for the
-accepted `1.2.1` cut lives under [docs/verification/releases/1.2.1/](../verification/releases/1.2.1/).
+accepted `1.2.2` cut lives under [docs/verification/releases/1.2.2/](../verification/releases/1.2.2/).
 
 ### Present In Workspace But Not Promoted By The Canonical Release Classifier
 

@@ -1,5 +1,12 @@
 # Reference Invariants Specification
-**Version: 1.0.0-rc5 (Reference Lock)**
+**Document revision:** v1.0.0-rc5  
+**Applies to:** release 1.2.2 (content unchanged)
+
+## Versioning Terminology
+
+- Document revision labels editorial history for this specification.
+- Release versions identify the shipped software release.
+- This document defines mathematical and operational invariants; unchanged content remains applicable to release `1.2.2`.
 
 This document defines the authoritative mathematical and operational invariants for `dpw4`. This is a **Canonical Reference Baseline**.
 

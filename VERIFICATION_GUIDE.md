@@ -1,5 +1,5 @@
 # precision-signal: Canonical Verification Protocol
-**Version: 1.2.1 (Active Release Baseline)**
+**Version: 1.2.2 (Active Release Baseline)**
 **Status: Frozen Definition**
 
 ## Purpose
@@ -20,6 +20,11 @@ For release-surface questions, use this guide as the source of truth for:
 - what must be true for release readiness
 - what command is canonical
 - where retained release evidence lives
+
+For release `1.2.2`, reviewers should traverse this path: `make gate` for the
+canonical gate, [docs/replay/tooling.md](docs/replay/tooling.md) for released
+replay-tooling boundaries, and [docs/verification/releases/1.2.2/](docs/verification/releases/1.2.2/)
+for the retained release evidence bundle.
 
 The rest of the release-adjacent documentation is supporting only:
 
@@ -212,6 +217,14 @@ This is the canonical operator-facing release gate.
 It runs `cargo run --release -p dpw4 --features cli --bin precision -- validate --mode quick`.
 Exit code is authoritative (`0` pass, `1` fail).
 `--mode full` is currently identical to `--mode quick` and reserved for future extension.
+If explicitly exercised, use:
+
+```bash
+make gate-full
+```
+
+`make gate-full` is supplementary validation only. It does not replace `make gate`
+as the canonical release gate and should be retained separately when used.
 For retained release evidence, archive the release-ready gate record under
 `docs/verification/releases/<version>/`.
 
@@ -270,6 +283,10 @@ metadata actually archived by the firmware-release workflow:
 For `1.2.0`, `release_reproducibility.txt` is supporting-only and is not
 required for release admissibility. If present, it remains supporting evidence
 in the same retained release directory.
+
+Reviewer sequence for a retained release bundle: inspect the retained evidence
+summary in `docs/verification/releases/<version>/`, then run
+`make release-bundle-check VERSION=<version>` against that same directory.
 
 ### 6.6 Non-Normative Canary Scenario
 

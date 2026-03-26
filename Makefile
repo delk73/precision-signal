@@ -79,7 +79,7 @@ space :=
 space +=
 comma := ,
 
-.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur replay-check replay-repeat-check replay-repeat-auto fw-gate firmware-release-check fw-release-archive capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate ci-local clean
+.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur replay-check replay-repeat-check replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local clean
 
 help:
 	echo "Demo V2 lifecycle:"
@@ -280,6 +280,11 @@ fw-release-archive:
 	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
 	echo "## explicit hash check" >> "$$REL_DIR/firmware_release_evidence.md"; \
 	cat "$$REL_DIR/hash_check.txt" >> "$$REL_DIR/firmware_release_evidence.md"
+	python3 scripts/check_release_bundle.py --version "$(VERSION)"
+
+release-bundle-check:
+	@test -n "$(VERSION)" || { echo "VERSION is required"; exit 1; }
+	python3 scripts/check_release_bundle.py --version "$(VERSION)"
 
 capture-demo-A: shell-check stflash-check
 	echo "== Captured Divergence Demo: Run A (canonical firmware) =="
@@ -814,6 +819,9 @@ replay-tests: parser-tests replay-tool-tests
 
 gate:
 	cargo run --locked --release -p dpw4 --features cli --bin precision -- validate --mode quick
+
+gate-full:
+	cargo run --locked --release -p dpw4 --features cli --bin precision -- validate --mode full
 
 ci-local: doc-link-check fw test replay-tests gate fixture-drift-check
 

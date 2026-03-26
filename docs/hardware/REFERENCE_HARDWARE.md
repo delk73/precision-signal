@@ -6,11 +6,11 @@
 
 ## 1. Context: Digital vs. Analog Adapters
 
-Observation levels describe measurement layers, not protocol layers. To validate the "Precision-DPW" pipeline on specific hardware, we distinguish between two observation domains:
+Observation levels describe measurement layers, not protocol layers. To validate the `precision-signal` pipeline on specific hardware, we distinguish between two observation domains:
 
 * **Observation Level A — Digital Adapter (GPIO):**
 * **Interface:** Direct probe on GPIO pin.
-* **Observation:** GPIO DAC adapter output (PWM or PDM, implementation-specific). PWM is an adapter-level choice on Raspberry Pi hardware and is not part of the Precision-DPW reference protocol.
+* **Observation:** GPIO DAC adapter output (PWM or PDM, implementation-specific). PWM is an adapter-level choice on Raspberry Pi hardware and is not part of the `precision-signal` reference protocol.
 * **Verification:** Confirms the `rppal` driver is receiving the correct 32-bit timing intervals from the core (determinism and timing).
 
 

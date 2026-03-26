@@ -115,6 +115,74 @@ def iter_non_fenced_lines(path: Path) -> list[tuple[int, str]]:
     return result
 
 
+INDEX_ROOTS = {
+    "README.md",
+    "docs/README.md",
+    "docs/replay/README.md",
+}
+
+
+def _outbound_targets(path: Path, root: Path) -> set[Path]:
+    """Return resolved Markdown-link targets from a single file."""
+    targets: set[Path] = set()
+    if not path.exists():
+        return targets
+    for _, line in iter_non_fenced_lines(path):
+        for match in MARKDOWN_LINK_RE.finditer(line):
+            target = match.group("target").strip()
+            if is_external_target(target):
+                continue
+            resolved = resolve_markdown_target(path, target)
+            targets.add(resolved)
+    return targets
+
+
+def collect_reachable(root: Path) -> set[Path]:
+    """BFS from index roots to find all transitively linked public docs."""
+    public_set = {p.resolve() for p in iter_public_docs(root)}
+    visited: set[Path] = set()
+    queue: list[Path] = []
+    for rel in INDEX_ROOTS:
+        p = (root / rel).resolve()
+        if p in public_set:
+            visited.add(p)
+            queue.append(p)
+    while queue:
+        current = queue.pop()
+        for target in _outbound_targets(current, root):
+            if target in visited:
+                continue
+            if target in public_set:
+                visited.add(target)
+                queue.append(target)
+    return visited
+
+
+def collect_orphan_findings(root: Path) -> list[Finding]:
+    """Any new public doc must be linked from exactly one relevant index."""
+    # Skip orphan check when no docs-level index root exists (e.g. synthetic test trees).
+    if not any((root / rel).exists() for rel in INDEX_ROOTS if rel.startswith("docs/")):
+        return []
+    reachable = collect_reachable(root)
+    findings: list[Finding] = []
+    for path in iter_public_docs(root):
+        resolved = path.resolve()
+        rel = path.relative_to(root).as_posix()
+        if rel in INDEX_ROOTS:
+            continue
+        if resolved not in reachable:
+            findings.append(
+                Finding(
+                    path=path,
+                    line_no=0,
+                    defect_class="orphaned_doc",
+                    reference_text=rel,
+                    reason="public doc not reachable from any index",
+                )
+            )
+    return findings
+
+
 def collect_findings(root: Path) -> list[Finding]:
     findings: list[Finding] = []
     for path in iter_public_docs(root):
@@ -175,6 +243,7 @@ def collect_findings(root: Path) -> list[Finding]:
                         reason=f"use [{repo_facing_label(inferred, root)}](...) instead of prose navigation",
                     )
                 )
+    findings.extend(collect_orphan_findings(root))
     return findings
 
 

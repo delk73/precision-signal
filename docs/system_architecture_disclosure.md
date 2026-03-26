@@ -3,7 +3,7 @@
 ## Overview
 
 This document records the architecture implemented in the
-`precision-dpw` repository.
+`precision-signal` repository.
 
 Use [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md) for release classification,
 [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md) for verification authority, and

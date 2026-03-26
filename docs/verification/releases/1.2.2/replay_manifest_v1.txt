@@ -1,0 +1,13 @@
+contract_version=rpl0_capture_v1
+artifact_version=1
+schema_hash=8c6e82b4f9c80de029775d26da900a655686fd93038013ca759155ff02a68721
+signal_model=phase8
+baseline_path=artifacts/baseline.bin
+baseline_sha256=f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765
+requested_runs=5
+completed_runs=5
+final_status=PASS
+failure_class=-
+baseline_hash_match=true
+timestamp_utc=2026-03-25T18:40:38Z
+run_dir=artifacts/replay_runs/run_20260325T184038Z

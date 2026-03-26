@@ -18,6 +18,7 @@ INTERNAL_CAPTURE_MANIFEST = "repeat_capture_internal.txt"
 MANIFEST_NAME = "replay_manifest_v1.txt"
 SHA_SUMMARY_NAME = "sha256_summary.txt"
 CONTRACT_VERSION = "rpl0_capture_v1"
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 class InterruptedCommand(RuntimeError):
@@ -150,6 +151,14 @@ def classify_capture_failure(output: str) -> str:
     return "verify_failed"
 
 
+def repo_relative_path(path: Path) -> Path:
+    resolved = path.resolve()
+    try:
+        return resolved.relative_to(REPO_ROOT)
+    except ValueError:
+        return resolved
+
+
 def write_manifest(
     path: Path,
     *,
@@ -174,7 +183,7 @@ def write_manifest(
                 f"artifact_version={artifact_version}",
                 f"schema_hash={schema_hash}",
                 f"signal_model={signal_model}",
-                f"baseline_path={baseline_path}",
+                f"baseline_path={repo_relative_path(baseline_path)}",
                 f"baseline_sha256={baseline_sha}",
                 f"requested_runs={requested_runs}",
                 f"completed_runs={completed_runs}",
@@ -182,7 +191,7 @@ def write_manifest(
                 f"failure_class={failure_class if failure_class else '-'}",
                 f"baseline_hash_match={'true' if baseline_hash_match else 'false'}",
                 f"timestamp_utc={timestamp_utc}",
-                f"run_dir={run_dir}",
+                f"run_dir={repo_relative_path(run_dir)}",
                 "",
             ]
         ),

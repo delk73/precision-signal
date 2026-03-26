@@ -1,5 +1,14 @@
 # F446 Capture v1 — Normative Capture Contract
 
+**Document revision:** 1.2.2  
+**Applies to:** release 1.2.2 (content unchanged)
+
+## Versioning Terminology
+
+- Document revision labels editorial history for this capture contract.
+- Release versions identify the shipped software release.
+- `v1` in this document name and `version = 1` in emitted headers identify the artifact/header version, not the software release version.
+
 > **Status: NORMATIVE**
 > This document defines the current NUCLEO-F446RE capture contract for `replay-fw-f446`.
 > Firmware capture emits RPL0 `version = 1` container artifacts using `[HEADER][SCHEMA BLOCK][FRAME DATA]`.

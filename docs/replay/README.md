@@ -40,4 +40,5 @@ Replay-tooling boundary routing lives in [docs/replay/tooling.md](tooling.md).
 - [docs/replay/ARTIFACT_VALIDATION_WORKFLOW.md](ARTIFACT_VALIDATION_WORKFLOW.md): operator/local/CI validation workflow for artifact parser + toolchain
 - [docs/replay/HOST_REPLAY_v0.md](HOST_REPLAY_v0.md): experimental Rust replay state transition, hashing, and legacy-frame replay semantics
 - [docs/replay/FW_F446_CAPTURE_v0.md](FW_F446_CAPTURE_v0.md): legacy RPL0 format version 0 capture contract note retained for historical traceability
+- [docs/replay/ISR_ADVISORY.md](ISR_ADVISORY.md): advisory note on ISR behavior and current replay capture limitations
 - [docs/replay/CI_GATES.md](CI_GATES.md): replay-related CI checks that must remain true

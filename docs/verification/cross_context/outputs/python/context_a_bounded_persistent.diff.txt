@@ -1,0 +1,16 @@
+DIVERGENCE DETECTED
+First divergence frame: 4096
+Classification: persistent_offset
+Sample A: 0x00000000
+Sample B: 0x00000001
+Raw A: 0010000002000000e803000000000000
+Raw B: 0010000002000000e803000001000000
+Differing fields: sample, raw
+Total frames: 10000
+first_divergence_frame: 4096
+shape_class: persistent_offset
+primary_region: sample_payload
+all_regions_at_first_divergence: [sample_payload]
+region_summary: sample_payload
+evolution_class: bounded_persistent
+timeline_summary: divergence remains in sample_payload through final frame

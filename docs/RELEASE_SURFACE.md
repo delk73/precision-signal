@@ -14,6 +14,7 @@ For release decisions, use:
 - contract: [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
 - canonical operator path: `make gate`
 - retained release evidence: [docs/verification/releases/](verification/releases/)
+- current retained release record for release `1.2.2`: [docs/verification/releases/1.2.2/](verification/releases/1.2.2/)
 
 If a descriptive document conflicts with a normative document, the normative
 document wins.
@@ -33,7 +34,7 @@ Release
 - `precision inspect` (operator-path evidence: [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md))
 - `precision verify` (operator-path evidence: [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md))
 - `header_audit` (operator-path evidence: [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md))
-- `replay-fw-f446` (firmware capture surface for the active RPL0 `version = 1` operator path; normative contract: [docs/replay/FW_F446_CAPTURE_v1.md](replay/FW_F446_CAPTURE_v1.md); retained evidence record: [docs/verification/releases/1.2.1/firmware_release_evidence.md](verification/releases/1.2.1/firmware_release_evidence.md); retained hardware-backed hashes are recorded there)
+- `replay-fw-f446` (firmware capture surface for the active RPL0 `version = 1` operator path; normative contract: [docs/replay/FW_F446_CAPTURE_v1.md](replay/FW_F446_CAPTURE_v1.md); active retained evidence record: [docs/verification/releases/1.2.2/firmware_release_evidence.md](verification/releases/1.2.2/firmware_release_evidence.md); the release `1.2.2` bundle records a direct hardware-backed rerun)
 
 Experimental
 

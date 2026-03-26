@@ -1,6 +1,8 @@
 pub const RPL0_SCHEMA: &[u8] =
     b"event_frame0:legacy;fields=frame_idx:u32,irq:u8,flags:u8,rsv:u16,delta:u32,input_sample:i32";
+#[cfg(test)]
 pub const BUILD_HASH_INPUT: &[u8] = b"replay-fw-f446:thumbv7em-none-eabihf:rpl0_capture_v1";
+#[cfg(test)]
 pub const CONFIG_HASH_INPUT: &[u8] =
     b"signal=phase8;frames=10000;irq=0x02;timer_delta=1000;frame_size=16;capture_boundary=isr";
 

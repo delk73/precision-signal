@@ -11,6 +11,8 @@ docs/verification/plots/gibbs_proof.png
 forensic_audit.ipynb
 docs/verification/*
 !docs/verification/*.md
+!docs/verification/cross_context/
+!docs/verification/cross_context/**
 docs/audits/runlogs/*
 !docs/audits/runlogs/.gitkeep
 # binary artifacts

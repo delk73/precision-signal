@@ -3,12 +3,16 @@
 This file is historical CI evidence only.
 It is not the release contract, it is not the canonical release gate
 definition, and it is not the canonical retained release record.
+Historical repository name/path references are preserved from the
+pre-ejection repository identity (`precision-dpw`).
 
 Use:
 
 - [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md) for the release contract
 - `make gate` for the canonical operator-facing release gate
 - `docs/verification/releases/<version>/` for retained release evidence
+- [docs/verification/releases/1.2.2/kani_evidence.md](releases/1.2.2/kani_evidence.md) for fresh local Kani evidence at `1.2.2`
+- [docs/verification/releases/1.2.2/gate_full_evidence.md](releases/1.2.2/gate_full_evidence.md) for supplementary `--mode full` evidence at `1.2.2`
 
 - Baseline: v1.2.0-rc1
 - Workspace version: 1.2.0-rc1
