@@ -4,7 +4,7 @@
 
 ```bash
 rustup toolchain install 1.91.1
-git clone <repo-url>
+git clone https://github.com/delk73/precision-signal
 cd precision-signal
 make gate
 ```
