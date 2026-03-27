@@ -91,7 +91,7 @@ Promotion Path
 `docs/hardware/` only after successful gated bring-up, retained evidence, and repeatability across later validation.
 
 ## 2026-03-27 — Quantization divergence witness experiment [WIP-004]
-Status: active
+Status: closed (PASS-constrained)
 Owner: signal
 
 Problem
@@ -114,10 +114,18 @@ Planned Artifacts
 - diff output demonstrating first divergence
 
 Evidence Produced
-- (none yet)
+- BBB host Linux execution confirmed for the phase-1 witness path
+- `make gate`: PASS on BBB host
+- baseline artifact rerun hash: `67e309b08d7bf8db286869b2b81a23da297b7ccfd2ecd9e322830729e69a9e69`
+- quantized artifact rerun hash: `fe992bec716077dc20eb94550d007022439fef871a1bf101a30727b2d18a8abf`
+- first divergence: `frame_idx=4` (reported as `First divergence frame: 4`)
+- `shape_class=persistent_offset`
+- `primary_region=sample_payload`
+- `evolution_class=bounded_persistent`
+- retained experiment note and commands: `experiments/quantization_probe/README.md`
 
 Next Decision
-Does the experiment produce stable first-divergence localization and classification across runs?
+Phase 1 closed. Decide whether any phase-2 follow-on is warranted without changing release surface or experimental scope.
 
 Promotion Path
-`docs/replay/`, `docs/architecture/`, or demo ladder if validated
+experiment-local retention only; reconsider `docs/replay/` or `docs/architecture/` only if a later phase produces broader validated evidence
