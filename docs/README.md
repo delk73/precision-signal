@@ -10,6 +10,7 @@ This index is descriptive only. Use [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md
 for release classification, [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md) for
 verification authority, and [docs/replay/tooling.md](replay/tooling.md)
 for replay-tooling boundaries.
+Experimental notes live under [docs/wip/README.md](wip/README.md) and are non-normative.
 
 Normative behavior is defined outside this index:
 

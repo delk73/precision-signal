@@ -24,6 +24,7 @@ If this fails, see [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md) → Failure Mo
 - Documentation index: [docs/README.md](docs/README.md)
 - Release surface: [docs/RELEASE_SURFACE.md](docs/RELEASE_SURFACE.md)
 - Replay tooling boundary: [docs/replay/tooling.md](docs/replay/tooling.md)
+- Exploratory WIP notes: [docs/wip/README.md](docs/wip/README.md)
 
 ## License
 
