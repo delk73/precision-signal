@@ -89,3 +89,35 @@ Decide whether a specific board instance passes T5 for constrained experimental 
 
 Promotion Path
 `docs/hardware/` only after successful gated bring-up, retained evidence, and repeatability across later validation.
+
+## 2026-03-27 — Quantization divergence witness experiment [WIP-004]
+Status: active
+Owner: signal
+
+Problem
+We need a minimal, deterministic experiment that demonstrates divergence localization under quantization using the Precision signal/replay pipeline.
+
+Hypothesis
+A small fixed pipeline with baseline vs quantized paths and per-stage artifact emission will produce a reproducible first-divergence witness and classification.
+
+Constraints
+- Must be fully deterministic (no FP nondeterminism, no threading)
+- Must use existing artifact + replay + diff tooling
+- Must not modify release surface
+- Must remain host-executable (BBB) without PRU
+
+Planned Artifacts
+- `experiments/quantization_probe/`
+- baseline and quantized pipeline implementations
+- fixed input corpus
+- artifact outputs A/B
+- diff output demonstrating first divergence
+
+Evidence Produced
+- (none yet)
+
+Next Decision
+Does the experiment produce stable first-divergence localization and classification across runs?
+
+Promotion Path
+`docs/replay/`, `docs/architecture/`, or demo ladder if validated
