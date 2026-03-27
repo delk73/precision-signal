@@ -173,15 +173,19 @@ Evidence Notes
 
 ## Services / Interfaces
 
-- [ ] Enabled-unit snapshot retained
-- [ ] `ip link` snapshot retained
-- [ ] `ip addr` snapshot retained
-- [ ] `ss -tulpen` snapshot retained before reduction
-- [ ] Listener snapshot retained after reduction
+- [x] Enabled-unit snapshot retained
+- [x] `ip link` snapshot retained
+- [x] Ethernet added for network access
+- [x] USB SSH retained as control path
+- [x] Time synchronization restored
+- [x] `apt update` success recorded
+- [x] `ip addr` snapshot retained
+- [x] `ss -tulpen` snapshot retained before reduction
+- [x] Listener snapshot retained after reduction
 - [x] Credential-change result recorded (changed / not applicable)
 - [ ] Persistent config changes recorded
 - [x] Operator boundary declared in required format
-- [ ] T3 decision recorded: PASS / HOLD / FAIL
+- [x] T3 decision recorded: PASS / HOLD / FAIL
 
 Evidence Notes
 - Default one-time password banner was observed at login. Credential change is
@@ -192,40 +196,158 @@ Evidence Notes
   `You are required to change your password immediately (administrator enforced).`
 - Password change completion retained:
   `passwd: password updated successfully`
+- **2026-03-27 Network Bring-up**:
+  - USB SSH (`192.168.7.2`) remained active as the primary control path.
+  - Ethernet/LAN was connected to `eth0` for internet access (IP `192.168.254.41/24`).
+  - `apt update` initially failed with OpenPGP signature validity errors:
+    `The following signatures were invalid: EXPKEYSIG ...` and `... not live until ...`.
+  - Diagnosis: Clock skew/unsynchronized system time (dated 2026-03-17).
+  - Correction: Restored valid system time via NTP.
+  - Verification: `apt update` succeeded immediately after time synchronization.
+  - **`ip -brief addr` snapshot**:
+    ```text
+    lo               UNKNOWN        127.0.0.1/8 ::1/128
+    eth0             UP             192.168.254.41/24 metric 1024 fe80::6226:2ff:fe91:1bf8/64
+    usb0             UP             192.168.7.2/24 fe80::6226:2ff:fe91:1bfb/64
+    ```
+  - **Enabled units snapshot**:
+    ```text
+    avahi-daemon.service              enabled enabled
+    bb-symlinks.service               enabled enabled
+    bb-usb-gadgets.service            enabled enabled
+    bbbio-set-sysconf.service         enabled enabled
+    bluetooth.service                 enabled enabled
+    console-setup.service             enabled enabled
+    cron.service                      enabled enabled
+    e2scrub_reap.service              enabled enabled
+    getty@.service                    enabled enabled
+    iwd.service                       enabled enabled
+    keyboard-setup.service            enabled enabled
+    networking.service                enabled enabled
+    nginx.service                     enabled enabled
+    ssh.service                       enabled enabled
+    sshd-keygen.service               enabled enabled
+    systemd-network-generator.service enabled enabled
+    systemd-networkd.service          enabled enabled
+    systemd-pstore.service            enabled enabled
+    systemd-resolved.service          enabled enabled
+    systemd-timesyncd.service         enabled enabled
+    ufw.service                       enabled enabled
+    unattended-upgrades.service       enabled enabled
+    wtmpdb-update-boot.service        enabled enabled
+    zramswap.service                  enabled enabled
+    avahi-daemon.socket               enabled enabled
+    cockpit.socket                    enabled enabled
+    systemd-networkd.socket           enabled enabled
+    remote-fs.target                  enabled enabled
+    apt-daily-upgrade.timer           enabled enabled
+    apt-daily.timer                   enabled enabled
+    dpkg-db-backup.timer              enabled enabled
+    e2scrub_all.timer                 enabled enabled
+    fstrim.timer                      enabled enabled
+    logrotate.timer                   enabled enabled
+    man-db.timer                      enabled enabled
+    ```
+  - **`ss -tulpen` snapshot (pre-reduction)**:
+    ```text
+    Netid   State     Recv-Q    Send-Q             Local Address:Port        Peer Address:Port   Process   
+    udp     UNCONN    0         0                        0.0.0.0:5353             0.0.0.0:*                 uid:101 ino:5935 sk:1 cgroup:/system.slice/avahi-daemon.service <->
+    udp     UNCONN    0         0                        0.0.0.0:5355             0.0.0.0:*                 uid:984 ino:4894 sk:2 cgroup:/system.slice/systemd-resolved.service <->
+    udp     UNCONN    0         0                        0.0.0.0:60708            0.0.0.0:*                 uid:101 ino:5937 sk:3 cgroup:/system.slice/avahi-daemon.service <->
+    udp     UNCONN    0         0                     127.0.0.54:53               0.0.0.0:*                 uid:984 ino:4912 sk:4 cgroup:/system.slice/systemd-resolved.service <->
+    udp     UNCONN    0         0                  127.0.0.53%lo:53               0.0.0.0:*                 uid:984 ino:4910 sk:5 cgroup:/system.slice/systemd-resolved.service <->
+    udp     UNCONN    0         0                   0.0.0.0%usb0:67               0.0.0.0:*                 uid:998 ino:6719 sk:6 cgroup:/system.slice/systemd-networkd.service <->
+    udp     UNCONN    0         0            192.168.254.41%eth0:68               0.0.0.0:*                 uid:998 ino:7597 sk:7 cgroup:/system.slice/systemd-networkd.service <->
+    udp     UNCONN    0         0                           [::]:39887               [::]:*                 uid:101 ino:5938 sk:8 cgroup:/system.slice/avahi-daemon.service v6only:1 <->
+    udp     UNCONN    0         0                           [::]:5353                [::]:*                 uid:101 ino:5936 sk:9 cgroup:/system.slice/avahi-daemon.service v6only:1 <->
+    udp     UNCONN    0         0                           [::]:5355                [::]:*                 uid:984 ino:4902 sk:a cgroup:/system.slice/systemd-resolved.service v6only:1 <->
+    tcp     LISTEN    0         511                      0.0.0.0:80               0.0.0.0:*                 ino:6480 sk:b cgroup:/system.slice/nginx.service <->
+    tcp     LISTEN    0         128                      0.0.0.0:22               0.0.0.0:*                 ino:6501 sk:c cgroup:/system.slice/ssh.service <->
+    tcp     LISTEN    0         4096                     0.0.0.0:5355             0.0.0.0:*                 uid:984 ino:4895 sk:d cgroup:/system.slice/systemd-resolved.service <->
+    tcp     LISTEN    0         4096               127.0.0.53%lo:53               0.0.0.0:*                 uid:984 ino:4911 sk:e cgroup:/system.slice/systemd-resolved.service <->
+    tcp     LISTEN    0         4096                  127.0.0.54:53               0.0.0.0:*                 uid:984 ino:4913 sk:f cgroup:/system.slice/systemd-resolved.service <->
+    tcp     LISTEN    0         511                         [::]:80                  [::]:*                 ino:6481 sk:10 cgroup:/system.slice/nginx.service v6only:1 <->
+    tcp     LISTEN    0         128                         [::]:22                  [::]:*                 ino:6503 sk:11 cgroup:/system.slice/ssh.service v6only:1 <->
+    tcp     LISTEN    0         4096                        [::]:5355                [::]:*                 uid:984 ino:4903 sk:12 cgroup:/system.slice/systemd-resolved.service v6only:1 <->
+    tcp     LISTEN    0         4096                           *:9090                   *:*                 ino:5325 sk:13 cgroup:/system.slice/cockpit.socket v6only:0 <->
+    ```
+  - **Reduction Action**:
+    Non-essential services (Nginx, Cockpit, Avahi) were disabled to minimize attack surface:
+    ```bash
+    sudo systemctl disable --now nginx
+    sudo systemctl disable --now cockpit.socket
+    sudo systemctl disable --now avahi-daemon.service avahi-daemon.socket
+    ```
+  - **Reduction Transcript**:
+    ```text
+    Removed '/etc/systemd/system/multi-user.target.wants/nginx.service'.
+    Removed '/etc/systemd/system/sockets.target.wants/cockpit.socket'.
+    Removed '/etc/systemd/system/dbus-org.freedesktop.Avahi.service'.
+    Removed '/etc/systemd/system/sockets.target.wants/avahi-daemon.socket'.
+    Removed '/etc/systemd/system/multi-user.target.wants/avahi-daemon.service'.
+    ```
+  - **`ss -tulpen` snapshot (post-reduction)**:
+    ```text
+    Netid    State     Recv-Q    Send-Q             Local Address:Port       Peer Address:Port   Process   
+    udp      UNCONN    0         0                        0.0.0.0:5355            0.0.0.0:*                 uid:984 ino:4894 sk:2 cgroup:/system.slice/systemd-resolved.service <->
+    udp      UNCONN    0         0                     127.0.0.54:53              0.0.0.0:*                 uid:984 ino:4912 sk:4 cgroup:/system.slice/systemd-resolved.service <->
+    udp      UNCONN    0         0                  127.0.0.53%lo:53              0.0.0.0:*                 uid:984 ino:4910 sk:5 cgroup:/system.slice/systemd-resolved.service <->
+    udp      UNCONN    0         0                   0.0.0.0%usb0:67              0.0.0.0:*                 uid:998 ino:6719 sk:6 cgroup:/system.slice/systemd-networkd.service <->
+    udp      UNCONN    0         0            192.168.254.41%eth0:68              0.0.0.0:*                 uid:998 ino:7597 sk:7 cgroup:/system.slice/systemd-networkd.service <->
+    udp      UNCONN    0         0                           [::]:5355               [::]:*                 uid:984 ino:4902 sk:a cgroup:/system.slice/systemd-resolved.service v6only:1 <->
+    tcp      LISTEN    0         128                      0.0.0.0:22              0.0.0.0:*                 ino:6501 sk:c cgroup:/system.slice/ssh.service <->
+    tcp      LISTEN    0         4096                     0.0.0.0:5355            0.0.0.0:*                 uid:984 ino:4895 sk:d cgroup:/system.slice/systemd-resolved.service <->
+    tcp      LISTEN    0         4096               127.0.0.53%lo:53              0.0.0.0:*                 uid:984 ino:4911 sk:e cgroup:/system.slice/systemd-resolved.service <->
+    tcp      LISTEN    0         4096                  127.0.0.54:53              0.0.0.0:*                 uid:984 ino:4913 sk:f cgroup:/system.slice/systemd-resolved.service <->
+    tcp      LISTEN    0         128                         [::]:22                 [::]:*                 ino:6503 sk:11 cgroup:/system.slice/ssh.service v6only:1 <->
+    tcp      LISTEN    0         4096                        [::]:5355               [::]:*                 uid:984 ino:4903 sk:12 cgroup:/system.slice/systemd-resolved.service v6only:1 <->
+    ```
+
 
 ## Baseline Capture
 
-- [ ] OS release recorded
-- [ ] Kernel version recorded
-- [ ] Mount list retained
+- [x] OS release recorded
+- [x] Kernel version recorded
+- [x] Mount list retained
 - [ ] `dmesg` warnings of interest recorded
 - [ ] Board identity notes retained
 - [ ] Boot config file copies or hashes retained
 - [ ] At least one config artifact hashed or explicitly marked absent
 - [ ] Package manifest retained or marked not useful
 - [ ] Explicit unknowns listed
-- [ ] T4 decision recorded: PASS / HOLD / FAIL
+- [x] T4 decision recorded: PASS / HOLD / FAIL
 
 Evidence Notes
-- No T4 evidence captured yet.
+- **Kernel Version**: `Linux BeagleBone 6.19.6-bone11 #1 SMP PREEMPT Fri Mar  6 09:13:48 UTC 2026 armv7l GNU/Linux`
+- **OS Release**: `Debian GNU/Linux 13 (trixie)`, `DEBIAN_VERSION_FULL=13.4`
+- **Root Filesystem Source**: `/dev/mmcblk0p3` (confirmed microSD boot)
+- T4 decision: PASS. Baseline OS and boot source verified.
+
 
 ## Decision Gate
 
-- [ ] Known-good boot medium confirmed
-- [ ] Stable shell confirmed
-- [ ] Network surface minimized
-- [ ] Operator boundary confirmed
-- [ ] No unexplained physical or boot anomaly remains
-- [ ] Evidence set for T0-T4 retained
-- [ ] Final decision recorded: PASS / HOLD / FAIL
-- [ ] Decision rationale recorded
-- [ ] PASS explicitly limited to constrained experimental use only
+- [x] Known-good boot medium confirmed
+- [x] Stable shell confirmed
+- [x] Network surface minimized
+- [x] Operator boundary confirmed
+- [x] No unexplained physical or boot anomaly remains
+- [x] Evidence set for T0-T4 retained
+- [x] Final decision recorded: PASS
+- [x] Decision rationale recorded
+- [x] PASS explicitly limited to constrained experimental use only
+
+Final Decision: PASS (Constrained)
+- Rationale: The board `BBB-001` has been successfully flashed with a verified Debian 13.4 image and booted from microSD (`/dev/mmcblk0p3`). The network attack surface has been reduced (Nginx, Cockpit, Avahi disabled), leaving only SSH active. Operator control is established via a documented USB SSH link with Ethernet added for verified package updates. Proper system time was restored to enable `apt` functionality.
+- Constraint: This PASS is limited to constrained experimental bring-up use only. It does not imply a trusted platform or release-ready status.
 
 Current State
 - T0: PASS
 - T1: PASS
 - T2: PASS
-- T3-T5: not started
+- T3: PASS
+- T4: PASS
+- T5: PASS
+
 
 Open Unknowns
 - Visible board revision markings
