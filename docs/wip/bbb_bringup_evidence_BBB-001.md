@@ -3,7 +3,7 @@
 Board Evidence ID: BBB-001
 Board: BeagleBone Black
 Date Opened: 2026-03-26
-Status: active
+Status: closed (PASS-constrained)
 
 Use this worksheet to retain evidence for hostile-board bring-up. Do not mark a
 phase complete without corresponding artifacts or notes.
@@ -19,7 +19,7 @@ phase complete without corresponding artifacts or notes.
 - [x] Visible markings and board revision recorded
 - [x] Visible anomaly notes recorded
 - [x] Power input options recorded
-- [ ] T0 decision recorded: PASS / HOLD / FAIL
+- [x] T0 decision recorded: PASS / HOLD / FAIL
 
 Evidence Notes
 - Evidence ID selected as `BBB-001`.
@@ -320,7 +320,7 @@ Evidence Notes
     - Toolchain pinned to `1.91.1-armv7-unknown-linux-gnueabihf` (as per `rust-toolchain.toml`).
     - Repository `precision-signal` successfully cloned into `/home/debian/precision-signal`:
       ```bash
-      git clone https://github.com/omarchy/precision-signal.git
+      git clone /home/dce/src/precision-signal /home/debian/precision-signal
       ```
     - Local workspace path: `/home/debian/precision-signal`.
 
@@ -333,7 +333,6 @@ Evidence Notes
       - `toolchain_pin`: PASS (1.91.1)
       - `determinism_bit_exact`: PASS (Pulse, Saw, Triangle, Sine, Sweep)
       - `non_normative_canary`: WARN (Expected for unpinned phase wrap test)
-    - Significance: Confirmed that the `armv7-unknown-linux-gnueabihf` build on this specific BeagleBone Black hardware produces bit-exact matches against the project standard for all normative signal paths.
 
   - **Replay Tooling Verification**:
     - **Problem**: `make replay-tests` failed with `ModuleNotFoundError: No module named 'serial'`.

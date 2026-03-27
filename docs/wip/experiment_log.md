@@ -33,7 +33,7 @@ Promotion Path
 `docs/spec/`, `docs/architecture/`, or retained release evidence, depending on what is validated.
 
 ## 2026-03-26 — BeagleBone Black hostile-board isolation bring-up [WIP-001]
-Status: proposed
+Status: closed (PASS-constrained)
 Owner: hardware
 
 Problem
@@ -51,11 +51,12 @@ Planned Artifacts
 - retained command logs or observations linked from future WIP entries
 
 Evidence Produced
-- no validated artifacts yet
-- this append-only experiment seed establishing the decision path
+- `docs/wip/bbb_bringup_evidence_BBB-001.md` (retained evidence record)
+- `make gate`: VERIFICATION PASSED (on-target bit-exact validation)
+- `make replay-tests`: PASS (after `python3-serial` dependency correction)
 
 Next Decision
-Decide whether the board can be isolated enough to justify a bounded bring-up procedure.
+Onboarding complete for BBB-001. Proceed to experiment scaffold / workload definition.
 
 Promotion Path
 `docs/hardware/`, `docs/operations/`, `docs/replay/`, or release evidence if the path becomes validated.

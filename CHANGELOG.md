@@ -7,19 +7,6 @@
 
 ## [Unreleased]
 
-### Added
-
-* **[Docs/WIP] Initialized experimental/non-normative WIP documentation surface.**
-  Added `docs/wip/` for exploratory work, bring-up evidence, and experiment
-  logging. This surface is strictly non-normative and does not affect the
-  release or verification authority.
-* **[Hardware] Added BeagleBone Black prudent bring-up procedure (T0-T5).**
-  Added `docs/wip/bbb_prudent_bringup.md` defining an offline-first,
-  surface-reduced bring-up for hostile or unknown-provenance hardware.
-* **[WIP] Logged BBB-001 intake, isolation, and toolchain verification.**
-  Captured evidence for board `BBB-001` in `docs/wip/bbb_bringup_evidence_BBB-001.md`,
-  including successful on-target bit-exact `make gate` and `make replay-tests`.
-
 ## [1.2.2] - 2026-03-26
 
 ### Added
