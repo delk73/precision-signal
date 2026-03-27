@@ -335,20 +335,20 @@ Evidence Notes
       - `non_normative_canary`: WARN (Expected for unpinned phase wrap test)
     - Significance: Confirmed that the `armv7-unknown-linux-gnueabihf` build on this specific BeagleBone Black hardware produces bit-exact matches against the project standard for all normative signal paths.
 
-  - **Replay Tooling Verification (`make replay-tests`)**:
-    - Initial Status: **FAIL** (Missing dependency `python3-serial`)
-    - Resolution: Installed `python3-serial` via `apt` (Debian 13 PEP 668 compliant).
-      ```bash
-      sudo apt install -y python3-serial
-      ```
-    - Final Status: **PASS**
-    - Regression Suites Validated:
-      - `adversarial parser suite`: PASS
-      - `mutation corpus`: PASS
-      - `artifact_tool verify/hash`: PASS
-      - `doc_link_check`: PASS
-      - `artifact_diff`: PASS
-      - `Demo V3/V4/V5 fixture/evolution`: PASS
+  - **Replay Tooling Verification**:
+    - **Problem**: `make replay-tests` failed with `ModuleNotFoundError: No module named 'serial'`.
+    - **Hypothesis**: Missing dependency `python3-serial` required by `scripts/read_artifact.py`.
+    - **Evidence Produced**:
+      - Initial failure due to missing `serial` module.
+      - Corrective action: `sudo apt install -y python3-serial`.
+      - Note: `pip3 install pyserial` was blocked by Debian 13 externally-managed environment behavior (PEP 668).
+      - Re-run of `make replay-tests` completed without error.
+    - **Observed Results**:
+      - Adversarial parser suite: PASS
+      - Mutation corpus: PASS
+      - Artifact tool tests (`verify`, `hash`, `diff`): PASS
+      - Demo/fixture tests (V3, V4, V5): PASS
+    - **Next Decision**: Proceed to experiment scaffold insertion on BBB host.
 
 
 ## Baseline Capture
