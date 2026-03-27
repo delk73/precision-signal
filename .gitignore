@@ -34,4 +34,6 @@ kani_logs/*
 .vscode/settings.json
 st-util.log
 scripts/__pycache__/
+experiments/quantization_probe/__pycache__/
+experiments/quantization_probe/*.pyc
 artifacts/replay_runs
