@@ -59,3 +59,32 @@ Decide whether the board can be isolated enough to justify a bounded bring-up pr
 
 Promotion Path
 `docs/hardware/`, `docs/operations/`, `docs/replay/`, or release evidence if the path becomes validated.
+
+## 2026-03-26 — BeagleBone Black prudent hostile-board bring-up [WIP-003]
+Status: proposed
+Owner: hardware
+
+Problem
+An unknown-source BeagleBone Black requires an auditable bring-up path that avoids trusting onboard state, avoids early networking, and produces retained evidence before any limited experimental use.
+
+Hypothesis
+Offline reimage to known-good microSD media, followed by isolated first boot and explicit surface reduction, yields an acceptable constrained experimental platform without implying trusted hardware.
+
+Constraints
+- Must not trust onboard eMMC state
+- Must not use early network connectivity during initial isolation
+- Must not create release-surface, specification, or verification authority claims
+
+Planned Artifacts
+- `docs/wip/bbb_prudent_bringup.md`
+- `docs/wip/templates/bringup_evidence_checklist.md`
+
+Evidence Produced
+- WIP hostile-board bring-up procedure with T0-T5 gates
+- compact retained-evidence checklist for operator use
+
+Next Decision
+Decide whether a specific board instance passes T5 for constrained experimental use, should remain on HOLD, or must be quarantined.
+
+Promotion Path
+`docs/hardware/` only after successful gated bring-up, retained evidence, and repeatability across later validation.
