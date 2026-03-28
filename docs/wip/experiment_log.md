@@ -93,6 +93,7 @@ Promotion Path
 ## 2026-03-27 — Quantization divergence witness experiment [WIP-004]
 Status: closed (PASS-constrained)
 Owner: signal
+Phase 2 (matrix extension): appended host-only evidence; does not reopen phase 1.
 
 Problem
 We need a minimal, deterministic experiment that demonstrates divergence localization under quantization using the Precision signal/replay pipeline.
@@ -122,10 +123,16 @@ Evidence Produced
 - `shape_class=persistent_offset`
 - `primary_region=sample_payload`
 - `evolution_class=bounded_persistent`
-- retained experiment note and commands: `experiments/quantization_probe/README.md`
+- controlled host matrix retained for `C1-Q2`, `C1-Q3`, `C1-Q4`, and `C2-Q3`
+- matrix result summary:
+  `C1-Q2` and `C1-Q3` stay at `frame_idx=4` with `shape_class=persistent_offset`
+  `C1-Q4` moves first divergence to `frame_idx=0` with `shape_class=rate_divergence`
+  `C2-Q3` moves first divergence to `frame_idx=7` with `shape_class=persistent_offset`
+- retained experiment note, exact commands, and case hashes/classifications:
+  `experiments/quantization_probe/README.md`
 
 Next Decision
-Phase 1 closed. Decide whether any phase-2 follow-on is warranted without changing release surface or experimental scope.
+Rerun the same controlled matrix on BBB host if BBB-specific parity is required; otherwise keep the result experiment-local and avoid framework expansion.
 
 Promotion Path
 experiment-local retention only; reconsider `docs/replay/` or `docs/architecture/` only if a later phase produces broader validated evidence

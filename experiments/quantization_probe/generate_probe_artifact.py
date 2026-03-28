@@ -30,6 +30,11 @@ V1_OFF_RESERVED = 0x96
 EXPECTED_IRQ_ID = 0x02
 EXPECTED_TIMER_DELTA = 1000
 CORPUS_PATH = Path(__file__).with_name("corpus.txt")
+CORPUS_PATHS = {
+    "C1": CORPUS_PATH,
+    "C2": Path(__file__).with_name("corpus_c2.txt"),
+}
+VALID_QUANT_SHIFTS = (2, 3, 4)
 SCHEMA = (
     b'{"experiment":"quantization_probe","frame":"EventFrame0",'
     b'"pipeline":["affine_transform","accumulate","clamp","threshold"],'
@@ -51,6 +56,19 @@ def parse_args() -> argparse.Namespace:
         choices=("baseline", "quantized"),
         help="Precision path to execute.",
     )
+    parser.add_argument(
+        "--corpus",
+        choices=tuple(CORPUS_PATHS),
+        default="C1",
+        help="Fixed corpus selector (default: C1).",
+    )
+    parser.add_argument(
+        "--quant-shift",
+        type=int,
+        choices=VALID_QUANT_SHIFTS,
+        default=3,
+        help="Quantization shift for quantized mode (default: 3).",
+    )
     parser.add_argument("--out", type=Path, required=True, help="Artifact output path.")
     return parser.parse_args()
 
@@ -71,24 +89,26 @@ def clamp(value: int, lo: int, hi: int) -> int:
     return max(lo, min(hi, value))
 
 
-def quantize_step(value: int) -> int:
-    return (value >> 3) << 3
+def quantize_step(value: int, shift: int) -> int:
+    return (value >> shift) << shift
 
 
-def run_pipeline(corpus: list[int], mode: str) -> list[int]:
+def run_pipeline(corpus: list[int], mode: str, quant_shift: int) -> list[int]:
     if mode == "baseline":
         quantized = False
     elif mode == "quantized":
         quantized = True
     else:
         raise ValueError(f"unsupported mode: {mode}")
+    if quant_shift not in VALID_QUANT_SHIFTS:
+        raise ValueError(f"unsupported quant_shift: {quant_shift}")
 
     acc = 0
     outputs: list[int] = []
     for sample in corpus:
         transformed = sample * 5 + 3
         if quantized:
-            transformed = quantize_step(transformed)
+            transformed = quantize_step(transformed, quant_shift)
         acc += transformed
         bounded = clamp(acc, -1024, 1024)
         decision = 1 if bounded >= 256 else 0
@@ -134,12 +154,14 @@ def encode_frames(outputs: list[int]) -> bytes:
 
 def main() -> int:
     args = parse_args()
-    corpus = load_corpus(CORPUS_PATH)
-    outputs = run_pipeline(corpus, args.mode)
+    corpus = load_corpus(CORPUS_PATHS[args.corpus])
+    outputs = run_pipeline(corpus, args.mode, args.quant_shift)
     artifact = encode_header(len(outputs)) + SCHEMA + encode_frames(outputs)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_bytes(artifact)
     print(f"PASS: wrote {args.mode} artifact to {args.out}")
+    print(f"corpus: {args.corpus}")
+    print(f"quant_shift: {args.quant_shift}")
     print(f"frame_count: {len(outputs)}")
     print(f"first_output: {outputs[0]}")
     print(f"last_output: {outputs[-1]}")
