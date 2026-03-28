@@ -136,3 +136,28 @@ Rerun the same controlled matrix on BBB host if BBB-specific parity is required;
 
 Promotion Path
 experiment-local retention only; reconsider `docs/replay/` or `docs/architecture/` only if a later phase produces broader validated evidence
+
+## 2026-03-28 — Shared canonical layout constants [WIP-005]
+Status: proposed
+
+Problem
+Probe and parser currently duplicate RPL0/EventFrame0 constants; current WIP-004 guard imports parser constants directly.
+
+Hypothesis
+A shared minimal constants module may remove duplication without changing runtime surfaces.
+
+Constraints
+- no change to artifact contract
+- no replay semantic change
+- no packaging expansion
+- no normative promotion
+
+Planned Artifacts
+- one small shared constants module for RPL0/EventFrame0 layout values
+- minimal follow-on updates in probe/parser Python consumers only if needed
+
+Next Decision
+Decide whether a shared constants module can remove duplication cleanly without adding runtime dependency edges or broadening implementation scope.
+
+Promotion Path
+scripts/ or shared internal module (non-normative)

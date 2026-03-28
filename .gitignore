@@ -37,3 +37,4 @@ scripts/__pycache__/
 experiments/quantization_probe/__pycache__/
 experiments/quantization_probe/*.pyc
 artifacts/replay_runs
+.codex

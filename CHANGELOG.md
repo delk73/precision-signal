@@ -7,6 +7,21 @@
 
 ## [Unreleased]
 
+### Added
+
+- make demo-divergence canonical entrypoint for quantization divergence witness
+
+### Changed
+
+- normalized divergence demo output to:
+  first_divergence_frame / classification / baseline_invariant
+
+### Internal
+
+- added WIP-004 canonical layout guard in quantization probe
+- replaced probe-local import approach with local importlib-based load
+- no experiment behavior change
+
 ## [1.2.2] - 2026-03-26
 
 ### Added

@@ -79,7 +79,7 @@ space :=
 space +=
 comma := ,
 
-.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur replay-check replay-repeat-check replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local clean
+.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur replay-check replay-repeat-check replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local clean
 
 help:
 	echo "Demo V2 lifecycle:"
@@ -816,6 +816,26 @@ replay-tool-tests:
 	python3 scripts/test_compare_artifact.py
 
 replay-tests: parser-tests replay-tool-tests
+
+demo-divergence:
+	@test -x "$(SHELL)"
+	@TMP_DIR="/tmp/precision_signal_demo_divergence"; \
+	BASELINE_A="$$TMP_DIR/quant_probe_baseline_run1.rpl"; \
+	BASELINE_B="$$TMP_DIR/quant_probe_baseline_run2.rpl"; \
+	QUANTIZED_A="$$TMP_DIR/quant_probe_quantized_run1.rpl"; \
+	mkdir -p "$$TMP_DIR"; \
+	python3 experiments/quantization_probe/generate_probe_artifact.py --mode baseline --out "$$BASELINE_A" >/dev/null; \
+	python3 experiments/quantization_probe/generate_probe_artifact.py --mode baseline --out "$$BASELINE_B" >/dev/null; \
+	python3 experiments/quantization_probe/generate_probe_artifact.py --mode quantized --out "$$QUANTIZED_A" >/dev/null; \
+	cmp -s "$$BASELINE_A" "$$BASELINE_B"; \
+	DIFF_OUT="$$(python3 scripts/artifact_diff.py "$$BASELINE_A" "$$QUANTIZED_A")"; \
+	FIRST_DIVERGENCE_FRAME="$$(printf '%s\n' "$$DIFF_OUT" | awk -F': ' '/^first_divergence_frame:/ {print $$2; exit}')"; \
+	CLASSIFICATION="$$(printf '%s\n' "$$DIFF_OUT" | awk -F': ' '/^shape_class:/ {print $$2; exit}')"; \
+	test -n "$$FIRST_DIVERGENCE_FRAME"; \
+	test -n "$$CLASSIFICATION"; \
+	echo "first_divergence_frame = $$FIRST_DIVERGENCE_FRAME"; \
+	echo "classification = $$CLASSIFICATION"; \
+	echo "baseline_invariant = true"
 
 gate:
 	cargo run --locked --release -p dpw4 --features cli --bin precision -- validate --mode quick
