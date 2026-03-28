@@ -44,7 +44,7 @@ jobs:
         run: cargo run --locked -p audit-float-boundary -- --mode phase5b
 
       - name: Dependency DAG Oracle (no replay backedges)
-        run: python3 scripts/check_no_replay_backedges.py
+        run: PYTHONPATH=. python3 scripts/check_no_replay_backedges.py
 
       - name: Replay no_std Oracle (thumbv7em-none-eabihf)
         run: |
@@ -72,30 +72,30 @@ jobs:
 
       - name: Replay Baseline Verify (phase8)
         run: |
-          python3 scripts/artifact_tool.py verify artifacts/baseline.bin --signal-model phase8
-          python3 scripts/artifact_tool.py hash artifacts/baseline.bin \
+          PYTHONPATH=. python3 scripts/artifact_tool.py verify artifacts/baseline.bin --signal-model phase8
+          PYTHONPATH=. python3 scripts/artifact_tool.py hash artifacts/baseline.bin \
             --expect f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765
 
       - name: Replay Artifact Parser Adversarial Tests
-        run: python3 scripts/test_artifact_parser_adversarial.py
+        run: PYTHONPATH=. python3 scripts/test_artifact_parser_adversarial.py
 
       - name: Replay Artifact Parser Valid v1 Coverage
-        run: python3 scripts/test_artifact_parser_valid_v1.py
+        run: PYTHONPATH=. python3 scripts/test_artifact_parser_valid_v1.py
 
       - name: Replay Artifact Parser Mutation Corpus
-        run: python3 scripts/test_artifact_parser_mutation_corpus.py
+        run: PYTHONPATH=. python3 scripts/test_artifact_parser_mutation_corpus.py
 
       - name: Replay Artifact Tool Verify CLI Regression
-        run: python3 scripts/test_artifact_tool_verify.py
+        run: PYTHONPATH=. python3 scripts/test_artifact_tool_verify.py
 
       - name: Replay Artifact Tool Hash CLI Regression
-        run: python3 scripts/test_artifact_tool_hash.py
+        run: PYTHONPATH=. python3 scripts/test_artifact_tool_hash.py
 
       - name: Documentation Link Integrity Regression
-        run: python3 scripts/test_doc_link_check.py
+        run: PYTHONPATH=. python3 scripts/test_doc_link_check.py
 
       - name: Replay Artifact Compare CLI Regression
-        run: python3 scripts/test_compare_artifact.py
+        run: PYTHONPATH=. python3 scripts/test_compare_artifact.py
 
       - name: Replay Baseline Metadata Consistency
         run: |
