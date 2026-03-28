@@ -801,19 +801,19 @@ test:
 	cargo test --workspace --locked
 
 parser-tests:
-	python3 scripts/test_artifact_parser_adversarial.py
-	python3 scripts/test_artifact_parser_valid_v1.py
-	python3 scripts/test_artifact_parser_mutation_corpus.py
+	PYTHONPATH=. python3 scripts/test_artifact_parser_adversarial.py
+	PYTHONPATH=. python3 scripts/test_artifact_parser_valid_v1.py
+	PYTHONPATH=. python3 scripts/test_artifact_parser_mutation_corpus.py
 
 replay-tool-tests:
-	python3 scripts/test_artifact_tool_verify.py
-	python3 scripts/test_artifact_tool_hash.py
-	python3 scripts/test_doc_link_check.py
-	python3 scripts/test_artifact_diff.py
-	python3 scripts/test_demo_v3_fixtures.py
-	python3 tests/test_demo_v4_region_attribution.py
-	python3 tests/test_demo_v5_evolution.py
-	python3 scripts/test_compare_artifact.py
+	PYTHONPATH=. python3 scripts/test_artifact_tool_verify.py
+	PYTHONPATH=. python3 scripts/test_artifact_tool_hash.py
+	PYTHONPATH=. python3 scripts/test_doc_link_check.py
+	PYTHONPATH=. python3 scripts/test_artifact_diff.py
+	PYTHONPATH=. python3 scripts/test_demo_v3_fixtures.py
+	PYTHONPATH=. python3 tests/test_demo_v4_region_attribution.py
+	PYTHONPATH=. python3 tests/test_demo_v5_evolution.py
+	PYTHONPATH=. python3 scripts/test_compare_artifact.py
 
 replay-tests: parser-tests replay-tool-tests
 
@@ -824,11 +824,11 @@ demo-divergence:
 	BASELINE_B="$$TMP_DIR/quant_probe_baseline_run2.rpl"; \
 	QUANTIZED_A="$$TMP_DIR/quant_probe_quantized_run1.rpl"; \
 	mkdir -p "$$TMP_DIR"; \
-	python3 experiments/quantization_probe/generate_probe_artifact.py --mode baseline --out "$$BASELINE_A" >/dev/null; \
-	python3 experiments/quantization_probe/generate_probe_artifact.py --mode baseline --out "$$BASELINE_B" >/dev/null; \
-	python3 experiments/quantization_probe/generate_probe_artifact.py --mode quantized --out "$$QUANTIZED_A" >/dev/null; \
+	PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --out "$$BASELINE_A" >/dev/null; \
+	PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --out "$$BASELINE_B" >/dev/null; \
+	PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode quantized --out "$$QUANTIZED_A" >/dev/null; \
 	cmp -s "$$BASELINE_A" "$$BASELINE_B"; \
-	DIFF_OUT="$$(python3 scripts/artifact_diff.py "$$BASELINE_A" "$$QUANTIZED_A")"; \
+	DIFF_OUT="$$(PYTHONPATH=. python3 scripts/artifact_diff.py "$$BASELINE_A" "$$QUANTIZED_A")"; \
 	FIRST_DIVERGENCE_FRAME="$$(printf '%s\n' "$$DIFF_OUT" | awk -F': ' '/^first_divergence_frame:/ {print $$2; exit}')"; \
 	CLASSIFICATION="$$(printf '%s\n' "$$DIFF_OUT" | awk -F': ' '/^shape_class:/ {print $$2; exit}')"; \
 	test -n "$$FIRST_DIVERGENCE_FRAME"; \

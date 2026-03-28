@@ -22,18 +22,18 @@ The checked-in corpus keeps all but one transformed value aligned to the quantiz
 Run examples:
 
 ```bash
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode baseline --out /tmp/quant_probe_baseline.rpl
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode quantized --out /tmp/quant_probe_quantized.rpl
-python3 scripts/artifact_diff.py /tmp/quant_probe_baseline.rpl /tmp/quant_probe_quantized.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --out /tmp/quant_probe_baseline.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode quantized --out /tmp/quant_probe_quantized.rpl
+PYTHONPATH=. python3 scripts/artifact_diff.py /tmp/quant_probe_baseline.rpl /tmp/quant_probe_quantized.rpl
 ```
 
 Repeatability verification:
 
 ```bash
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode baseline --out /tmp/quant_probe_baseline_run1.rpl
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode baseline --out /tmp/quant_probe_baseline_run2.rpl
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode quantized --out /tmp/quant_probe_quantized_run1.rpl
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode quantized --out /tmp/quant_probe_quantized_run2.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --out /tmp/quant_probe_baseline_run1.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --out /tmp/quant_probe_baseline_run2.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode quantized --out /tmp/quant_probe_quantized_run1.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode quantized --out /tmp/quant_probe_quantized_run2.rpl
 cmp -s /tmp/quant_probe_baseline_run1.rpl /tmp/quant_probe_baseline_run2.rpl
 cmp -s /tmp/quant_probe_quantized_run1.rpl /tmp/quant_probe_quantized_run2.rpl
 sha256sum /tmp/quant_probe_baseline_run1.rpl /tmp/quant_probe_baseline_run2.rpl
@@ -59,40 +59,40 @@ The matrix below is retained as WIP-only host evidence from the current Ubuntu x
 Exact matrix commands:
 
 ```bash
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode baseline --corpus C1 --out /tmp/C1_Q2_baseline_run1.rpl
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode baseline --corpus C1 --out /tmp/C1_Q2_baseline_run2.rpl
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode quantized --corpus C1 --quant-shift 2 --out /tmp/C1_Q2_quant_run1.rpl
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode quantized --corpus C1 --quant-shift 2 --out /tmp/C1_Q2_quant_run2.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --corpus C1 --out /tmp/C1_Q2_baseline_run1.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --corpus C1 --out /tmp/C1_Q2_baseline_run2.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode quantized --corpus C1 --quant-shift 2 --out /tmp/C1_Q2_quant_run1.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode quantized --corpus C1 --quant-shift 2 --out /tmp/C1_Q2_quant_run2.rpl
 cmp -s /tmp/C1_Q2_baseline_run1.rpl /tmp/C1_Q2_baseline_run2.rpl
 cmp -s /tmp/C1_Q2_quant_run1.rpl /tmp/C1_Q2_quant_run2.rpl
 sha256sum /tmp/C1_Q2_baseline_run1.rpl /tmp/C1_Q2_baseline_run2.rpl
 sha256sum /tmp/C1_Q2_quant_run1.rpl /tmp/C1_Q2_quant_run2.rpl
 python3 scripts/artifact_diff.py /tmp/C1_Q2_baseline_run1.rpl /tmp/C1_Q2_quant_run1.rpl
 
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode baseline --corpus C1 --out /tmp/C1_Q3_baseline_run1.rpl
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode baseline --corpus C1 --out /tmp/C1_Q3_baseline_run2.rpl
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode quantized --corpus C1 --quant-shift 3 --out /tmp/C1_Q3_quant_run1.rpl
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode quantized --corpus C1 --quant-shift 3 --out /tmp/C1_Q3_quant_run2.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --corpus C1 --out /tmp/C1_Q3_baseline_run1.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --corpus C1 --out /tmp/C1_Q3_baseline_run2.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode quantized --corpus C1 --quant-shift 3 --out /tmp/C1_Q3_quant_run1.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode quantized --corpus C1 --quant-shift 3 --out /tmp/C1_Q3_quant_run2.rpl
 cmp -s /tmp/C1_Q3_baseline_run1.rpl /tmp/C1_Q3_baseline_run2.rpl
 cmp -s /tmp/C1_Q3_quant_run1.rpl /tmp/C1_Q3_quant_run2.rpl
 sha256sum /tmp/C1_Q3_baseline_run1.rpl /tmp/C1_Q3_baseline_run2.rpl
 sha256sum /tmp/C1_Q3_quant_run1.rpl /tmp/C1_Q3_quant_run2.rpl
 python3 scripts/artifact_diff.py /tmp/C1_Q3_baseline_run1.rpl /tmp/C1_Q3_quant_run1.rpl
 
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode baseline --corpus C1 --out /tmp/C1_Q4_baseline_run1.rpl
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode baseline --corpus C1 --out /tmp/C1_Q4_baseline_run2.rpl
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode quantized --corpus C1 --quant-shift 4 --out /tmp/C1_Q4_quant_run1.rpl
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode quantized --corpus C1 --quant-shift 4 --out /tmp/C1_Q4_quant_run2.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --corpus C1 --out /tmp/C1_Q4_baseline_run1.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --corpus C1 --out /tmp/C1_Q4_baseline_run2.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode quantized --corpus C1 --quant-shift 4 --out /tmp/C1_Q4_quant_run1.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode quantized --corpus C1 --quant-shift 4 --out /tmp/C1_Q4_quant_run2.rpl
 cmp -s /tmp/C1_Q4_baseline_run1.rpl /tmp/C1_Q4_baseline_run2.rpl
 cmp -s /tmp/C1_Q4_quant_run1.rpl /tmp/C1_Q4_quant_run2.rpl
 sha256sum /tmp/C1_Q4_baseline_run1.rpl /tmp/C1_Q4_baseline_run2.rpl
 sha256sum /tmp/C1_Q4_quant_run1.rpl /tmp/C1_Q4_quant_run2.rpl
 python3 scripts/artifact_diff.py /tmp/C1_Q4_baseline_run1.rpl /tmp/C1_Q4_quant_run1.rpl
 
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode baseline --corpus C2 --out /tmp/C2_Q3_baseline_run1.rpl
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode baseline --corpus C2 --out /tmp/C2_Q3_baseline_run2.rpl
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode quantized --corpus C2 --quant-shift 3 --out /tmp/C2_Q3_quant_run1.rpl
-python3 experiments/quantization_probe/generate_probe_artifact.py --mode quantized --corpus C2 --quant-shift 3 --out /tmp/C2_Q3_quant_run2.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --corpus C2 --out /tmp/C2_Q3_baseline_run1.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --corpus C2 --out /tmp/C2_Q3_baseline_run2.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode quantized --corpus C2 --quant-shift 3 --out /tmp/C2_Q3_quant_run1.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode quantized --corpus C2 --quant-shift 3 --out /tmp/C2_Q3_quant_run2.rpl
 cmp -s /tmp/C2_Q3_baseline_run1.rpl /tmp/C2_Q3_baseline_run2.rpl
 cmp -s /tmp/C2_Q3_quant_run1.rpl /tmp/C2_Q3_quant_run2.rpl
 sha256sum /tmp/C2_Q3_baseline_run1.rpl /tmp/C2_Q3_baseline_run2.rpl
