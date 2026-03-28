@@ -3,40 +3,30 @@ from __future__ import annotations
 
 import argparse
 import hashlib
-import importlib.util
 import struct
 from pathlib import Path
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
-INSPECT_ARTIFACT_PATH = REPO_ROOT / "scripts" / "inspect_artifact.py"
-_INSPECT_ARTIFACT_SPEC = importlib.util.spec_from_file_location(
-    "wip004_inspect_artifact", INSPECT_ARTIFACT_PATH
+from tools.rpl0_constants import (
+    FRAME_FMT,
+    FRAME_SIZE,
+    HEADER_LEN,
+    MAGIC,
+    V1_OFF_BOARD_ID,
+    V1_OFF_BUILD_HASH,
+    V1_OFF_CAPTURE_BOUNDARY,
+    V1_OFF_CLOCK_PROFILE,
+    V1_OFF_CONFIG_HASH,
+    V1_OFF_FLAGS,
+    V1_OFF_FRAME_COUNT,
+    V1_OFF_FRAME_SIZE,
+    V1_OFF_HEADER_LEN,
+    V1_OFF_RESERVED,
+    V1_OFF_SCHEMA_HASH,
+    V1_OFF_SCHEMA_LEN,
+    V1_OFF_VERSION,
 )
-assert _INSPECT_ARTIFACT_SPEC is not None
-assert _INSPECT_ARTIFACT_SPEC.loader is not None
-inspect_artifact = importlib.util.module_from_spec(_INSPECT_ARTIFACT_SPEC)
-_INSPECT_ARTIFACT_SPEC.loader.exec_module(inspect_artifact)
 
-
-MAGIC = b"RPL0"
 VERSION = 1
-HEADER_LEN = 0x98
-FRAME_FMT = "<IBBHIi"
-FRAME_SIZE = struct.calcsize(FRAME_FMT)
-
-V1_OFF_VERSION = 0x04
-V1_OFF_HEADER_LEN = 0x06
-V1_OFF_FRAME_COUNT = 0x08
-V1_OFF_FRAME_SIZE = 0x0C
-V1_OFF_FLAGS = 0x0E
-V1_OFF_SCHEMA_LEN = 0x10
-V1_OFF_SCHEMA_HASH = 0x14
-V1_OFF_BUILD_HASH = 0x34
-V1_OFF_CONFIG_HASH = 0x54
-V1_OFF_BOARD_ID = 0x74
-V1_OFF_CLOCK_PROFILE = 0x84
-V1_OFF_CAPTURE_BOUNDARY = 0x94
-V1_OFF_RESERVED = 0x96
 
 EXPECTED_IRQ_ID = 0x02
 EXPECTED_TIMER_DELTA = 1000
@@ -55,27 +45,6 @@ BUILD_HASH = hashlib.sha256(b"quantization_probe_host_v1").digest()
 CONFIG_HASH = hashlib.sha256(b"shared_corpus_fixed_v1").digest()
 BOARD_ID = b"HOST-LINUX-BBB\0\0"
 CLOCK_PROFILE = b"host-fixed-step\0"
-
-
-# WIP-004 layout guard: import canonical parser constants directly without
-# introducing new runtime/package architecture for the probe.
-assert MAGIC == inspect_artifact.MAGIC
-assert HEADER_LEN == inspect_artifact.V1_MIN_HEADER_SIZE
-assert FRAME_FMT == inspect_artifact.FRAME_FMT
-assert FRAME_SIZE == inspect_artifact.FRAME_SIZE
-assert V1_OFF_VERSION == inspect_artifact.V1_OFF_VERSION
-assert V1_OFF_HEADER_LEN == inspect_artifact.V1_OFF_HEADER_LEN
-assert V1_OFF_FRAME_COUNT == inspect_artifact.V1_OFF_FRAME_COUNT
-assert V1_OFF_FRAME_SIZE == inspect_artifact.V1_OFF_FRAME_SIZE
-assert V1_OFF_FLAGS == inspect_artifact.V1_OFF_FLAGS
-assert V1_OFF_SCHEMA_LEN == inspect_artifact.V1_OFF_SCHEMA_LEN
-assert V1_OFF_SCHEMA_HASH == inspect_artifact.V1_OFF_SCHEMA_HASH
-assert V1_OFF_BUILD_HASH == inspect_artifact.V1_OFF_BUILD_HASH
-assert V1_OFF_CONFIG_HASH == inspect_artifact.V1_OFF_CONFIG_HASH
-assert V1_OFF_BOARD_ID == inspect_artifact.V1_OFF_BOARD_ID
-assert V1_OFF_CLOCK_PROFILE == inspect_artifact.V1_OFF_CLOCK_PROFILE
-assert V1_OFF_CAPTURE_BOUNDARY == inspect_artifact.V1_OFF_CAPTURE_BOUNDARY
-assert V1_OFF_RESERVED == inspect_artifact.V1_OFF_RESERVED
 
 
 def parse_args() -> argparse.Namespace:

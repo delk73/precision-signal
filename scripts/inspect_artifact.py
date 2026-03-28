@@ -5,28 +5,31 @@ import struct
 import sys
 from pathlib import Path
 
-MAGIC = b"RPL0"
+from tools.rpl0_constants import (
+    FRAME_FMT,
+    FRAME_SIZE,
+    HEADER_LEN,
+    MAGIC,
+    V1_OFF_BOARD_ID,
+    V1_OFF_BUILD_HASH,
+    V1_OFF_CAPTURE_BOUNDARY,
+    V1_OFF_CLOCK_PROFILE,
+    V1_OFF_CONFIG_HASH,
+    V1_OFF_FLAGS,
+    V1_OFF_FRAME_COUNT,
+    V1_OFF_FRAME_SIZE,
+    V1_OFF_HEADER_LEN,
+    V1_OFF_RESERVED,
+    V1_OFF_SCHEMA_HASH,
+    V1_OFF_SCHEMA_LEN,
+    V1_OFF_VERSION,
+)
+
 HEADER_FMT = "<4sIII"
-FRAME_FMT = "<IBBHIi"
 HEADER_SIZE = struct.calcsize(HEADER_FMT)
-FRAME_SIZE = struct.calcsize(FRAME_FMT)
-V1_MIN_HEADER_SIZE = 0x98
 U64_MAX = (1 << 64) - 1
 
-# v1 fixed offsets
-V1_OFF_VERSION = 0x04
-V1_OFF_HEADER_LEN = 0x06
-V1_OFF_FRAME_COUNT = 0x08
-V1_OFF_FRAME_SIZE = 0x0C
-V1_OFF_FLAGS = 0x0E
-V1_OFF_SCHEMA_LEN = 0x10
-V1_OFF_SCHEMA_HASH = 0x14
-V1_OFF_BUILD_HASH = 0x34
-V1_OFF_CONFIG_HASH = 0x54
-V1_OFF_BOARD_ID = 0x74
-V1_OFF_CLOCK_PROFILE = 0x84
-V1_OFF_CAPTURE_BOUNDARY = 0x94
-V1_OFF_RESERVED = 0x96
+V1_MIN_HEADER_SIZE = HEADER_LEN
 
 # Current contract policy: these fields are reserved for future use and must be zero.
 REQUIRED_RESERVED_V0 = 0
