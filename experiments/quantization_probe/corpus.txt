@@ -1,0 +1,15 @@
+# Fixed signed-integer input corpus for the quantization probe.
+# Most values preserve transform precision exactly under the quantizer.
+# The single outlier at frame_idx=4 (0-based) introduces a stable one-count divergence.
+1
+1
+1
+1
+6
+1
+1
+1
+1
+1
+1
+1

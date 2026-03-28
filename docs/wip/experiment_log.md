@@ -91,8 +91,9 @@ Promotion Path
 `docs/hardware/` only after successful gated bring-up, retained evidence, and repeatability across later validation.
 
 ## 2026-03-27 — Quantization divergence witness experiment [WIP-004]
-Status: active
+Status: closed (PASS-constrained)
 Owner: signal
+Phase 2 (matrix extension): appended host-only evidence; does not reopen phase 1.
 
 Problem
 We need a minimal, deterministic experiment that demonstrates divergence localization under quantization using the Precision signal/replay pipeline.
@@ -114,10 +115,49 @@ Planned Artifacts
 - diff output demonstrating first divergence
 
 Evidence Produced
-- (none yet)
+- BBB host Linux execution confirmed for the phase-1 witness path
+- `make gate`: PASS on BBB host
+- baseline artifact rerun hash: `67e309b08d7bf8db286869b2b81a23da297b7ccfd2ecd9e322830729e69a9e69`
+- quantized artifact rerun hash: `fe992bec716077dc20eb94550d007022439fef871a1bf101a30727b2d18a8abf`
+- first divergence: `frame_idx=4` (reported as `First divergence frame: 4`)
+- `shape_class=persistent_offset`
+- `primary_region=sample_payload`
+- `evolution_class=bounded_persistent`
+- controlled host matrix retained for `C1-Q2`, `C1-Q3`, `C1-Q4`, and `C2-Q3`
+- matrix result summary:
+  `C1-Q2` and `C1-Q3` stay at `frame_idx=4` with `shape_class=persistent_offset`
+  `C1-Q4` moves first divergence to `frame_idx=0` with `shape_class=rate_divergence`
+  `C2-Q3` moves first divergence to `frame_idx=7` with `shape_class=persistent_offset`
+- retained experiment note, exact commands, and case hashes/classifications:
+  `experiments/quantization_probe/README.md`
 
 Next Decision
-Does the experiment produce stable first-divergence localization and classification across runs?
+Rerun the same controlled matrix on BBB host if BBB-specific parity is required; otherwise keep the result experiment-local and avoid framework expansion.
 
 Promotion Path
-`docs/replay/`, `docs/architecture/`, or demo ladder if validated
+experiment-local retention only; reconsider `docs/replay/` or `docs/architecture/` only if a later phase produces broader validated evidence
+
+## 2026-03-28 — Shared canonical layout constants [WIP-005]
+Status: proposed
+
+Problem
+Probe and parser currently duplicate RPL0/EventFrame0 constants; current WIP-004 guard imports parser constants directly.
+
+Hypothesis
+A shared minimal constants module may remove duplication without changing runtime surfaces.
+
+Constraints
+- no change to artifact contract
+- no replay semantic change
+- no packaging expansion
+- no normative promotion
+
+Planned Artifacts
+- one small shared constants module for RPL0/EventFrame0 layout values
+- minimal follow-on updates in probe/parser Python consumers only if needed
+
+Next Decision
+Decide whether a shared constants module can remove duplication cleanly without adding runtime dependency edges or broadening implementation scope.
+
+Promotion Path
+scripts/ or shared internal module (non-normative)

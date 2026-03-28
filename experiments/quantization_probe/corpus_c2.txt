@@ -1,0 +1,14 @@
+# Alternate fixed corpus for the quantization probe.
+# The single outlier is moved later to frame_idx=7 (0-based).
+1
+1
+1
+1
+1
+1
+1
+6
+1
+1
+1
+1
