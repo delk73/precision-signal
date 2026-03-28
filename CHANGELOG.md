@@ -18,8 +18,11 @@
 
 ### Internal
 
-- added WIP-004 canonical layout guard in quantization probe
-- replaced probe-local import approach with local importlib-based load
+- wip-005: unify RPL0 constants module; normalize import surface; drop bytecode
+- eliminate duplicated RPL0/EventFrame0 layout constants with shared module `tools/rpl0_constants.py`
+- update `scripts/inspect_artifact.py` and `experiments/quantization_probe/generate_probe_artifact.py` to use `tools` package
+- normalize invocation surface to repo-root imports via `PYTHONPATH=. python3 -m ...`
+- remove committed `__pycache__` artifacts
 - no experiment behavior change
 
 ## [1.2.2] - 2026-03-26
