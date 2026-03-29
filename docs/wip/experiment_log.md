@@ -202,6 +202,63 @@ Next Decision
 Promotion Path
 experiment-local retention only
 
+## 2026-03-29 — WIP-007 matrix expansion and failure boundary mapping [WIP-007]
+Status: closed (PASS)
+Owner: signal
+
+Problem
+We need to determine whether the reduced WIP-006 cross-surface parity result for `C1`
+is stable across the nearby quantization boundary (`Q2/Q3/Q4`) or only true at `Q3`.
+
+Hypothesis
+For the tested `C1` quantization domain, host and BBB should preserve identical
+baseline hashes, quantized hashes, first-divergence frame, classification, and
+baseline repeatability when the command surface varies only by `--quant-shift`.
+
+Constraints
+- No artifact contract change
+- No replay semantic change
+- No classification logic change
+- No taxonomy redesign
+- Keep this WIP experimental and non-normative
+- Prefer evidence over interpretation
+
+Canonical matrix
+- corpus: `C1`
+- baseline: `PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --corpus C1 --out /tmp/WIP007_C1_QX_baseline_run{1,2}.rpl`
+- quantized: `PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode quantized --corpus C1 --quant-shift X --out /tmp/WIP007_C1_QX_quant_run{1,2}.rpl`
+- repeatability checks: `cmp -s` on baseline pair and quantized pair
+- hash check: `sha256sum /tmp/WIP007_C1_QX_baseline_run1.rpl /tmp/WIP007_C1_QX_quant_run1.rpl`
+- witness diff: `PYTHONPATH=. python3 scripts/artifact_diff.py /tmp/WIP007_C1_QX_baseline_run1.rpl /tmp/WIP007_C1_QX_quant_run1.rpl`
+- tested shifts: `X in {2,3,4}`
+
+Evidence Produced
+- Host matrix completed for `C1-Q2`, `C1-Q3`, and `C1-Q4`
+- host `C1-Q2`: baseline repeat `PASS`, quantized repeat `PASS`, baseline hash `67e309b08d7bf8db286869b2b81a23da297b7ccfd2ecd9e322830729e69a9e69`, quantized hash `fe992bec716077dc20eb94550d007022439fef871a1bf101a30727b2d18a8abf`, `first_divergence_frame=4`, `classification=persistent_offset`, `baseline_invariant=true`
+- host `C1-Q3`: baseline repeat `PASS`, quantized repeat `PASS`, baseline hash `67e309b08d7bf8db286869b2b81a23da297b7ccfd2ecd9e322830729e69a9e69`, quantized hash `fe992bec716077dc20eb94550d007022439fef871a1bf101a30727b2d18a8abf`, `first_divergence_frame=4`, `classification=persistent_offset`, `baseline_invariant=true`
+- host `C1-Q4`: baseline repeat `PASS`, quantized repeat `PASS`, baseline hash `67e309b08d7bf8db286869b2b81a23da297b7ccfd2ecd9e322830729e69a9e69`, quantized hash `a1898d79ef3b55f8f60cdc4cb24467b25665f630a7fe0dc4a7a39318af228d83`, `first_divergence_frame=0`, `classification=rate_divergence`, `baseline_invariant=true`
+- Host confirms the local boundary shape for `C1`: `Q2/Q3` collapse to the same witness, while `Q4` moves the first divergence to frame `0` and changes classification to `rate_divergence`
+- BBB matrix completed for `C1-Q2`, `C1-Q3`, and `C1-Q4`
+- BBB `C1-Q2`: baseline repeat `PASS`, quantized repeat `PASS`, baseline hash `67e309b08d7bf8db286869b2b81a23da297b7ccfd2ecd9e322830729e69a9e69`, quantized hash `fe992bec716077dc20eb94550d007022439fef871a1bf101a30727b2d18a8abf`, `first_divergence_frame=4`, `classification=persistent_offset`, `baseline_invariant=true`
+- BBB `C1-Q3`: baseline repeat `PASS`, quantized repeat `PASS`, baseline hash `67e309b08d7bf8db286869b2b81a23da297b7ccfd2ecd9e322830729e69a9e69`, quantized hash `fe992bec716077dc20eb94550d007022439fef871a1bf101a30727b2d18a8abf`, `first_divergence_frame=4`, `classification=persistent_offset`, `baseline_invariant=true`
+- BBB `C1-Q4`: baseline repeat `PASS`, quantized repeat `PASS`, baseline hash `67e309b08d7bf8db286869b2b81a23da297b7ccfd2ecd9e322830729e69a9e69`, quantized hash `a1898d79ef3b55f8f60cdc4cb24467b25665f630a7fe0dc4a7a39318af228d83`, `first_divergence_frame=0`, `classification=rate_divergence`, `baseline_invariant=true`
+- Host and BBB matched exactly for every completed `C1` shift in the WIP-007 matrix: identical baseline hash, quantized hash, `first_divergence_frame`, `classification`, and baseline repeatability result for `Q2`, `Q3`, and `Q4`
+
+Boundary Classification
+- No host/BBB mismatch observed across the tested `C1` quantization domain
+- No failure boundary localized because no cross-surface divergence was observed
+- The local shift boundary for this corpus is still evidenced within each surface: `Q2/Q3` share one witness and `Q4` changes witness class at frame `0`
+
+Classification
+- PASS
+
+Next Decision
+- Keep the result experiment-local unless broader parity beyond `C1` is required
+- Expand to additional corpora or surfaces only under a new WIP lane
+
+Promotion Path
+experiment-local retention only
+
 ## 2026-03-28 — Shared canonical layout constants [WIP-005]
 Status: proposed
 
