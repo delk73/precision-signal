@@ -52,6 +52,37 @@ Observed BBB host result:
 - classification summary: `shape_class: persistent_offset`, `primary_region: sample_payload`, `evolution_class: bounded_persistent`
 - first divergent samples: `Sample A: 0x00000041`, `Sample B: 0x00000040`
 
+WIP-006 canonical parity matrix
+
+The reduced cross-surface parity matrix for WIP-006 uses only corpus `C1` with baseline and quantized shift `3`.
+
+Exact commands:
+
+```bash
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --corpus C1 --out /tmp/WIP006_C1_Q3_baseline_run1.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --corpus C1 --out /tmp/WIP006_C1_Q3_baseline_run2.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode quantized --corpus C1 --quant-shift 3 --out /tmp/WIP006_C1_Q3_quant_run1.rpl
+PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode quantized --corpus C1 --quant-shift 3 --out /tmp/WIP006_C1_Q3_quant_run2.rpl
+cmp -s /tmp/WIP006_C1_Q3_baseline_run1.rpl /tmp/WIP006_C1_Q3_baseline_run2.rpl
+cmp -s /tmp/WIP006_C1_Q3_quant_run1.rpl /tmp/WIP006_C1_Q3_quant_run2.rpl
+sha256sum /tmp/WIP006_C1_Q3_baseline_run1.rpl /tmp/WIP006_C1_Q3_baseline_run2.rpl /tmp/WIP006_C1_Q3_quant_run1.rpl /tmp/WIP006_C1_Q3_quant_run2.rpl
+PYTHONPATH=. python3 scripts/artifact_diff.py /tmp/WIP006_C1_Q3_baseline_run1.rpl /tmp/WIP006_C1_Q3_quant_run1.rpl
+```
+
+Parity target:
+
+- `first_divergence_frame = 4`
+- `classification = persistent_offset`
+- `baseline_invariant = true`
+
+Observed BBB parity result:
+
+- baseline hash `67e309b08d7bf8db286869b2b81a23da297b7ccfd2ecd9e322830729e69a9e69`
+- quantized hash `fe992bec716077dc20eb94550d007022439fef871a1bf101a30727b2d18a8abf`
+- `first_divergence_frame = 4`
+- `classification = persistent_offset`
+- `baseline_invariant = true`
+
 Controlled witness matrix
 
 The matrix below is retained as WIP-only host evidence from the current Ubuntu x86_64 host. It does not replace the retained phase-1 BBB evidence above.
