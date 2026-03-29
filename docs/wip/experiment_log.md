@@ -137,6 +137,71 @@ Rerun the same controlled matrix on BBB host if BBB-specific parity is required;
 Promotion Path
 experiment-local retention only; reconsider `docs/replay/` or `docs/architecture/` only if a later phase produces broader validated evidence
 
+## 2026-03-28 — Cross-surface quantization parity [WIP-006]
+Status: closed (PASS-constrained)
+Owner: signal
+
+Problem
+We need to verify whether the existing quantization divergence witness remains stable across the host and BBB execution surfaces without changing witness semantics or widening the artifact contract.
+
+Hypothesis
+For the same controlled probe input and exact command surface, host and BBB should preserve the same witness fields for the reduced parity matrix:
+- `first_divergence_frame`
+- `classification`
+- `baseline_invariant`
+
+Constraints
+- No new witness semantics
+- No artifact contract change
+- No replay semantic change
+- No taxonomy redesign
+- Keep this WIP experimental and non-normative
+- Prefer the smallest useful matrix
+
+Canonical parity matrix
+- corpus: `C1`
+- baseline: `PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --corpus C1 --out /tmp/WIP006_C1_Q3_baseline_run{1,2}.rpl`
+- quantized: `PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode quantized --corpus C1 --quant-shift 3 --out /tmp/WIP006_C1_Q3_quant_run{1,2}.rpl`
+- repeatability checks: `cmp -s` on baseline pair and quantized pair
+- hash check: `sha256sum /tmp/WIP006_C1_Q3_baseline_run1.rpl /tmp/WIP006_C1_Q3_baseline_run2.rpl /tmp/WIP006_C1_Q3_quant_run1.rpl /tmp/WIP006_C1_Q3_quant_run2.rpl`
+- witness diff: `PYTHONPATH=. python3 scripts/artifact_diff.py /tmp/WIP006_C1_Q3_baseline_run1.rpl /tmp/WIP006_C1_Q3_quant_run1.rpl`
+- required output fields: `first_divergence_frame`, `shape_class` as the classification source, and baseline repeat equality as `baseline_invariant`
+
+Evidence Produced
+- Host canonical matrix completed for `C1-Q3`
+- host baseline repeat: PASS
+- host quantized repeat: PASS
+- host baseline hash: `67e309b08d7bf8db286869b2b81a23da297b7ccfd2ecd9e322830729e69a9e69`
+- host quantized hash: `fe992bec716077dc20eb94550d007022439fef871a1bf101a30727b2d18a8abf`
+- host witness fields:
+  `first_divergence_frame=4`
+  `classification=persistent_offset`
+  `baseline_invariant=true`
+- BBB baseline repeat: PASS
+- BBB quantized repeat: PASS
+- BBB baseline hash: `67e309b08d7bf8db286869b2b81a23da297b7ccfd2ecd9e322830729e69a9e69`
+- BBB quantized hash: `fe992bec716077dc20eb94550d007022439fef871a1bf101a30727b2d18a8abf`
+- BBB witness fields:
+  `first_divergence_frame=4`
+  `classification=persistent_offset`
+  `baseline_invariant=true`
+- Host and BBB matched exactly for the reduced canonical matrix
+
+Classification
+- PASS-constrained
+
+MCU feasibility gate
+- Deferred for this WIP
+- Current MCU path is the STM32F446 capture firmware / demo feature lane, not the Python `quantization_probe` witness path
+- Reusing the same witness cleanly on MCU would require opening a separate firmware-design lane, which is outside this WIP
+
+Next Decision
+- Expand matrix (Q2/Q3/Q4) only if broader parity is required
+- MCU parity remains a separate firmware lane
+
+Promotion Path
+experiment-local retention only
+
 ## 2026-03-28 — Shared canonical layout constants [WIP-005]
 Status: proposed
 
