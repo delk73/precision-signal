@@ -202,6 +202,63 @@ Next Decision
 Promotion Path
 experiment-local retention only
 
+## 2026-03-29 — Cross-corpus generalization probe [WIP-008]
+Status: closed (PASS-constrained)
+Owner: signal
+
+Problem
+We need to determine whether the quantization boundary observed in WIP-007 for `C1`
+is structural or corpus-dependent by rerunning the same cross-surface matrix on `C2`.
+
+Hypothesis
+For the tested `C2` quantization domain, host and BBB should preserve identical
+baseline hashes, quantized hashes, first-divergence frame, classification, and
+baseline repeatability when the command surface varies only by `--quant-shift`.
+
+Constraints
+- No artifact contract change
+- No replay semantic change
+- No classification logic change
+- No taxonomy redesign
+- Keep this WIP experimental and non-normative
+- Keep the matrix minimal and explicit
+
+Canonical matrix
+- corpus: `C2`
+- baseline: `PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode baseline --corpus C2 --out /tmp/WIP008_C2_QX_baseline_run{1,2}.rpl`
+- quantized: `PYTHONPATH=. python3 -m experiments.quantization_probe.generate_probe_artifact --mode quantized --corpus C2 --quant-shift X --out /tmp/WIP008_C2_QX_quant_run{1,2}.rpl`
+- repeatability checks: `cmp -s` on baseline pair and quantized pair
+- hash check: `sha256sum /tmp/WIP008_C2_QX_baseline_run1.rpl /tmp/WIP008_C2_QX_quant_run1.rpl`
+- witness diff: `PYTHONPATH=. python3 scripts/artifact_diff.py /tmp/WIP008_C2_QX_baseline_run1.rpl /tmp/WIP008_C2_QX_quant_run1.rpl`
+- tested shifts: `X in {2,3,4}`
+
+Evidence Produced
+- Host matrix completed for `C2-Q2`, `C2-Q3`, and `C2-Q4`
+- host `C2-Q2`: baseline repeat `PASS`, quantized repeat `PASS`, baseline hash `d6009946947b0e1b1ead89dac01112cda52bf116b711ec0728722e384f7e17d1`, quantized hash `a0fa69c57d1f9356e2fa3549d8c3233e8ee777730acecaba8a090ed0a2fe5724`, `first_divergence_frame=7`, `classification=persistent_offset`, `baseline_invariant=true`
+- host `C2-Q3`: baseline repeat `PASS`, quantized repeat `PASS`, baseline hash `d6009946947b0e1b1ead89dac01112cda52bf116b711ec0728722e384f7e17d1`, quantized hash `a0fa69c57d1f9356e2fa3549d8c3233e8ee777730acecaba8a090ed0a2fe5724`, `first_divergence_frame=7`, `classification=persistent_offset`, `baseline_invariant=true`
+- host `C2-Q4`: baseline repeat `PASS`, quantized repeat `PASS`, baseline hash `d6009946947b0e1b1ead89dac01112cda52bf116b711ec0728722e384f7e17d1`, quantized hash `f59e33f1bbaaa329fd58769fc51282c9619528284d5c32af718489439df04905`, `first_divergence_frame=0`, `classification=rate_divergence`, `baseline_invariant=true`
+- BBB matrix completed for `C2-Q2`, `C2-Q3`, and `C2-Q4`
+- BBB `C2-Q2`: baseline repeat `PASS`, quantized repeat `PASS`, baseline hash `d6009946947b0e1b1ead89dac01112cda52bf116b711ec0728722e384f7e17d1`, quantized hash `a0fa69c57d1f9356e2fa3549d8c3233e8ee777730acecaba8a090ed0a2fe5724`, `first_divergence_frame=7`, `classification=persistent_offset`, `baseline_invariant=true`
+- BBB `C2-Q3`: baseline repeat `PASS`, quantized repeat `PASS`, baseline hash `d6009946947b0e1b1ead89dac01112cda52bf116b711ec0728722e384f7e17d1`, quantized hash `a0fa69c57d1f9356e2fa3549d8c3233e8ee777730acecaba8a090ed0a2fe5724`, `first_divergence_frame=7`, `classification=persistent_offset`, `baseline_invariant=true`
+- BBB `C2-Q4`: baseline repeat `PASS`, quantized repeat `PASS`, baseline hash `d6009946947b0e1b1ead89dac01112cda52bf116b711ec0728722e384f7e17d1`, quantized hash `f59e33f1bbaaa329fd58769fc51282c9619528284d5c32af718489439df04905`, `first_divergence_frame=0`, `classification=rate_divergence`, `baseline_invariant=true`
+- Host and BBB matched exactly for every completed `C2` shift in the WIP-008 matrix: identical baseline hash, quantized hash, `first_divergence_frame`, `classification`, and baseline repeatability result for `Q2`, `Q3`, and `Q4`
+- Cross-corpus comparison against WIP-007 `C1`: the boundary shape is preserved because `Q2/Q3` collapse to the same witness and `Q4` changes witness class at frame `0`, but the boundary location differs by corpus because `C1-Q2/Q3` first diverge at frame `4` while `C2-Q2/Q3` first diverge at frame `7`
+
+Boundary Classification
+- No host/BBB mismatch observed across the tested `C2` quantization domain
+- No failure boundary localized because no cross-surface divergence was observed
+- The quantization boundary is constrained by corpus: shape parity holds across `C1` and `C2`, but the `Q2/Q3` first-divergence location shifts from frame `4` on `C1` to frame `7` on `C2`
+
+Classification
+- PASS-constrained
+
+Next Decision
+- Keep the result experiment-local unless broader parity beyond `C1/C2` is required
+- Expand to additional corpora or surfaces only under a new WIP lane
+
+Promotion Path
+experiment-local retention only
+
 ## 2026-03-29 — WIP-007 matrix expansion and failure boundary mapping [WIP-007]
 Status: closed (PASS)
 Owner: signal
