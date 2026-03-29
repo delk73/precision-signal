@@ -4,6 +4,89 @@ This append-only log is exploratory only. It does not define current release sur
 verification authority, or normative invariants. If an item matures, promote it to
 its target document; do not treat this log as authoritative.
 
+## 2026-03-29 — Model robustness and counterexample search [WIP-010]
+Status: closed (PASS-constrained)
+Owner: signal
+
+Problem
+We need to try to falsify the WIP-009 residue-index rule by checking whether
+predicted and observed `first_divergence_frame` remain equal on additional
+host-only corpus shapes beyond `C1` and `C2`.
+
+Hypothesis
+If WIP-009 captures the real collapse trigger for the checked-in probe
+pipeline, the first frame with non-zero affine residue should continue to match
+the observed `Q2/Q3` first-divergence frame across a small but shape-diverse
+host corpus family.
+
+Constraints
+- Host-only
+- `q in {2, 3}` only
+- No artifact contract change
+- No replay semantic change
+- No classification logic change
+- No changelog update
+- Keep implementation minimal and experiment-local
+
+Canonical analysis
+- pipeline reference:
+  `experiments/quantization_probe/generate_probe_artifact.py`
+- experiment-local helper:
+  `python3 experiments/quantization_probe/analysis/wip010_model_robustness.py`
+- governing rule under test:
+  `predicted_first_divergence_frame(corpus, q) = min i such that ((5 * corpus[i] + 3) & ((1 << q) - 1)) != 0`
+- added corpus family:
+  `P1_front_loaded_six = [6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]`
+  `M1_monotonic_plateau_then_rise = [1, 1, 1, 1, 5, 5, 6, 6, 6, 6, 6, 6]`
+  `O1_alternating_low_high = [1, 6, 1, 6, 1, 6, 1, 6, 1, 6, 1, 6]`
+  `K1_plateau_then_jump = [1, 1, 1, 1, 1, 1, 6, 6, 6, 6, 6, 6]`
+- helper behavior:
+  reuse the checked-in host pipeline and artifact encoder, compute residue-index
+  prediction per corpus and quant shift, check baseline/quantized repeatability,
+  and reuse `scripts/artifact_diff.py` classification logic on encoded artifacts
+
+Evidence Produced
+- All tested baseline repeatability checks passed
+- All tested quantized repeatability checks passed
+- No prediction/observation mismatch was found in the added host corpus family
+- The tested family includes:
+  permutation-sensitive placement (`P1`)
+  monotonic nondecreasing structure (`M1`)
+  oscillation (`O1`)
+  clustered plateau then jump (`K1`)
+- `M1` shows that the model does not require `Q2/Q3` collapse to the same frame:
+  `Q2` predicts and observes frame `6`, while `Q3` predicts and observes frame `4`
+
+Validation
+| Corpus | Shape | Q2 predicted | Q2 observed | Q2 match | Q2 classification | Q3 predicted | Q3 observed | Q3 match | Q3 classification |
+| --- | --- | ---: | ---: | --- | --- | ---: | ---: | --- | --- |
+| `P1_front_loaded_six` | permutation variant | 0 | 0 | exact | `persistent_offset` | 0 | 0 | exact | `persistent_offset` |
+| `M1_monotonic_plateau_then_rise` | monotonic | 6 | 6 | exact | `rate_divergence` | 4 | 4 | exact | `rate_divergence` |
+| `O1_alternating_low_high` | oscillatory | 1 | 1 | exact | `rate_divergence` | 1 | 1 | exact | `rate_divergence` |
+| `K1_plateau_then_jump` | clustered/plateau | 6 | 6 | exact | `rate_divergence` | 6 | 6 | exact | `rate_divergence` |
+
+Bounded validity
+- For the tested host-only corpus family, using the checked-in
+  `affine_transform -> accumulate -> clamp -> threshold` probe pipeline and
+  integer samples drawn from the existing probe domain, the residue-index rule
+  matches observed `first_divergence_frame` exactly for every checked `Q2/Q3`
+  slice
+- This WIP does not establish validity outside the tested host corpus family,
+  outside `q in {2, 3}`, or for any changed pipeline semantics
+
+Classification
+- PASS-constrained
+
+Next Decision
+- Retain the rule as experiment-local and bounded to the tested host corpus
+  family unless a future WIP needs a broader falsification search
+- If broader coverage is required, the next useful stressor is a corpus family
+  that intentionally exercises values whose affine residues differ between `Q2`
+  and `Q3` while changing local ordering more aggressively
+
+Promotion Path
+experiment-local retention only
+
 ## 2026-03-29 — Boundary function modeling [WIP-009]
 Status: closed (PASS)
 Owner: signal
