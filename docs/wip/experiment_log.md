@@ -4,6 +4,99 @@ This append-only log is exploratory only. It does not define current release sur
 verification authority, or normative invariants. If an item matures, promote it to
 its target document; do not treat this log as authoritative.
 
+## 2026-03-29 — Adversarial corpus generator [WIP-011]
+Status: active (current evidence: PASS-constrained)
+Owner: signal
+
+Problem
+We need a deterministic host-only adversarial search that tries to falsify the
+WIP-009 residue-index rule inside the current probe value domain before any
+broader domain expansion.
+
+Hypothesis
+If the WIP-009 rule captures the checked-in probe boundary for `q in {2, 3}`,
+then predicted and observed `first_divergence_frame` should continue to match
+across an explicitly bounded adversarial corpus family that includes early,
+delayed, alternating, clustered, and locally reordered residue placements.
+
+Constraints
+- Host-only
+- `q in {2, 3}` only
+- No artifact contract change
+- No replay semantic change
+- No classification logic change
+- No changelog update
+- Keep helper experiment-local
+- Deterministic search only
+
+Canonical analysis
+- pipeline reference:
+  `experiments/quantization_probe/generate_probe_artifact.py`
+- experiment-local helper:
+  `PYTHONPATH=. python3 experiments/quantization_probe/analysis/wip011_adversarial_search.py`
+- governing rule under test:
+  `predicted_first_divergence_frame(corpus, q) = min i such that ((5 * corpus[i] + 3) & ((1 << q) - 1)) != 0`
+- bounded search space:
+  corpus length = `12`
+  allowed sample values = `{1, 6}` from the current checked-in probe corpora
+  generation family = exhaustive over every `12`-frame corpus in `{1, 6}^12`
+  generation encoding = `12`-bit mask where bit `i = 1` maps frame `i` to `6`
+  and bit `i = 0` maps frame `i` to `1`
+  family size = `2^12 = 4096` corpora, producing `8192` checked `(corpus, q)`
+  cases across `q in {2, 3}`
+- required stressor coverage is included as subsets of the exhaustive family:
+  early-residue placement
+  delayed-residue placement
+  alternating residue/non-residue patterns
+  clustered residue bursts
+  long zero-residue prefixes with late transitions
+  local reorderings around the predicted boundary
+- helper behavior:
+  generate the bounded corpus family deterministically, compute the residue-index
+  prediction, run the checked-in host pipeline, compare predicted vs observed
+  first divergence, record repeatability, and emit compact JSON containing search
+  metadata, per-case rows, and counterexamples if any exist
+
+Evidence Produced
+- Exhaustive search completed over all `4096` corpora in the bounded family
+- All `4096` `Q2` cases matched prediction to observation exactly
+- All `4096` `Q3` cases matched prediction to observation exactly
+- No baseline repeatability failures were observed
+- No quantized repeatability failures were observed
+- No concrete counterexample was found in the tested search space
+- One no-divergence corpus exists in the bounded family: the all-`1` corpus
+  yields predicted `null` and observed `null` for both `Q2` and `Q3`
+- Representative stressor witnesses produced by the helper include:
+  early-residue placement: `B001 = [6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]`
+  delayed-residue placement: `B200 = [1, 1, 1, 1, 1, 1, 1, 1, 1, 6, 1, 1]`
+  alternating residue/non-residue: `B555 = [6, 1, 6, 1, 6, 1, 6, 1, 6, 1, 6, 1]`
+  clustered residue burst: `B003 = [6, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]`
+  long zero-residue prefix with late transition:
+  `B100 = [1, 1, 1, 1, 1, 1, 1, 1, 6, 1, 1, 1]`
+  local reordering around the predicted boundary:
+  `B002 = [1, 6, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]`
+- Observed classification mix was identical for `Q2` and `Q3` across this
+  bounded family:
+  `null: 1`, `persistent_offset: 12`, `rate_divergence: 4083`
+
+Bounded validity
+- No counterexample was found in the tested adversarial host search space
+- This is bounded evidence only: the search covers length-`12` corpora over the
+  current probe value domain `{1, 6}` and does not establish the rule as a
+  universal property outside that family, outside `q in {2, 3}`, or under any
+  changed pipeline semantics
+
+Classification
+- PASS-constrained
+
+Next Decision
+- Retain the residue-index rule as experiment-local and bounded
+- If stronger falsification pressure is needed, widen the value domain next
+  while keeping the same host-only comparison harness
+
+Promotion Path
+experiment-local retention only
+
 ## 2026-03-29 — Model robustness and counterexample search [WIP-010]
 Status: closed (PASS-constrained)
 Owner: signal
