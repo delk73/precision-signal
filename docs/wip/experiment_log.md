@@ -4,6 +4,96 @@ This append-only log is exploratory only. It does not define current release sur
 verification authority, or normative invariants. If an item matures, promote it to
 its target document; do not treat this log as authoritative.
 
+## 2026-03-29 — Boundary function modeling [WIP-009]
+Status: closed (PASS)
+Owner: signal
+
+Problem
+We need a minimal host-only rule that predicts the `Q2/Q3`
+`first_divergence_frame` from corpus properties without changing artifact
+generation, replay behavior, or classification logic.
+
+Hypothesis
+If the `Q2/Q3` boundary is corpus-dependent but shape-stable, the divergence
+frame should correspond to a small corpus feature that captures where
+quantization first loses information.
+
+Constraints
+- Host-only analysis
+- No artifact contract change
+- No replay semantic change
+- No classification logic change
+- No changelog update
+- Keep implementation minimal and experiment-local
+
+Canonical analysis
+- corpora: `experiments/quantization_probe/corpus.txt` (`C1`),
+  `experiments/quantization_probe/corpus_c2.txt` (`C2`)
+- pipeline reference: `experiments/quantization_probe/generate_probe_artifact.py`
+- host feature extraction:
+  `python3 - <<'PY' ... load corpus, compute scalar stats, derivatives, affine-transform residues by quant_shift ... PY`
+- known collapse-region targets:
+  `C1 @ Q2/Q3 -> first_divergence_frame=4`
+  `C2 @ Q2/Q3 -> first_divergence_frame=7`
+
+Evidence Produced
+- Aggregate scalar features are identical across `C1` and `C2`, so they do not
+  explain the `4` vs `7` boundary shift
+
+| Corpus | n | min | max | mean | variance | max \|Δ\| | avg Δ | avg \|Δ\| | Q2/Q3 first non-zero residue idx |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `C1` | 12 | 1 | 6 | `17/12` | `275/144` | 5 | `0/11` | `10/11` | 4 |
+| `C2` | 12 | 1 | 6 | `17/12` | `275/144` | 5 | `0/11` | `10/11` | 7 |
+
+- Affine-transformed sample stream from the checked-in pipeline is:
+  `t_i = 5 * sample_i + 3`
+- For `Q2/Q3`, the quantizer bucket is `2^q`, and the per-frame residue is:
+  `r_i(q) = t_i mod 2^q`
+- Observed `Q2/Q3` residues:
+  `C1 -> [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]`
+  `C2 -> [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]`
+- The first non-zero residue index matches the known collapse-region boundary
+  exactly for both corpora
+- `Q4` is not part of the target fit, but the same residue rule explains the
+  shape transition: because `2^4 = 16`, the common transformed value `8`
+  already has non-zero residue, so the first non-zero residue index moves to
+  frame `0`
+
+Correlation
+- `range`, `mean`, `variance`, `max |Δ|`, and average derivative magnitude have
+  no explanatory power here because `C1` and `C2` are permutation-equivalent on
+  those features
+- The minimal explanatory variable is positional, not aggregate:
+  the first frame whose transformed sample is not exactly preserved by the
+  quantizer
+- A derivative-position proxy also matches (`first index of |Δ| = 5`, plus one),
+  but it does not encode `quant_shift` and is therefore less general than the
+  residue rule
+
+Proposed Model
+- For the tested probe pipeline and collapse region `q in {2, 3}`:
+  `predicted_first_divergence_frame(corpus, q) = min i such that ((5 * corpus[i] + 3) mod 2^q) != 0`
+- Equivalent bit form:
+  `predicted_first_divergence_frame(corpus, q) = min i such that ((5 * corpus[i] + 3) & ((1 << q) - 1)) != 0`
+- If no such frame exists, the model is undefined for this WIP because no
+  supporting corpus was tested
+
+Validation
+- `C1, Q2/Q3`: first non-zero residue at frame `4`; prediction `4`; observed `4`
+- `C2, Q2/Q3`: first non-zero residue at frame `7`; prediction `7`; observed `7`
+- Exact match on both available corpora
+
+Classification
+- PASS
+
+Next Decision
+- Keep the rule experiment-local unless more corpora are added
+- Expand only if a future WIP needs to test whether the residue-index model
+  survives additional corpus shapes
+
+Promotion Path
+experiment-local retention only
+
 ## 2026-03-26 — Witness-model v2 direction exploration [WIP-002]
 Status: proposed
 Owner: architecture
