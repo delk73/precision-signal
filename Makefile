@@ -15,6 +15,8 @@ FLASH_FULL := target/flash-full.bin
 SERIAL ?= /dev/ttyACM0
 SIGNAL_BASELINE_CSV ?= baseline.csv
 SIGNAL_OBSERVED_CSV ?= observed.csv
+SIGNAL_FRAMES ?= 128
+SIGNAL_PERTURB_FRAME ?= 50
 REPLAY_SIGNAL_MODEL ?= phase8
 REPLAY_BASELINE ?= artifacts/baseline.bin
 REPLAY_RUN ?= artifacts/run.bin
@@ -81,7 +83,7 @@ space :=
 space +=
 comma := ,
 
-.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal replay-check replay-repeat-check replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local clean
+.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff replay-check replay-repeat-check replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local clean
 
 help:
 	echo "Demo V2 lifecycle:"
@@ -112,7 +114,22 @@ help:
 	echo "  make replay-demo-audit"
 	echo
 	echo "Signal demo:"
-	echo "  make demo-signal"
+	echo "  Host/MCU:"
+	echo "    make demo-signal-flash"
+	echo "    make demo-signal-host-baseline"
+	echo "    make demo-signal-host-perturb"
+	echo "    make demo-signal-diff"
+	echo "  Pi:"
+	echo "    make demo-signal-pi-baseline"
+	echo "    make demo-signal-pi-perturb"
+	echo "  Recommended sequence:"
+	echo "    host: make demo-signal-flash"
+	echo "    host: make demo-signal-host-baseline"
+	echo "    pi:   make demo-signal-pi-baseline"
+	echo "    host: make demo-signal-host-perturb"
+	echo "    pi:   make demo-signal-pi-perturb"
+	echo "    host: make demo-signal-diff"
+	echo "  make demo-signal   # prints this sequence only"
 	echo
 	echo "Core verification:"
 	echo "  make check-workspace"
@@ -211,24 +228,45 @@ flash-compare-ur: fw-bin stflash-check
 	cmp -s "$(FW_BIN)" "$(FLASH_FULL)" || { echo "flash-compare-ur FAIL: device != $(FW_BIN)"; false; }
 
 demo-signal:
-	@set -e; \
-	$(MAKE) fw-bin; \
-	$(MAKE) flash-ur SERIAL="$(SERIAL)"; \
-	rm -f "$(SIGNAL_BASELINE_CSV)" "$(SIGNAL_OBSERVED_CSV)"; \
-	python3 scripts/csv_capture.py --serial "$(SERIAL)" --out "$(SIGNAL_BASELINE_CSV)" & \
-	CAPTURE_PID=$$!; \
-	sleep 0.5; \
-	echo ">>> Reset STM32 for baseline capture"; \
-	sleep 1; \
-	python3 scripts/pi_emitter.py --mode baseline --frames 128 --perturb-frame 50; \
-	wait $$CAPTURE_PID; \
-	python3 scripts/csv_capture.py --serial "$(SERIAL)" --out "$(SIGNAL_OBSERVED_CSV)" & \
-	CAPTURE_PID=$$!; \
-	sleep 0.5; \
-	echo ">>> Reset STM32 for perturb capture"; \
-	sleep 1; \
-	python3 scripts/pi_emitter.py --mode perturb --frames 128 --perturb-frame 50; \
-	wait $$CAPTURE_PID; \
+	echo "Signal demo runs on two machines."
+	echo "1. host: make demo-signal-flash"
+	echo "2. host: make demo-signal-host-baseline"
+	echo "3. pi:   make demo-signal-pi-baseline"
+	echo "4. host: make demo-signal-host-perturb"
+	echo "5. pi:   make demo-signal-pi-perturb"
+	echo "6. host: make demo-signal-diff"
+
+demo-signal-flash:
+	$(MAKE) fw-bin
+	$(MAKE) flash-ur SERIAL="$(SERIAL)"
+
+demo-signal-host-baseline:
+	rm -f "$(SIGNAL_BASELINE_CSV)"
+	echo "Starting host capture for baseline on $(SERIAL)."
+	echo "Next steps:"
+	echo "  1. Listener is starting now."
+	echo "  2. Reset STM32 after the listener is attached."
+	echo "  3. Run on the Pi: make demo-signal-pi-baseline"
+	python3 scripts/csv_capture.py --serial "$(SERIAL)" --out "$(SIGNAL_BASELINE_CSV)"
+
+demo-signal-host-perturb:
+	rm -f "$(SIGNAL_OBSERVED_CSV)"
+	echo "Starting host capture for perturbation on $(SERIAL)."
+	echo "Next steps:"
+	echo "  1. Listener is starting now."
+	echo "  2. Reset STM32 after the listener is attached."
+	echo "  3. Run on the Pi: make demo-signal-pi-perturb"
+	python3 scripts/csv_capture.py --serial "$(SERIAL)" --out "$(SIGNAL_OBSERVED_CSV)"
+
+demo-signal-pi-baseline:
+	command -v python3 >/dev/null
+	python3 scripts/pi_emitter.py --mode baseline --frames "$(SIGNAL_FRAMES)" --perturb-frame "$(SIGNAL_PERTURB_FRAME)"
+
+demo-signal-pi-perturb:
+	command -v python3 >/dev/null
+	python3 scripts/pi_emitter.py --mode perturb --frames "$(SIGNAL_FRAMES)" --perturb-frame "$(SIGNAL_PERTURB_FRAME)"
+
+demo-signal-diff:
 	python3 scripts/interval_diff.py "$(SIGNAL_BASELINE_CSV)" "$(SIGNAL_OBSERVED_CSV)"
 
 # Human-in-the-loop contract:
