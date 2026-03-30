@@ -25,6 +25,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--frames", type=int, default=128)
     parser.add_argument("--perturb-frame", type=int, default=50)
     parser.add_argument("--preamble-count", type=int, default=10)
+    parser.add_argument("--repeat-seconds", type=float)
     return parser.parse_args()
 
 
@@ -87,14 +88,32 @@ def emit_intervals(request, intervals: list[int]) -> None:
     request.set_value(GPIO, Value.INACTIVE)
 
 
+def emit_for_duration(
+    request, intervals: list[int], repeat_seconds: float | None
+) -> None:
+    if repeat_seconds is None:
+        emit_intervals(request, intervals)
+        return
+    if repeat_seconds <= 0:
+        raise SystemExit("--repeat-seconds must be > 0")
+
+    end_time = time.perf_counter() + repeat_seconds
+    while True:
+        emit_intervals(request, intervals)
+        if time.perf_counter() >= end_time:
+            request.set_value(GPIO, Value.INACTIVE)
+            return
+
+
 def main() -> int:
     args = parse_args()
     intervals = build_intervals(args)
     request = request_output_line()
     try:
-        emit_intervals(request, intervals)
+        emit_for_duration(request, intervals, args.repeat_seconds)
         return 0
     finally:
+        request.set_value(GPIO, Value.INACTIVE)
         request.release()
 
 

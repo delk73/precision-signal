@@ -17,6 +17,7 @@ SIGNAL_BASELINE_CSV ?= baseline.csv
 SIGNAL_OBSERVED_CSV ?= observed.csv
 SIGNAL_FRAMES ?= 128
 SIGNAL_PERTURB_FRAME ?= 50
+SIGNAL_REPEAT_SECONDS ?=
 REPLAY_SIGNAL_MODEL ?= phase8
 REPLAY_BASELINE ?= artifacts/baseline.bin
 REPLAY_RUN ?= artifacts/run.bin
@@ -124,6 +125,7 @@ help:
 	echo "    make demo-signal-pi-perturb"
 	echo "    requires python3 + Python gpiod + GPIO character device access"
 	echo "    will warn and skip if not running on a Pi with gpiod"
+	echo "    Optional validation loop: set SIGNAL_REPEAT_SECONDS"
 	echo "    does not require pigpio or pigpiod"
 	echo "  Recommended sequence:"
 	echo "    host: make demo-signal-flash"
@@ -274,7 +276,7 @@ demo-signal-pi-baseline:
 	}
 	echo "Pi emitter launch: mode=baseline gpio=GPIO17 frames=$(SIGNAL_FRAMES)"
 	echo "Runtime: python3 + gpiod + GPIO character device access; no pigpio/pigpiod"
-	python3 scripts/pi_emitter.py --mode baseline --frames "$(SIGNAL_FRAMES)" --perturb-frame "$(SIGNAL_PERTURB_FRAME)"
+	python3 scripts/pi_emitter.py --mode baseline --frames "$(SIGNAL_FRAMES)" --perturb-frame "$(SIGNAL_PERTURB_FRAME)" $(if $(SIGNAL_REPEAT_SECONDS),--repeat-seconds "$(SIGNAL_REPEAT_SECONDS)")
 
 demo-signal-pi-perturb:
 	command -v python3 >/dev/null || { echo "python3 is required for the Pi emitter"; exit 1; }
@@ -289,7 +291,7 @@ demo-signal-pi-perturb:
 	}
 	echo "Pi emitter launch: mode=perturb gpio=GPIO17 frames=$(SIGNAL_FRAMES) perturb_frame=$(SIGNAL_PERTURB_FRAME)"
 	echo "Runtime: python3 + gpiod + GPIO character device access; no pigpio/pigpiod"
-	python3 scripts/pi_emitter.py --mode perturb --frames "$(SIGNAL_FRAMES)" --perturb-frame "$(SIGNAL_PERTURB_FRAME)"
+	python3 scripts/pi_emitter.py --mode perturb --frames "$(SIGNAL_FRAMES)" --perturb-frame "$(SIGNAL_PERTURB_FRAME)" $(if $(SIGNAL_REPEAT_SECONDS),--repeat-seconds "$(SIGNAL_REPEAT_SECONDS)")
 
 demo-signal-diff:
 	python3 scripts/interval_diff.py "$(SIGNAL_BASELINE_CSV)" "$(SIGNAL_OBSERVED_CSV)"
