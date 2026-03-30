@@ -4,6 +4,159 @@ This append-only log is exploratory only. It does not define current release sur
 verification authority, or normative invariants. If an item matures, promote it to
 its target document; do not treat this log as authoritative.
 
+## 2026-03-29 — Mechanism derivation for residue-index boundary [WIP-012]
+Status: closed (PASS-constrained)
+Owner: signal
+
+Problem
+We need a pipeline-level explanation for why the checked-in probe's observed
+`first_divergence_frame` matches:
+`min i such that ((5 * sample[i] + 3) & ((1 << q) - 1)) != 0`
+without reopening the already-completed WIP-007/008/009/010/011 result set.
+
+Hypothesis
+If the checked-in probe only differs between baseline and quantized modes at the
+optional quantization floor applied to `t_i = 5 * sample_i + 3`, then the first
+non-zero dropped residue should be the first frame where the running sum, the
+bounded state, and the emitted sample can diverge, unless a later stage erases
+that difference. In the current tested domain, the later stages should preserve
+that first difference index.
+
+Constraints
+- Doc-only unless a small experiment-local note becomes necessary
+- No artifact contract change
+- No replay semantic change
+- No classification logic change
+- No changelog update
+- No broad refactor
+- No new runtime behavior
+
+Canonical analysis
+- pipeline reference:
+  `experiments/quantization_probe/generate_probe_artifact.py`
+- fixed corpora:
+  `experiments/quantization_probe/corpus.txt` (`C1`)
+  `experiments/quantization_probe/corpus_c2.txt` (`C2`)
+- known evidence being explained rather than re-litigated:
+  `WIP-007`: `C1`, `Q2/Q3` collapse, `Q4` transitions at frame `0`
+  `WIP-008`: shape stable across `C1` and `C2`, boundary location corpus-dependent
+  `WIP-011`: no counterexample in bounded exhaustive `{1,6}^12`, `q in {2,3}`
+
+Checked-in pipeline decomposition
+- `load_corpus()` reads the signed integer corpus verbatim; no preprocessing or
+  windowing occurs before the main loop
+- affine transform stage in `run_pipeline()`:
+  `t_i = 5 * sample_i + 3`
+- quantization stage in quantized mode only:
+  `t'_i = quantize_step(t_i, q) = (t_i >> q) << q`
+  which is floor-to-multiple-of-`2^q` for the non-negative transformed values in
+  the current probe corpora
+- accumulation stage:
+  baseline `A_i = sum_{k<=i} t_k`
+  quantized `A'_i = sum_{k<=i} t'_k`
+- clamp stage:
+  `B_i = clamp(A_i, -1024, 1024)`
+  `B'_i = clamp(A'_i, -1024, 1024)`
+- output emission stage:
+  `decision_i = 1 if B_i >= 256 else 0`
+  `decision'_i = 1 if B'_i >= 256 else 0`
+  emitted sample is `O_i = B_i + decision_i` or `O'_i = B'_i + decision'_i`
+
+Local invariants
+- Per-frame quantization loss is exactly the residue:
+  `r_i(q) = t_i - t'_i = t_i mod 2^q`
+- Therefore `t_i = t'_i` if and only if `r_i(q) = 0`, which is equivalent to
+  `((5 * sample[i] + 3) & ((1 << q) - 1)) == 0`
+- Before the first non-zero residue index `j`, every transformed sample matches,
+  so every prefix sum matches:
+  `A_i = A'_i` for all `i < j`
+- At the first non-zero residue index `j`, the quantized path drops a positive
+  amount `r_j(q) > 0`, so:
+  `A_j - A'_j = r_j(q) > 0`
+- After that point, accumulation cannot cancel the first difference in the
+  current probe because each later residue is also non-negative:
+  `A_i - A'_i = sum_{k<=i} r_k(q)` is monotone non-decreasing
+- In the checked-in tested domain, clamp does not delay the first difference for
+  `Q2/Q3` because the first differing prefixes stay strictly below `1024`, so
+  `B_i - B'_i = A_i - A'_i` at the first differing index
+- In the checked-in tested domain, threshold/output emission also does not delay
+  the first difference:
+  for `Q2/Q3`, the first differing bounded state is well below `256`, so both
+  decisions remain `0` and `O_i - O'_i = B_i - B'_i`
+  for `Q4`, the bounded-state gap starts at frame `0` and later threshold
+  crossings amplify the divergence, but they do not create an earlier index than
+  the accumulation already created
+
+Mechanism
+- The residue condition is the exact trigger because quantization is the only
+  stage that differs between baseline and quantized execution, and it differs by
+  dropping `r_i(q) = (5 * sample_i + 3) mod 2^q`
+- Zero residue means no divergence at frame `i` because the affine output is
+  preserved exactly, so the accumulator update is identical on both paths
+- The first non-zero residue gives the first possible divergence because it is
+  the first frame where the accumulator inputs differ
+- In the current probe, that first possible divergence is also the first
+  observed divergence because neither clamp nor threshold erases or postpones
+  the positive prefix-sum gap at that index
+- Therefore:
+  `first_divergence_frame = min i such that ((5 * sample[i] + 3) mod 2^q) != 0`
+  and the bit-mask form used in WIP-009/010/011 is the same rule
+
+Boundary behavior
+- Why `Q2/Q3` can collapse together:
+  on the checked-in `{1,6}` corpora, `sample=1` gives `t=8`, which is divisible
+  by both `4` and `8`, while `sample=6` gives `t=33`, which leaves residue `1`
+  under both `Q2` and `Q3`; the residue/non-residue pattern is therefore
+  identical for both shifts, so the first non-zero residue index is identical
+- Why `Q4` moves divergence to frame `0`:
+  `Q4` quantizes to multiples of `16`; now even the common value `t=8` has
+  residue `8`, so the very first frame already loses information and the running
+  sum diverges immediately
+- Why corpus ordering changes boundary location even when aggregate statistics
+  match:
+  the trigger is a positional prefix property, not an aggregate property; moving
+  the first residue-bearing sample later keeps the histogram, mean, variance,
+  and derivative magnitudes unchanged while shifting the first differing prefix
+
+Evidence alignment
+- `WIP-007` (`C1`):
+  `C1 = [1,1,1,1,6,1,1,1,1,1,1,1]` gives transformed stream
+  `[8,8,8,8,33,8,8,8,8,8,8,8]`
+  under `Q2/Q3`, only frame `4` has non-zero residue, so the first output
+  divergence is frame `4`; under `Q4`, frame `0` already has residue `8`, so
+  divergence moves to frame `0`
+- `WIP-008` (`C2`):
+  `C2` is the same multiset with the lone `6` moved to frame `7`, so the first
+  `Q2/Q3` non-zero residue also moves to frame `7`; the shape stays aligned
+  because the same mechanism still applies, only at a later prefix boundary
+- `WIP-011` (bounded exhaustive `{1,6}^12`, `q in {2,3}`):
+  the derivation predicts exactly what the exhaustive result reported:
+  every corpus is a sequence of `t_i in {8,33}`, so every per-frame residue is
+  either `0` or `1`; the first `33` index is therefore exactly the first
+  non-zero residue index, and no later stage in the tested domain overturns it
+
+Bounded validity
+- This is a coherent mechanism explanation for the current checked-in probe and
+  the tested domains already covered by WIP-007/008/011
+- It remains constrained because the argument relies on current pipeline
+  semantics and on the tested domains where residues are non-negative and the
+  first `Q2/Q3` divergence occurs before clamp or threshold can mask it
+- The derivation does not claim the same rule for changed affine constants,
+  different quantizers, signed-value domains with different residue behavior, or
+  corpora that force earlier clamp saturation interactions
+
+Classification
+- PASS-constrained
+
+Next Decision
+- Retain the mechanism explanation as experiment-local support for the existing
+  residue-index rule
+- Reopen only if a future WIP changes the pipeline or widens the value domain
+  enough that clamp/threshold interactions must be re-derived
+
+Promotion Path
+experiment-local retention only
+
 ## 2026-03-29 — Adversarial corpus generator [WIP-011]
 Status: closed (PASS-constrained)
 Owner: signal
