@@ -123,6 +123,7 @@ help:
 	echo "    make demo-signal-pi-baseline"
 	echo "    make demo-signal-pi-perturb"
 	echo "    requires python3 + Python gpiod + GPIO character device access"
+	echo "    will warn and skip if not running on a Pi with gpiod"
 	echo "    does not require pigpio or pigpiod"
 	echo "  Recommended sequence:"
 	echo "    host: make demo-signal-flash"
@@ -262,16 +263,30 @@ demo-signal-host-perturb:
 
 demo-signal-pi-baseline:
 	command -v python3 >/dev/null || { echo "python3 is required for the Pi emitter"; exit 1; }
-	python3 -c 'import gpiod' >/dev/null 2>&1 || { echo "Python gpiod bindings are required for the Pi emitter"; exit 1; }
-	test -e /dev/gpiochip0 || { echo "/dev/gpiochip0 is required for the Pi emitter"; exit 1; }
+	python3 -c 'import gpiod' >/dev/null 2>&1 || { \
+		echo "WARNING: gpiod not available; Pi emitter not runnable in this environment"; \
+		echo "This is expected outside a Raspberry Pi runtime"; \
+		exit 0; \
+	}
+	test -e /dev/gpiochip0 || { \
+		echo "WARNING: /dev/gpiochip0 not present; Pi emitter requires real GPIO hardware"; \
+		exit 0; \
+	}
 	echo "Pi emitter launch: mode=baseline gpio=GPIO17 frames=$(SIGNAL_FRAMES)"
 	echo "Runtime: python3 + gpiod + GPIO character device access; no pigpio/pigpiod"
 	python3 scripts/pi_emitter.py --mode baseline --frames "$(SIGNAL_FRAMES)" --perturb-frame "$(SIGNAL_PERTURB_FRAME)"
 
 demo-signal-pi-perturb:
 	command -v python3 >/dev/null || { echo "python3 is required for the Pi emitter"; exit 1; }
-	python3 -c 'import gpiod' >/dev/null 2>&1 || { echo "Python gpiod bindings are required for the Pi emitter"; exit 1; }
-	test -e /dev/gpiochip0 || { echo "/dev/gpiochip0 is required for the Pi emitter"; exit 1; }
+	python3 -c 'import gpiod' >/dev/null 2>&1 || { \
+		echo "WARNING: gpiod not available; Pi emitter not runnable in this environment"; \
+		echo "This is expected outside a Raspberry Pi runtime"; \
+		exit 0; \
+	}
+	test -e /dev/gpiochip0 || { \
+		echo "WARNING: /dev/gpiochip0 not present; Pi emitter requires real GPIO hardware"; \
+		exit 0; \
+	}
 	echo "Pi emitter launch: mode=perturb gpio=GPIO17 frames=$(SIGNAL_FRAMES) perturb_frame=$(SIGNAL_PERTURB_FRAME)"
 	echo "Runtime: python3 + gpiod + GPIO character device access; no pigpio/pigpiod"
 	python3 scripts/pi_emitter.py --mode perturb --frames "$(SIGNAL_FRAMES)" --perturb-frame "$(SIGNAL_PERTURB_FRAME)"
