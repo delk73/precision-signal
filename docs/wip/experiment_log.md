@@ -5,7 +5,7 @@ verification authority, or normative invariants. If an item matures, promote it 
 its target document; do not treat this log as authoritative.
 
 ## 2026-03-29 — Adversarial corpus generator [WIP-011]
-Status: active (current evidence: PASS-constrained)
+Status: closed (PASS-constrained)
 Owner: signal
 
 Problem
