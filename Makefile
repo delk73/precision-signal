@@ -13,6 +13,8 @@ STFLASH ?= st-flash
 FLASH_HEAD := target/flash-head.bin
 FLASH_FULL := target/flash-full.bin
 SERIAL ?= /dev/ttyACM0
+SIGNAL_BASELINE_CSV ?= baseline.csv
+SIGNAL_OBSERVED_CSV ?= observed.csv
 REPLAY_SIGNAL_MODEL ?= phase8
 REPLAY_BASELINE ?= artifacts/baseline.bin
 REPLAY_RUN ?= artifacts/run.bin
@@ -79,7 +81,7 @@ space :=
 space +=
 comma := ,
 
-.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur replay-check replay-repeat-check replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local clean
+.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal replay-check replay-repeat-check replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local clean
 
 help:
 	echo "Demo V2 lifecycle:"
@@ -108,6 +110,9 @@ help:
 	echo
 	echo "Replay explanation audit:"
 	echo "  make replay-demo-audit"
+	echo
+	echo "Signal demo:"
+	echo "  make demo-signal"
 	echo
 	echo "Core verification:"
 	echo "  make check-workspace"
@@ -204,6 +209,27 @@ flash-compare-ur: fw-bin stflash-check
 	$(STFLASH) --connect-under-reset --freq=200K read "$(FLASH_FULL)" "$(FLASH_ADDR)" "$$SIZE"
 	test -s "$(FLASH_FULL)"
 	cmp -s "$(FW_BIN)" "$(FLASH_FULL)" || { echo "flash-compare-ur FAIL: device != $(FW_BIN)"; false; }
+
+demo-signal:
+	@set -e; \
+	$(MAKE) fw-bin; \
+	$(MAKE) flash-ur SERIAL="$(SERIAL)"; \
+	rm -f "$(SIGNAL_BASELINE_CSV)" "$(SIGNAL_OBSERVED_CSV)"; \
+	python3 scripts/csv_capture.py --serial "$(SERIAL)" --out "$(SIGNAL_BASELINE_CSV)" & \
+	CAPTURE_PID=$$!; \
+	sleep 0.5; \
+	echo ">>> Reset STM32 for baseline capture"; \
+	sleep 1; \
+	python3 scripts/pi_emitter.py --mode baseline --frames 128 --perturb-frame 50; \
+	wait $$CAPTURE_PID; \
+	python3 scripts/csv_capture.py --serial "$(SERIAL)" --out "$(SIGNAL_OBSERVED_CSV)" & \
+	CAPTURE_PID=$$!; \
+	sleep 0.5; \
+	echo ">>> Reset STM32 for perturb capture"; \
+	sleep 1; \
+	python3 scripts/pi_emitter.py --mode perturb --frames 128 --perturb-frame 50; \
+	wait $$CAPTURE_PID; \
+	python3 scripts/interval_diff.py "$(SIGNAL_BASELINE_CSV)" "$(SIGNAL_OBSERVED_CSV)"
 
 # Human-in-the-loop contract:
 # capture waits for replay header; operator presses reset once after listener starts.
