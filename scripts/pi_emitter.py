@@ -2,14 +2,21 @@
 
 import argparse
 import sys
+import time
 
 try:
-    import pigpio
+    import gpiod
+    from gpiod.line import Direction, Value
 except ImportError as exc:
-    raise SystemExit(f"pigpio import failed: {exc}")
+    raise SystemExit(
+        f"gpiod import failed: {exc}. Install the Python gpiod bindings "
+        "(for example: python3-libgpiod)."
+    )
 
 
 GPIO = 17
+GPIO_CHIP = "/dev/gpiochip0"
+CONSUMER = "precision-signal-pi-emitter"
 
 
 def parse_args() -> argparse.Namespace:
@@ -32,39 +39,63 @@ def build_intervals(args: argparse.Namespace) -> list[int]:
     return intervals
 
 
-def main() -> int:
-    args = parse_args()
-    intervals = build_intervals(args)
+def request_output_line():
+    try:
+        return gpiod.request_lines(
+            GPIO_CHIP,
+            consumer=CONSUMER,
+            config={
+                GPIO: gpiod.LineSettings(
+                    direction=Direction.OUTPUT,
+                    output_value=Value.INACTIVE,
+                )
+            },
+        )
+    except OSError as exc:
+        raise SystemExit(
+            f"failed to request GPIO{GPIO} on {GPIO_CHIP}: {exc}. "
+            "Check GPIO character device access."
+        ) from exc
 
-    pi = pigpio.pi()
-    if not pi.connected:
-        raise SystemExit("pigpio daemon not reachable")
-    pi.set_mode(GPIO, pigpio.OUTPUT)
 
-    half_pulses: list[pigpio.pulse] = []
+def wait_until(deadline_ns: int) -> None:
+    while True:
+        remaining_ns = deadline_ns - time.perf_counter_ns()
+        if remaining_ns <= 0:
+            return
+        if remaining_ns > 50_000:
+            time.sleep((remaining_ns - 25_000) / 1_000_000_000)
+
+
+def emit_intervals(request, intervals: list[int]) -> None:
+    deadline_ns = time.perf_counter_ns()
+    request.set_value(GPIO, Value.INACTIVE)
     for interval in intervals:
         if interval % 2 != 0:
             raise SystemExit(f"interval must be even: {interval}")
-        half = interval // 2
-        half_pulses.append(pigpio.pulse(1 << GPIO, 0, half))
-        half_pulses.append(pigpio.pulse(0, 1 << GPIO, half))
 
+        half_ns = (interval // 2) * 1_000
+
+        deadline_ns += half_ns
+        request.set_value(GPIO, Value.ACTIVE)
+        wait_until(deadline_ns)
+
+        deadline_ns += half_ns
+        request.set_value(GPIO, Value.INACTIVE)
+        wait_until(deadline_ns)
+
+    request.set_value(GPIO, Value.INACTIVE)
+
+
+def main() -> int:
+    args = parse_args()
+    intervals = build_intervals(args)
+    request = request_output_line()
     try:
-        pi.write(GPIO, 0)
-        pi.wave_clear()
-        pi.wave_add_generic(half_pulses)
-        wave_id = pi.wave_create()
-        if wave_id < 0:
-            raise SystemExit(f"wave_create failed: {wave_id}")
-        pi.wave_send_once(wave_id)
-        while pi.wave_tx_busy():
-            pass
-        pi.write(GPIO, 0)
-        pi.wave_delete(wave_id)
+        emit_intervals(request, intervals)
         return 0
     finally:
-        pi.wave_clear()
-        pi.stop()
+        request.release()
 
 
 if __name__ == "__main__":
