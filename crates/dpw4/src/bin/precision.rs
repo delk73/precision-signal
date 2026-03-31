@@ -8,8 +8,6 @@ use dpw4::{
 };
 use sha2::{Digest, Sha256};
 
-
-
 use std::fs::{self, File};
 use std::io::{self, BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
@@ -52,7 +50,6 @@ enum Commands {
         #[arg(short, long, required = true)]
         file: PathBuf,
     },
-
 }
 
 #[derive(Clone, ValueEnum)]
@@ -123,8 +120,6 @@ struct ValidateArgs {
     #[arg(long)]
     keep: bool,
 }
-
-
 
 #[derive(Debug)]
 enum VerifyError {
@@ -228,7 +223,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             Err(e) => Err(e.into()),
         },
-
     };
 
     #[cfg(feature = "audit")]
@@ -908,8 +902,6 @@ fn run_header_integrity_direct(path: &Path) -> Result<(), String> {
 
     Ok(())
 }
-
-
 
 fn build_validate_json(status: &str, out_dir: &Path, checks: &[CheckResult]) -> String {
     let mut s = String::new();

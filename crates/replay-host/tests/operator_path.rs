@@ -1,5 +1,9 @@
+use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+use replay_host::{parse_artifact, ParsedArtifact};
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -21,6 +25,28 @@ fn run_diff(a_rel: &str, b_rel: &str) -> (i32, String, String) {
     let stdout = String::from_utf8(output.stdout).expect("stdout must be valid utf8");
     let stderr = String::from_utf8(output.stderr).expect("stderr must be valid utf8");
     (code, stdout, stderr)
+}
+
+fn run_import(csv_path: &PathBuf, out_path: &PathBuf) -> (i32, String, String) {
+    let output = Command::new(env!("CARGO_BIN_EXE_replay-host"))
+        .arg("import-interval-csv")
+        .arg(csv_path)
+        .arg(out_path)
+        .output()
+        .expect("replay-host import command must run");
+
+    let code = output.status.code().unwrap_or(-1);
+    let stdout = String::from_utf8(output.stdout).expect("stdout must be valid utf8");
+    let stderr = String::from_utf8(output.stderr).expect("stderr must be valid utf8");
+    (code, stdout, stderr)
+}
+
+fn unique_temp_dir() -> PathBuf {
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("time must be monotonic enough for tests")
+        .as_nanos();
+    std::env::temp_dir().join(format!("replay_host_import_test_{nanos}"))
 }
 
 #[test]
@@ -60,4 +86,54 @@ fn operator_path_output_is_stable_across_repeated_runs() {
 
     assert_eq!(first, second, "operator path output must be stable");
     assert_eq!(first.1, "first divergence at frame 0\n");
+}
+
+#[test]
+fn operator_path_imports_interval_csv_into_canonical_artifact() {
+    let temp_dir = unique_temp_dir();
+    fs::create_dir_all(&temp_dir).expect("temp dir must be creatable");
+
+    let csv_path = temp_dir.join("intervals.csv");
+    let out_path = temp_dir.join("imported.rpl");
+    fs::write(
+        &csv_path,
+        "index,interval_us\n0,305564\n1,304000\n2,304000\n",
+    )
+    .expect("csv fixture must be writable");
+
+    let (code, stdout, stderr) = run_import(&csv_path, &out_path);
+    assert_eq!(code, 0, "stderr: {stderr}");
+    assert!(stderr.is_empty(), "unexpected stderr: {stderr}");
+    assert!(
+        stdout.contains("wrote:"),
+        "stdout should report output path: {stdout}"
+    );
+
+    let bytes = fs::read(&out_path).expect("imported artifact must exist");
+    let parsed = parse_artifact(&bytes).expect("imported artifact must parse");
+    match parsed {
+        ParsedArtifact::V1(parsed) => {
+            assert_eq!(parsed.header.frame_count, 10_000);
+            assert_eq!(parsed.header.frame_size, 16);
+        }
+        ParsedArtifact::V0(_) => panic!("imported artifact must be v1"),
+    }
+
+    let (code, stdout, stderr) = Command::new(env!("CARGO_BIN_EXE_replay-host"))
+        .arg("diff")
+        .arg(&out_path)
+        .arg(&out_path)
+        .output()
+        .map(|output| {
+            (
+                output.status.code().unwrap_or(-1),
+                String::from_utf8(output.stdout).expect("stdout must be utf8"),
+                String::from_utf8(output.stderr).expect("stderr must be utf8"),
+            )
+        })
+        .expect("replay-host diff command must run");
+
+    assert_eq!(code, 0, "stderr: {stderr}");
+    assert_eq!(stdout, "no divergence\n");
+    assert!(stderr.is_empty(), "unexpected stderr: {stderr}");
 }

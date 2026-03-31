@@ -213,10 +213,12 @@ fn init_usart2(dp: &pac::Peripherals) {
 fn init_tim3_stimulus() {
     cortex_m::interrupt::free(|cs| {
         if let Some(tim3) = TIM3_DEV.borrow(cs).borrow_mut().as_mut() {
-            tim3.cr1().modify(|_, w| w.cen().disabled().opm().clear_bit());
+            tim3.cr1()
+                .modify(|_, w| w.cen().disabled().opm().clear_bit());
             tim3.psc().write(|w| unsafe { w.psc().bits(STIM_TIM_PSC) });
             tim3.arr().write(|w| unsafe { w.arr().bits(STIM_TIM_ARR) });
-            tim3.ccr1().write(|w| unsafe { w.ccr().bits(STIM_TIM_CCR1) });
+            tim3.ccr1()
+                .write(|w| unsafe { w.ccr().bits(STIM_TIM_CCR1) });
             tim3.cnt().write(|w| unsafe { w.cnt().bits(0) });
             tim3.smcr().write(|w| w.sms().disabled());
             tim3.ccmr1_output().write(|w| {
@@ -240,7 +242,8 @@ fn init_tim3_stimulus() {
 fn init_tim2_capture() {
     cortex_m::interrupt::free(|cs| {
         if let Some(tim2) = TIM2_DEV.borrow(cs).borrow_mut().as_mut() {
-            tim2.cr1().modify(|_, w| w.cen().clear_bit().opm().clear_bit());
+            tim2.cr1()
+                .modify(|_, w| w.cen().clear_bit().opm().clear_bit());
             tim2.psc().write(|w| unsafe { w.psc().bits(15) });
             tim2.arr().write(|w| unsafe { w.arr().bits(u32::MAX) });
             tim2.cnt().write(|w| unsafe { w.cnt().bits(0) });
@@ -358,7 +361,9 @@ impl Write for LineBuf {
 fn write_bytes(usart2: &pac::USART2, bytes: &[u8]) {
     for &byte in bytes {
         while usart2.sr().read().txe().bit_is_clear() {}
-        usart2.dr().write(|w| unsafe { w.dr().bits(u16::from(byte)) });
+        usart2
+            .dr()
+            .write(|w| unsafe { w.dr().bits(u16::from(byte)) });
     }
 }
 

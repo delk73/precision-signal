@@ -176,7 +176,12 @@ fn mutate_real_v1_cases() -> (Vec<ParseExpectation>, Vec<ParseExpectation>) {
 
     let mut mutation = Vec::new();
     for (label, filename, offset, mask) in [
-        ("modify_build_hash_bytes", "modify_build_hash_bytes.rpl", V1_OFF_BUILD_HASH, 0x80),
+        (
+            "modify_build_hash_bytes",
+            "modify_build_hash_bytes.rpl",
+            V1_OFF_BUILD_HASH,
+            0x80,
+        ),
         (
             "modify_config_hash_bytes",
             "modify_config_hash_bytes.rpl",
@@ -237,7 +242,12 @@ fn mutate_real_v1_cases() -> (Vec<ParseExpectation>, Vec<ParseExpectation>) {
 
 fn assert_parse_case(case: &ParseExpectation) {
     let bytes = fs::read(&case.path).unwrap_or_else(|err| {
-        panic!("{}: failed to read {}: {}", case.label, case.path.display(), err)
+        panic!(
+            "{}: failed to read {}: {}",
+            case.label,
+            case.path.display(),
+            err
+        )
     });
 
     let strict = parse_artifact(&bytes);
@@ -355,7 +365,12 @@ fn v1_replay_support_is_explicit_legacy_frame_replay() {
         )
     });
 
-    assert_eq!(base_frames.len(), 10_000, "unexpected frame count for {}", base_path.display());
+    assert_eq!(
+        base_frames.len(),
+        10_000,
+        "unexpected frame count for {}",
+        base_path.display()
+    );
     assert_eq!(
         candidate_frames.len(),
         10_000,
