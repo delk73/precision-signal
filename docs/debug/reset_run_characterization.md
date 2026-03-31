@@ -8,15 +8,16 @@ It is operational guidance for board bring-up, flash/debug/capture sequencing, a
 
 ### A. Hardware reset button
 - What it does: reboots the MCU and starts firmware from reset vector without changing USB cabling.
-- When to use: normal UART artifact runs.
-- Expected behavior: a single fresh replay stream is emitted after reset; host listener finds `RPL0` and captures one full artifact.
+- When to use: validated UART capture runs for the self-stimulus flow.
+- Expected behavior: one `STATE,...` line is emitted first; successful runs emit `STATE,CAPTURE_DONE,138` followed by CSV.
 
 ### B. ST-LINK / `st-flash --reset`
 - What it does: programs flash and requests target reset at the end of write.
 - When to use: firmware programming path (`flash-ur`) and readback compare path (`flash-compare-ur`).
 - Known caveats:
   - If another process holds ST-LINK, flash/readback fails.
-  - If attach state is bad, `connect-under-reset` may still require a retry or power-cycle.
+  - If attach state is bad, `connect-under-reset` may still require the observed recovery sequence below.
+  - `--reset-mode stlink` is present in tooling, but not validated as reliable for UART capture in this session.
 
 ### C. `connect-under-reset` / `st-util`
 - What it does: attaches debugger while reset is asserted to recover from unstable target states.
@@ -34,8 +35,8 @@ It is operational guidance for board bring-up, flash/debug/capture sequencing, a
 
 ## 2. Known-Good Procedures
 
-### A. Flash and verify firmware
-Use this exact sequence:
+### A. Validated flash and verify path
+Validated operator path:
 
 ```bash
 make flash-ur
@@ -46,16 +47,23 @@ Expected outcome:
 - flash write succeeds
 - flash readback compare succeeds (device image equals local bin)
 
-### B. UART artifact run
+### B. Validated self-stimulus capture run
 Operator sequence:
-1. Start listener command (for example `python3 scripts/artifact_tool.py capture --quick --out artifacts/run.bin`).
-2. Press hardware reset button once.
-3. Wait for full capture + dump completion.
-4. Verify artifact (for example `python3 scripts/artifact_tool.py verify artifacts/run.bin`).
+1. Run `make flash-ur`.
+2. Run `make flash-compare-ur`.
+3. Start the listener:
+   `python3 scripts/csv_capture.py --serial /dev/ttyACM0 --out observed.csv --reset-mode manual`
+4. Press hardware reset button once.
+5. Read the first emitted line.
+6. On success, wait for the CSV to complete.
 
 Operational notes:
 - one reset press per capture run
 - do not keep active debug server attached during UART capture
+- manual reset is canonical for UART capture on this flow
+- success is indicated first by `STATE,CAPTURE_DONE,138`, followed by CSV with header `index,interval_us` and 138 rows
+- `STATE,CAPTURE_INCOMPLETE,<N>` is an explicit failure diagnostic; treat it as capture not fully completed
+- In this characterization, `--reset-mode stlink` did not produce a `STATE,...` line; treat it as not validated for UART capture on this flow.
 
 ### C. GDB debug session
 Operator sequence:
@@ -97,12 +105,29 @@ Symptoms:
 Meaning:
 - serial session is unhealthy or device/port state is bad.
 
-### E. Listener hangs waiting for `RPL0`
+### E. Listener receives no `STATE,...` line
 Symptom:
-- listener waits indefinitely for sync header.
+- listener prints no `STATE,...` line for the run.
 
 Meaning:
-- board was not reset for a new run, or firmware did not begin a new stream.
+- board was not reset for a new run, firmware did not begin a new stream, or the selected reset mode is not producing a validated capture start.
+
+### F. Explicit incomplete capture state
+Symptoms:
+- first line is `STATE,CAPTURE_INCOMPLETE,0`
+- first line is `STATE,CAPTURE_INCOMPLETE,<N>` where `0 < N < 138`
+
+Meaning:
+- `0`: A0 capture did not start
+- `0 < N < 138`: capture started but did not complete
+
+### G. ST-LINK reset mode produces no `STATE,...` line
+Symptom:
+- `python3 scripts/csv_capture.py ... --reset-mode stlink` does not print a `STATE,...` line in this board/session
+
+Meaning:
+- ST-LINK auto-reset is not validated as reliable for UART capture on this flow
+- use the validated manual reset path instead
 
 ## 4. Recovery Procedures
 
@@ -121,8 +146,19 @@ make flash-compare-ur
 4. If still bad, unplug/replug USB CDC connection and retry.
 
 ### C. Board in bad attach/reset state
+Observed recovery sequence for bad attach/reset state:
+1. Kill stale `st-util`:
+   `killall -q st-util || pkill -x st-util || true`
+2. Run `make flash-ur` while holding RESET and allow it to fail.
+3. Release RESET.
+4. Rerun `make flash-ur`.
+5. Run `make flash-compare-ur`.
+
+This is a recovery procedure for bad attach/reset state, not the normal happy-path flash flow.
+
+If the recovery sequence does not restore attach/reset behavior:
 1. Full power-cycle board.
-2. Reflash under reset:
+2. Re-run:
 ```bash
 make flash-ur
 make flash-compare-ur
@@ -135,8 +171,12 @@ make flash-compare-ur
 3. Re-check register dump.
 
 ## 5. Preferred Operational Rules (Operator Contract)
-- Use hardware reset button for UART artifact runs.
+- Use hardware reset button for UART capture runs on this self-stimulus flow.
 - Use `flash-ur` and `flash-compare-ur` for programming/verification.
+- Treat manual reset as the validated operator path.
+- Treat `STATE,CAPTURE_DONE,138` as capture complete.
+- Treat `STATE,CAPTURE_INCOMPLETE,<N>` as explicit capture failure.
+- Treat `--reset-mode stlink` as convenience tooling, not a validated UART capture path in this session.
 - Use `tim2-smoke` only for debug-focused sessions.
 - Do not mix active `st-util` debugging with UART capture workflow.
 - Kill stale `st-util` before new debug/flash attempts.
@@ -152,16 +192,15 @@ make flash-ur
 make flash-compare-ur
 ```
 
-### Capture one artifact
+### Capture one validated self-stimulus run
 ```bash
-SERIAL=/dev/ttyACM0 python3 scripts/artifact_tool.py capture --quick --out artifacts/run.bin
+python3 scripts/csv_capture.py --serial /dev/ttyACM0 --out observed.csv --reset-mode manual
 ```
 Then press reset once.
 
-### Verify artifact structure
-```bash
-python3 scripts/artifact_tool.py verify artifacts/run.bin
-```
+Expected first line:
+- `STATE,CAPTURE_DONE,138` on success
+- `STATE,CAPTURE_INCOMPLETE,<N>` on explicit capture failure
 
 ### Diagnostic-only flash path
 ```bash
