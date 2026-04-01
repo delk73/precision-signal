@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use replay_host::{parse_artifact, ParsedArtifact};
+use replay_host::{parse_artifact, parse_replay_frames_legacy0, ParsedArtifact};
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -69,6 +69,43 @@ fn canonical_capture_csv() -> String {
         csv.push_str(&format!("{idx},{interval}\n"));
     }
     csv
+}
+
+fn retained_capture_csv(sample: &str) -> PathBuf {
+    repo_root().join("artifacts/capture_contract_v1").join(sample)
+}
+
+fn load_expected_intervals(csv_path: &PathBuf) -> Vec<i32> {
+    let text = fs::read_to_string(csv_path).expect("retained csv must be readable");
+    let mut lines = text.lines();
+    assert_eq!(
+        lines.next(),
+        Some("index,interval_us"),
+        "retained csv header must match contract"
+    );
+
+    lines
+        .enumerate()
+        .map(|(idx, line)| {
+            let mut parts = line.split(',');
+            let row_idx = parts
+                .next()
+                .expect("row index must exist")
+                .parse::<usize>()
+                .expect("row index must parse");
+            let interval = parts
+                .next()
+                .expect("row interval must exist")
+                .parse::<i32>()
+                .expect("row interval must parse");
+            assert_eq!(row_idx, idx, "retained csv indices must stay contiguous");
+            assert!(
+                parts.next().is_none(),
+                "retained csv rows must have exactly two columns"
+            );
+            interval
+        })
+        .collect()
 }
 
 #[test]
@@ -158,6 +195,53 @@ fn operator_path_imports_interval_csv_into_canonical_artifact() {
     assert_eq!(code, 0, "stderr: {stderr}");
     assert_eq!(stdout, "no divergence\n");
     assert!(stderr.is_empty(), "unexpected stderr: {stderr}");
+}
+
+#[test]
+fn operator_path_import_is_byte_deterministic_for_retained_phase1_csv_samples() {
+    let temp_dir = unique_temp_dir();
+    fs::create_dir_all(&temp_dir).expect("temp dir must be creatable");
+
+    for sample in ["run_20260331T150000Z.csv", "run_20260331T160000Z.csv"] {
+        let csv_path = retained_capture_csv(sample);
+        let first_out = temp_dir.join(format!("{sample}.first.rpl"));
+        let second_out = temp_dir.join(format!("{sample}.second.rpl"));
+
+        let first = run_import(&csv_path, &first_out);
+        let second = run_import(&csv_path, &second_out);
+        assert_eq!(first.0, 0, "first import failed for {sample}: {}", first.2);
+        assert_eq!(second.0, 0, "second import failed for {sample}: {}", second.2);
+        assert_eq!(first.2, "", "unexpected stderr for first import of {sample}");
+        assert_eq!(
+            second.2, "",
+            "unexpected stderr for second import of {sample}"
+        );
+
+        let first_bytes = fs::read(&first_out).expect("first artifact must exist");
+        let second_bytes = fs::read(&second_out).expect("second artifact must exist");
+        assert_eq!(
+            first_bytes, second_bytes,
+            "re-importing identical csv must reproduce identical bytes for {sample}"
+        );
+
+        let expected_intervals = load_expected_intervals(&csv_path);
+        let frames =
+            parse_replay_frames_legacy0(&first_bytes).expect("imported artifact must parse");
+        assert_eq!(frames.len(), 10_000, "import frame count must stay fixed");
+        for (idx, expected_interval) in expected_intervals.iter().enumerate() {
+            assert_eq!(
+                frames[idx].input_sample,
+                *expected_interval,
+                "frame {idx} must carry csv interval_us directly for {sample}"
+            );
+        }
+        for (idx, frame) in frames.iter().enumerate().skip(expected_intervals.len()) {
+            assert_eq!(
+                frame.input_sample, 0,
+                "frame {idx} must stay zero-padded beyond retained csv rows for {sample}"
+            );
+        }
+    }
 }
 
 #[test]
