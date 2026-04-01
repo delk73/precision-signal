@@ -23,6 +23,9 @@ docs/audits/runlogs/*
 !artifacts/baseline.sha256
 !artifacts/baseline.json
 !artifacts/manifest.txt
+!artifacts/demo_evidence/
+!artifacts/demo_evidence/**
+artifacts/demo_evidence/_generated/
 
 # allow release evidence
 !docs/verification/releases/

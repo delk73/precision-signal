@@ -1,0 +1,4 @@
+imported: artifacts/demo_evidence/inputs/baseline_capture.csv.fixture
+wrote: artifacts/demo_evidence/_generated/outputs/baseline.rpl
+source_rows: 138
+frame_count: 10000

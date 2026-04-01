@@ -84,7 +84,7 @@ space :=
 space +=
 comma := ,
 
-.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff replay-check replay-repeat-check replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local clean
+.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff replay-check replay-repeat-check replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local clean
 
 help:
 	echo "Demo V2 lifecycle:"
@@ -110,6 +110,9 @@ help:
 	echo "  make demo-v5-audit-pack"
 	echo "  make demo-v5-record"
 	echo "  make demo-v5-release"
+	echo
+	echo "End-to-end evidence packaging:"
+	echo "  make demo-evidence-package"
 	echo
 	echo "Replay explanation audit:"
 	echo "  make replay-demo-audit"
@@ -153,6 +156,9 @@ fixture-drift-check:
 	PYTHONPATH=. python3 scripts/generate_demo_v4_fixtures.py --out-dir "$(DEMO_V4_DIR)"
 	PYTHONPATH=. python3 scripts/generate_demo_v5_fixtures.py --out-dir "$(DEMO_V5_DIR)"
 	git diff --exit-code "$(DEMO_V3_DIR)" "$(DEMO_V4_DIR)" "$(DEMO_V5_DIR)"
+
+demo-evidence-package:
+	PYTHONPATH=. python3 scripts/package_demo_evidence.py
 
 shell-check:
 	test -x "$(SHELL)"

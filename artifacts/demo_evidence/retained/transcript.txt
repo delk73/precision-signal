@@ -1,0 +1,69 @@
+$ cargo run -q -p replay-host -- validate-interval-csv artifacts/demo_evidence/inputs/baseline_capture.csv.fixture
+validated: artifacts/demo_evidence/inputs/baseline_capture.csv.fixture
+header: index,interval_us
+rows: 138
+first_index: 0
+last_index: 137
+$ cargo run -q -p replay-host -- validate-interval-csv artifacts/demo_evidence/inputs/perturbed_frame017_plus1.csv.fixture
+validated: artifacts/demo_evidence/inputs/perturbed_frame017_plus1.csv.fixture
+header: index,interval_us
+rows: 138
+first_index: 0
+last_index: 137
+$ cargo run -q -p replay-host -- import-interval-csv artifacts/demo_evidence/inputs/baseline_capture.csv.fixture artifacts/demo_evidence/_generated/outputs/baseline.rpl
+imported: artifacts/demo_evidence/inputs/baseline_capture.csv.fixture
+wrote: artifacts/demo_evidence/_generated/outputs/baseline.rpl
+source_rows: 138
+frame_count: 10000
+$ cargo run -q -p replay-host -- import-interval-csv artifacts/demo_evidence/inputs/perturbed_frame017_plus1.csv.fixture artifacts/demo_evidence/_generated/outputs/perturbed_frame017_plus1.rpl
+imported: artifacts/demo_evidence/inputs/perturbed_frame017_plus1.csv.fixture
+wrote: artifacts/demo_evidence/_generated/outputs/perturbed_frame017_plus1.rpl
+source_rows: 138
+frame_count: 10000
+$ PYTHONPATH=. python3 scripts/artifact_tool.py hash artifacts/demo_evidence/_generated/outputs/baseline.rpl
+sha256: d62c46f51f2bdb33016b4bc89eb3db482545c04dab4552b490fee86128f139d8
+canonical_len: 160152
+trailing_len: 0
+version: 1
+frame_count: 10000
+frame_size: 16
+$ PYTHONPATH=. python3 scripts/artifact_tool.py hash artifacts/demo_evidence/_generated/outputs/perturbed_frame017_plus1.rpl
+sha256: 5c43fe11843c77bd171bffc8cdccc5b3646f3d28e299bfa52f1ce75884d5cc78
+canonical_len: 160152
+trailing_len: 0
+version: 1
+frame_count: 10000
+frame_size: 16
+$ cargo run -q -p replay-host -- diff artifacts/demo_evidence/_generated/outputs/baseline.rpl artifacts/demo_evidence/_generated/outputs/baseline.rpl
+no divergence
+$ cargo run -q -p replay-host -- diff artifacts/demo_evidence/_generated/outputs/baseline.rpl artifacts/demo_evidence/_generated/outputs/perturbed_frame017_plus1.rpl
+first divergence at frame 17
+$ PYTHONPATH=. python3 scripts/artifact_diff.py artifacts/demo_evidence/_generated/outputs/baseline.rpl artifacts/demo_evidence/_generated/outputs/baseline.rpl
+NO DIVERGENCE DETECTED
+NO DIVERGENCE: artifacts identical
+Total frames: 10000
+first_divergence_frame: none
+shape_class: none
+primary_region: none
+all_regions_at_first_divergence: []
+region_summary: none
+evolution_class: none
+timeline_summary: none
+$ PYTHONPATH=. python3 scripts/artifact_diff.py artifacts/demo_evidence/_generated/outputs/baseline.rpl artifacts/demo_evidence/_generated/outputs/perturbed_frame017_plus1.rpl
+DIVERGENCE DETECTED
+First divergence frame: 17
+Classification: transient
+Sample A: 0x0004A380
+Sample B: 0x0004A381
+Raw A: 1100000002000000e803000080a30400
+Raw B: 1100000002000000e803000081a30400
+Differing fields: sample, raw
+Total frames: 10000
+first_divergence_frame: 17
+shape_class: transient
+primary_region: sample_payload
+all_regions_at_first_divergence: [sample_payload]
+region_summary: sample_payload
+evolution_class: self_healing
+timeline_summary: divergence resolves within 1 frame
+reconvergence_summary: reconverged_at_frame=18

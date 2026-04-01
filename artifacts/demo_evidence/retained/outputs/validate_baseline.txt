@@ -1,0 +1,5 @@
+validated: artifacts/demo_evidence/inputs/baseline_capture.csv.fixture
+header: index,interval_us
+rows: 138
+first_index: 0
+last_index: 137
