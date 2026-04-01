@@ -14,7 +14,7 @@
 - schema validator (`validate-interval-csv`) enforcing interval capture invariants at the import boundary
 - Deterministic artifact generation: validated CSV → RPL0 produces byte-identical artifacts with fixed mapping and zero-fill semantics
 - Replay equivalence proof: verified that identical artifacts produce no divergence
-- Controlled divergence proof: deterministic first-divergence detection (frame 17)
+- Controlled divergence injection: single-site input perturbation produces deterministic first-divergence detection (frame 17), extending replay proof from detection to reproducible causal control in input space
 - Classification outputs validated (transient, self-healing, reconvergence)
 
 ### Changed
