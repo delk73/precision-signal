@@ -34,12 +34,12 @@ Release
 - `precision inspect` (operator-path evidence: [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md))
 - `precision verify` (operator-path evidence: [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md))
 - `header_audit` (operator-path evidence: [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md))
-- `replay-fw-f446` (firmware capture surface for the active STM32 self-stimulus interval CSV operator path; normative contract: [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](replay/INTERVAL_CAPTURE_CONTRACT_v1.md); UART success preamble is transport-only and the canonical downstream file is the CSV payload written by `scripts/csv_capture.py`; retained historical RPL0 artifact capture evidence remains in [docs/replay/FW_F446_CAPTURE_v1.md](replay/FW_F446_CAPTURE_v1.md) and [docs/verification/releases/1.2.2/firmware_release_evidence.md](verification/releases/1.2.2/firmware_release_evidence.md))
 
 Experimental
 
 not part of the current release surface
 
+- `replay-fw-f446` (active STM32 self-stimulus interval CSV contract is explicit in [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](replay/INTERVAL_CAPTURE_CONTRACT_v1.md), but the current operator path still depends on manual-reset characterization and retained Phase 1 evidence rather than a release-hardened bundle)
 - `replay-host` (experimental Rust replay engine: RPL0 format version 0 replay, RPL0 `version = 1` container parsing, and legacy 16-byte `EventFrame0` replay semantics)
 
 ## Release Routing
