@@ -22,15 +22,19 @@ contract.
 
 ## Host capture
 
+Validated manual-reset operator path for the self-stimulus CSV flow is documented in
+`docs/debug/reset_run_characterization.md`.
+
 Typical Linux capture command:
 
 ```bash
-cat /dev/ttyACM0 > run0.bin
+python3 scripts/csv_capture.py --serial /dev/ttyACM0 --out observed.csv --reset-mode manual
 ```
 
 Notes:
-- Output is binary artifact data; avoid terminal tools that transform bytes.
-- Stop capture after one full artifact transfer completes.
+- Manual reset is canonical for UART capture on this flow.
+- Success prints `STATE,CAPTURE_DONE,138` before CSV output.
+- `--reset-mode stlink` is present in tooling but not validated as reliable in this characterization.
 
 ## Debug IRQ counter (optional)
 

@@ -13,6 +13,11 @@ STFLASH ?= st-flash
 FLASH_HEAD := target/flash-head.bin
 FLASH_FULL := target/flash-full.bin
 SERIAL ?= /dev/ttyACM0
+SIGNAL_BASELINE_CSV ?= baseline.csv
+SIGNAL_OBSERVED_CSV ?= observed.csv
+SIGNAL_FRAMES ?= 128
+SIGNAL_PERTURB_FRAME ?= 50
+SIGNAL_REPEAT_SECONDS ?=
 REPLAY_SIGNAL_MODEL ?= phase8
 REPLAY_BASELINE ?= artifacts/baseline.bin
 REPLAY_RUN ?= artifacts/run.bin
@@ -79,7 +84,7 @@ space :=
 space +=
 comma := ,
 
-.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur replay-check replay-repeat-check replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local clean
+.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff replay-check replay-repeat-check replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local clean
 
 help:
 	echo "Demo V2 lifecycle:"
@@ -108,6 +113,28 @@ help:
 	echo
 	echo "Replay explanation audit:"
 	echo "  make replay-demo-audit"
+	echo
+	echo "Signal demo:"
+	echo "  Host/MCU:"
+	echo "    make demo-signal-flash"
+	echo "    make demo-signal-host-baseline"
+	echo "    make demo-signal-host-perturb"
+	echo "    make demo-signal-diff"
+	echo "  Pi:"
+	echo "    make demo-signal-pi-baseline"
+	echo "    make demo-signal-pi-perturb"
+	echo "    requires python3 + Python gpiod + GPIO character device access"
+	echo "    will warn and skip if not running on a Pi with gpiod"
+	echo "    Optional validation loop: set SIGNAL_REPEAT_SECONDS"
+	echo "    does not require pigpio or pigpiod"
+	echo "  Recommended sequence:"
+	echo "    host: make demo-signal-flash"
+	echo "    host: make demo-signal-host-baseline"
+	echo "    pi:   make demo-signal-pi-baseline"
+	echo "    host: make demo-signal-host-perturb"
+	echo "    pi:   make demo-signal-pi-perturb"
+	echo "    host: make demo-signal-diff"
+	echo "  make demo-signal   # prints this sequence only"
 	echo
 	echo "Core verification:"
 	echo "  make check-workspace"
@@ -204,6 +231,70 @@ flash-compare-ur: fw-bin stflash-check
 	$(STFLASH) --connect-under-reset --freq=200K read "$(FLASH_FULL)" "$(FLASH_ADDR)" "$$SIZE"
 	test -s "$(FLASH_FULL)"
 	cmp -s "$(FW_BIN)" "$(FLASH_FULL)" || { echo "flash-compare-ur FAIL: device != $(FW_BIN)"; false; }
+
+demo-signal:
+	echo "Signal demo runs on two machines."
+	echo "1. host: make demo-signal-flash"
+	echo "2. host: make demo-signal-host-baseline"
+	echo "3. pi:   make demo-signal-pi-baseline"
+	echo "4. host: make demo-signal-host-perturb"
+	echo "5. pi:   make demo-signal-pi-perturb"
+	echo "6. host: make demo-signal-diff"
+
+demo-signal-flash:
+	$(MAKE) fw-bin
+	$(MAKE) flash-ur SERIAL="$(SERIAL)"
+
+demo-signal-host-baseline:
+	rm -f "$(SIGNAL_BASELINE_CSV)"
+	echo "Starting host capture for baseline on $(SERIAL)."
+	echo "Next steps:"
+	echo "  1. Listener is starting now."
+	echo "  2. Reset STM32 after the listener is attached."
+	echo "  3. Run on the Pi: make demo-signal-pi-baseline"
+	python3 scripts/csv_capture.py --serial "$(SERIAL)" --out "$(SIGNAL_BASELINE_CSV)"
+
+demo-signal-host-perturb:
+	rm -f "$(SIGNAL_OBSERVED_CSV)"
+	echo "Starting host capture for perturbation on $(SERIAL)."
+	echo "Next steps:"
+	echo "  1. Listener is starting now."
+	echo "  2. Reset STM32 after the listener is attached."
+	echo "  3. Run on the Pi: make demo-signal-pi-perturb"
+	python3 scripts/csv_capture.py --serial "$(SERIAL)" --out "$(SIGNAL_OBSERVED_CSV)"
+
+demo-signal-pi-baseline:
+	command -v python3 >/dev/null || { echo "python3 is required for the Pi emitter"; exit 1; }
+	python3 -c 'import gpiod' >/dev/null 2>&1 || { \
+		echo "WARNING: gpiod not available; Pi emitter not runnable in this environment"; \
+		echo "This is expected outside a Raspberry Pi runtime"; \
+		exit 0; \
+	}
+	test -e /dev/gpiochip0 || { \
+		echo "WARNING: /dev/gpiochip0 not present; Pi emitter requires real GPIO hardware"; \
+		exit 0; \
+	}
+	echo "Pi emitter launch: mode=baseline gpio=GPIO17 frames=$(SIGNAL_FRAMES)"
+	echo "Runtime: python3 + gpiod + GPIO character device access; no pigpio/pigpiod"
+	python3 scripts/pi_emitter.py --mode baseline --frames "$(SIGNAL_FRAMES)" --perturb-frame "$(SIGNAL_PERTURB_FRAME)" $(if $(SIGNAL_REPEAT_SECONDS),--repeat-seconds "$(SIGNAL_REPEAT_SECONDS)")
+
+demo-signal-pi-perturb:
+	command -v python3 >/dev/null || { echo "python3 is required for the Pi emitter"; exit 1; }
+	python3 -c 'import gpiod' >/dev/null 2>&1 || { \
+		echo "WARNING: gpiod not available; Pi emitter not runnable in this environment"; \
+		echo "This is expected outside a Raspberry Pi runtime"; \
+		exit 0; \
+	}
+	test -e /dev/gpiochip0 || { \
+		echo "WARNING: /dev/gpiochip0 not present; Pi emitter requires real GPIO hardware"; \
+		exit 0; \
+	}
+	echo "Pi emitter launch: mode=perturb gpio=GPIO17 frames=$(SIGNAL_FRAMES) perturb_frame=$(SIGNAL_PERTURB_FRAME)"
+	echo "Runtime: python3 + gpiod + GPIO character device access; no pigpio/pigpiod"
+	python3 scripts/pi_emitter.py --mode perturb --frames "$(SIGNAL_FRAMES)" --perturb-frame "$(SIGNAL_PERTURB_FRAME)" $(if $(SIGNAL_REPEAT_SECONDS),--repeat-seconds "$(SIGNAL_REPEAT_SECONDS)")
+
+demo-signal-diff:
+	python3 scripts/interval_diff.py "$(SIGNAL_BASELINE_CSV)" "$(SIGNAL_OBSERVED_CSV)"
 
 # Human-in-the-loop contract:
 # capture waits for replay header; operator presses reset once after listener starts.

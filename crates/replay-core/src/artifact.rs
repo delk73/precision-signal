@@ -107,13 +107,16 @@ pub fn encode_header1_le(header: &Header1) -> [u8; HEADER1_SIZE] {
     out[0..4].copy_from_slice(&header.magic);
     out[V1_OFF_VERSION..V1_OFF_VERSION + 2].copy_from_slice(&header.version.to_le_bytes());
     out[V1_OFF_HEADER_LEN..V1_OFF_HEADER_LEN + 2].copy_from_slice(&header.header_len.to_le_bytes());
-    out[V1_OFF_FRAME_COUNT..V1_OFF_FRAME_COUNT + 4].copy_from_slice(&header.frame_count.to_le_bytes());
+    out[V1_OFF_FRAME_COUNT..V1_OFF_FRAME_COUNT + 4]
+        .copy_from_slice(&header.frame_count.to_le_bytes());
     out[V1_OFF_FRAME_SIZE..V1_OFF_FRAME_SIZE + 2].copy_from_slice(&header.frame_size.to_le_bytes());
     out[V1_OFF_FLAGS..V1_OFF_FLAGS + 2].copy_from_slice(&header.flags.to_le_bytes());
     out[V1_OFF_SCHEMA_LEN..V1_OFF_SCHEMA_LEN + 4].copy_from_slice(&header.schema_len.to_le_bytes());
-    out[V1_OFF_SCHEMA_HASH..V1_OFF_SCHEMA_HASH + SCHEMA_HASH_SIZE].copy_from_slice(&header.schema_hash);
+    out[V1_OFF_SCHEMA_HASH..V1_OFF_SCHEMA_HASH + SCHEMA_HASH_SIZE]
+        .copy_from_slice(&header.schema_hash);
     out[V1_OFF_BUILD_HASH..V1_OFF_BUILD_HASH + BUILD_HASH_SIZE].copy_from_slice(&header.build_hash);
-    out[V1_OFF_CONFIG_HASH..V1_OFF_CONFIG_HASH + CONFIG_HASH_SIZE].copy_from_slice(&header.config_hash);
+    out[V1_OFF_CONFIG_HASH..V1_OFF_CONFIG_HASH + CONFIG_HASH_SIZE]
+        .copy_from_slice(&header.config_hash);
     out[V1_OFF_BOARD_ID..V1_OFF_BOARD_ID + BOARD_ID_SIZE].copy_from_slice(&header.board_id);
     out[V1_OFF_CLOCK_PROFILE..V1_OFF_CLOCK_PROFILE + CLOCK_PROFILE_SIZE]
         .copy_from_slice(&header.clock_profile);
@@ -123,8 +126,7 @@ pub fn encode_header1_le(header: &Header1) -> [u8; HEADER1_SIZE] {
     out
 }
 
-#[allow(dead_code)]
-pub(crate) fn encode_event_frame0_le(frame: &EventFrame0) -> [u8; FRAME_SIZE] {
+pub fn encode_event_frame0_le(frame: &EventFrame0) -> [u8; FRAME_SIZE] {
     let mut out = [0u8; FRAME_SIZE];
     out[0..4].copy_from_slice(&frame.frame_idx.to_le_bytes());
     out[4] = frame.irq_id;
@@ -159,7 +161,10 @@ mod tests {
             reserved: 0,
         };
         assert_eq!(encode_header1_le(&header1).len(), HEADER1_SIZE);
-        assert_eq!(encode_event_frame0_le(&EventFrame0::default()).len(), FRAME_SIZE);
+        assert_eq!(
+            encode_event_frame0_le(&EventFrame0::default()).len(),
+            FRAME_SIZE
+        );
         assert_eq!(HEADER_SIZE + FRAME_COUNT * FRAME_SIZE, ARTIFACT0_SIZE);
     }
     #[test]
@@ -183,7 +188,10 @@ mod tests {
 
         let encoded = encode_header1_le(&header);
 
-        assert_eq!(&encoded[V1_OFF_VERSION..V1_OFF_VERSION + 2], &VERSION1.to_le_bytes());
+        assert_eq!(
+            &encoded[V1_OFF_VERSION..V1_OFF_VERSION + 2],
+            &VERSION1.to_le_bytes()
+        );
         assert_eq!(
             &encoded[V1_OFF_HEADER_LEN..V1_OFF_HEADER_LEN + 2],
             &header.header_len.to_le_bytes()
@@ -205,7 +213,6 @@ mod tests {
             &header.capture_boundary.to_le_bytes()
         );
     }
-
 }
 
 #[cfg(kani)]
@@ -235,7 +242,10 @@ mod verification {
     #[kani::proof]
     fn proof_v0_wire_size_constants_use_artifact0_size() {
         assert_eq!(encode_header0_le(&Header0::default()).len(), HEADER_SIZE);
-        assert_eq!(encode_event_frame0_le(&EventFrame0::default()).len(), FRAME_SIZE);
+        assert_eq!(
+            encode_event_frame0_le(&EventFrame0::default()).len(),
+            FRAME_SIZE
+        );
         assert_eq!(HEADER_SIZE + FRAME_COUNT * FRAME_SIZE, ARTIFACT0_SIZE);
     }
 
@@ -248,7 +258,10 @@ mod verification {
         assert_eq!(encoded[1], h.magic[1]);
         assert_eq!(encoded[2], h.magic[2]);
         assert_eq!(encoded[3], h.magic[3]);
-        assert_eq!(u32::from_le_bytes([encoded[4], encoded[5], encoded[6], encoded[7]]), h.version);
+        assert_eq!(
+            u32::from_le_bytes([encoded[4], encoded[5], encoded[6], encoded[7]]),
+            h.version
+        );
         assert_eq!(
             u32::from_le_bytes([encoded[8], encoded[9], encoded[10], encoded[11]]),
             h.frame_count
