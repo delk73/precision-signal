@@ -1,0 +1,10 @@
+baseline_import_command=cargo run -q -p replay-host -- import-interval-csv artifacts/capture_contract_v1/run_20260331T150000Z.csv artifacts/rpl0/run_20260331T150000Z.import1.rpl
+perturbed_import_command=cargo run -q -p replay-host -- import-interval-csv artifacts/rpl0/controlled_perturbation_frame017_plus1.csv.fixture artifacts/rpl0/run_20260331T150000Z.frame017_plus1.rpl
+baseline_hash_command=PYTHONPATH=. python3 scripts/artifact_tool.py hash artifacts/rpl0/run_20260331T150000Z.import1.rpl
+perturbed_hash_command=PYTHONPATH=. python3 scripts/artifact_tool.py hash artifacts/rpl0/run_20260331T150000Z.frame017_plus1.rpl
+identical_replay_diff_command=cargo run -q -p replay-host -- diff artifacts/rpl0/run_20260331T150000Z.import1.rpl artifacts/rpl0/run_20260331T150000Z.import1.rpl
+perturbed_replay_diff_command=cargo run -q -p replay-host -- diff artifacts/rpl0/run_20260331T150000Z.import1.rpl artifacts/rpl0/run_20260331T150000Z.frame017_plus1.rpl
+identical_artifact_diff_command=PYTHONPATH=. python3 scripts/artifact_diff.py artifacts/rpl0/run_20260331T150000Z.import1.rpl artifacts/rpl0/run_20260331T150000Z.import1.rpl
+perturbed_artifact_diff_command=PYTHONPATH=. python3 scripts/artifact_diff.py artifacts/rpl0/run_20260331T150000Z.import1.rpl artifacts/rpl0/run_20260331T150000Z.frame017_plus1.rpl
+ci_replay_host_test_command=cargo test -p replay-host operator_path_reports_
+ci_artifact_diff_test_command=PYTHONPATH=. python3 scripts/test_artifact_diff.py

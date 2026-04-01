@@ -25,3 +25,16 @@ frame_size=16
 schema_len=0
 mapping=index_n.interval_us -> frame_n.input_sample for n=0..137; frame_n.input_sample=0 for n=138..9999
 reproducibility_note=Run from repo root; set PYTHONPATH=. for scripts/artifact_tool.py.
+phase3_perturbation_csv=artifacts/rpl0/controlled_perturbation_frame017_plus1.csv.fixture
+phase3_perturbation_rule=single explicit delta at row index 17: interval_us 304000 -> 304001
+phase3_artifact=artifacts/rpl0/run_20260331T150000Z.frame017_plus1.rpl
+phase3_artifact_sha256=5c43fe11843c77bd171bffc8cdccc5b3646f3d28e299bfa52f1ce75884d5cc78
+phase3_identical_replay_diff_output=artifacts/rpl0/replay_equivalence_diff_identical.txt
+phase3_perturbed_replay_diff_output=artifacts/rpl0/replay_equivalence_diff_perturbed.txt
+phase3_identical_artifact_diff_output=artifacts/rpl0/replay_equivalence_artifact_diff_identical.txt
+phase3_perturbed_artifact_diff_output=artifacts/rpl0/replay_equivalence_artifact_diff_perturbed.txt
+phase3_hash_record=artifacts/rpl0/replay_equivalence_hashes.txt
+phase3_command_record=artifacts/rpl0/replay_equivalence_commands.txt
+phase3_first_divergence_frame=17
+phase3_classification=transient
+phase3_reconvergence_frame=18
