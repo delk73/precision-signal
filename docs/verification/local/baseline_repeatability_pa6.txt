@@ -1,8 +1,0 @@
-gate: Gate 2
-firmware_role: baseline harness
-probe_point: D12
-mcu_pin: PA6
-measurement_run_1_hz: ~1
-measurement_run_2_hz: ~1
-method: oscilloscope frequency measurement
-condition: stationary waveform
