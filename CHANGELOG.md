@@ -12,6 +12,10 @@
 - make demo-divergence canonical entrypoint for quantization divergence witness
 - interval CSV capture contract (`INTERVAL_CAPTURE_CONTRACT_v1`) as canonical STM32 self-stimulus input boundary
 - schema validator (`validate-interval-csv`) enforcing interval capture invariants at the import boundary
+- Deterministic artifact generation: validated CSV → RPL0 produces byte-identical artifacts with fixed mapping and zero-fill semantics
+- Replay equivalence proof: verified that identical artifacts produce no divergence
+- Controlled divergence proof: deterministic first-divergence detection (frame 17)
+- Classification outputs validated (transient, self-healing, reconvergence)
 
 ### Changed
 
@@ -21,6 +25,7 @@
 
 ### Notes
 
+- No changes to artifact format, capture contract, or replay semantics
 - interval CSV capture path is the active STM32 self-stimulus operator contract; prior firmware-emitted RPL0 capture path retained as historical
 - no change to artifact format
 - no change to replay semantics

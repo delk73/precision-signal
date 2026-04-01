@@ -1,0 +1,15 @@
+artifact=artifacts/rpl0/run_20260331T150000Z.import1.rpl
+sha256=d62c46f51f2bdb33016b4bc89eb3db482545c04dab4552b490fee86128f139d8
+canonical_len=160152
+trailing_len=0
+version=1
+frame_count=10000
+frame_size=16
+
+artifact=artifacts/rpl0/run_20260331T150000Z.frame017_plus1.rpl
+sha256=5c43fe11843c77bd171bffc8cdccc5b3646f3d28e299bfa52f1ce75884d5cc78
+canonical_len=160152
+trailing_len=0
+version=1
+frame_count=10000
+frame_size=16

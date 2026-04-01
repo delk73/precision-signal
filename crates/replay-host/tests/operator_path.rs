@@ -14,10 +14,14 @@ fn repo_root() -> PathBuf {
 
 fn run_diff(a_rel: &str, b_rel: &str) -> (i32, String, String) {
     let root = repo_root();
+    run_diff_paths(root.join(a_rel), root.join(b_rel))
+}
+
+fn run_diff_paths(a_path: PathBuf, b_path: PathBuf) -> (i32, String, String) {
     let output = Command::new(env!("CARGO_BIN_EXE_replay-host"))
         .arg("diff")
-        .arg(root.join(a_rel))
-        .arg(root.join(b_rel))
+        .arg(a_path)
+        .arg(b_path)
         .output()
         .expect("replay-host diff command must run");
 
@@ -66,6 +70,21 @@ fn canonical_capture_csv() -> String {
     let mut csv = String::from("index,interval_us\n");
     for idx in 0..138 {
         let interval = if idx == 0 { 305_564 } else { 304_000 };
+        csv.push_str(&format!("{idx},{interval}\n"));
+    }
+    csv
+}
+
+fn controlled_perturbation_capture_csv() -> String {
+    let mut csv = String::from("index,interval_us\n");
+    for idx in 0..138 {
+        let interval = if idx == 0 {
+            305_564
+        } else if idx == 17 {
+            304_001
+        } else {
+            304_000
+        };
         csv.push_str(&format!("{idx},{interval}\n"));
     }
     csv
@@ -233,6 +252,54 @@ fn operator_path_import_is_byte_deterministic_for_self_contained_interval_csv() 
             "frame {idx} must stay zero-padded beyond fixture rows"
         );
     }
+}
+
+#[test]
+fn operator_path_reports_no_divergence_for_self_contained_phase3_baseline_imports() {
+    let temp_dir = unique_temp_dir();
+    fs::create_dir_all(&temp_dir).expect("temp dir must be creatable");
+
+    let csv_path = temp_dir.join("baseline.csv");
+    let first_out = temp_dir.join("baseline.first.rpl");
+    let second_out = temp_dir.join("baseline.second.rpl");
+    fs::write(&csv_path, canonical_capture_csv()).expect("csv fixture must be writable");
+
+    let first_import = run_import(&csv_path, &first_out);
+    let second_import = run_import(&csv_path, &second_out);
+    assert_eq!(first_import.0, 0, "first import failed: {}", first_import.2);
+    assert_eq!(second_import.0, 0, "second import failed: {}", second_import.2);
+
+    let (code, stdout, stderr) = run_diff_paths(first_out, second_out);
+    assert_eq!(code, 0, "stderr: {stderr}");
+    assert_eq!(stdout, "no divergence\n");
+    assert!(stderr.is_empty(), "unexpected stderr: {stderr}");
+}
+
+#[test]
+fn operator_path_reports_stable_first_divergence_for_self_contained_controlled_perturbation() {
+    let temp_dir = unique_temp_dir();
+    fs::create_dir_all(&temp_dir).expect("temp dir must be creatable");
+
+    let baseline_csv = temp_dir.join("baseline.csv");
+    let perturbed_csv = temp_dir.join("perturbed.csv");
+    let baseline = temp_dir.join("baseline.rpl");
+    let perturbed = temp_dir.join("perturbed.rpl");
+    fs::write(&baseline_csv, canonical_capture_csv()).expect("baseline csv fixture must be writable");
+    fs::write(&perturbed_csv, controlled_perturbation_capture_csv())
+        .expect("perturbed csv fixture must be writable");
+
+    let baseline_import = run_import(&baseline_csv, &baseline);
+    let perturbed_import = run_import(&perturbed_csv, &perturbed);
+    assert_eq!(baseline_import.0, 0, "baseline import failed: {}", baseline_import.2);
+    assert_eq!(perturbed_import.0, 0, "perturbed import failed: {}", perturbed_import.2);
+
+    let first = run_diff_paths(baseline.clone(), perturbed.clone());
+    let second = run_diff_paths(baseline, perturbed);
+
+    assert_eq!(first, second, "controlled perturbation diff must stay stable");
+    assert_eq!(first.0, 0, "stderr: {}", first.2);
+    assert_eq!(first.1, "first divergence at frame 17\n");
+    assert!(first.2.is_empty(), "unexpected stderr: {}", first.2);
 }
 
 #[test]
