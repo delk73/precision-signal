@@ -106,18 +106,22 @@ fn load_interval_csv(path: &Path) -> Result<Vec<u32>, String> {
     Ok(intervals)
 }
 
-fn validate_interval_csv(csv_path: &Path) -> Result<Vec<u32>, String> {
-    let intervals = load_interval_csv(csv_path)?;
+fn validate_interval_csv_quiet(csv_path: &Path) -> Result<Vec<u32>, String> {
+    load_interval_csv(csv_path)
+}
+
+fn validate_interval_csv(csv_path: &Path) -> Result<(), String> {
+    let intervals = validate_interval_csv_quiet(csv_path)?;
     println!("validated: {}", csv_path.display());
     println!("header: {INTERVAL_CSV_HEADER}");
     println!("rows: {}", intervals.len());
     println!("first_index: 0");
     println!("last_index: {}", intervals.len() - 1);
-    Ok(intervals)
+    Ok(())
 }
 
 fn import_interval_csv(csv_path: &Path, out_path: &Path) -> Result<(), String> {
-    let intervals = validate_interval_csv(csv_path)?;
+    let intervals = validate_interval_csv_quiet(csv_path)?;
 
     let header = Header1 {
         magic: MAGIC,
@@ -222,7 +226,7 @@ fn run() -> Result<(), String> {
                 return Err("unexpected extra arguments".to_string());
             }
 
-            validate_interval_csv(Path::new(&csv_path)).map(|_| ())
+            validate_interval_csv(Path::new(&csv_path))
         }
         "import-interval-csv" => {
             let Some(csv_path) = args.next() else {

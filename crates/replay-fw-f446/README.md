@@ -1,6 +1,7 @@
 # replay-fw-f446
 
-Bare-metal STM32F446RE capture firmware for the active released replay path.
+Bare-metal STM32F446RE capture firmware for the active experimental STM32
+self-stimulus capture path.
 
 Release classification is owned by `docs/RELEASE_SURFACE.md`. The active
 capture contract is `docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md`. The retained

@@ -123,8 +123,8 @@ fn operator_path_imports_interval_csv_into_canonical_artifact() {
     assert_eq!(code, 0, "stderr: {stderr}");
     assert!(stderr.is_empty(), "unexpected stderr: {stderr}");
     assert!(
-        stdout.contains("validated:"),
-        "stdout should report validation path: {stdout}"
+        !stdout.contains("validated:"),
+        "import should not print validator chatter: {stdout}"
     );
     assert!(
         stdout.contains("wrote:"),
