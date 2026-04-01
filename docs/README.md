@@ -75,6 +75,7 @@ wins.
 - [docs/demos/demo_v4_region_attribution.md](demos/demo_v4_region_attribution.md): divergence region attribution demo
 - [docs/demos/demo_v5_evolution.md](demos/demo_v5_evolution.md): divergence evolution semantics demo
 - [docs/demos/demo_captured_divergence.md](demos/demo_captured_divergence.md): hardware capture evidence demo
+- [docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md): end-to-end replay evidence packaging path
 - [docs/demos/demo_visual.html](demos/demo_visual.html): visual demo artifact retained for local inspection
 - [docs/architecture/replay_explained.md](architecture/replay_explained.md): narrative replay explanation ladder
 - [docs/replay/DIVERGENCE_SEMANTICS.md](replay/DIVERGENCE_SEMANTICS.md): normative replay explanation contract

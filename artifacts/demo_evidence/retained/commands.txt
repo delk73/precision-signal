@@ -1,0 +1,10 @@
+cargo run -q -p replay-host -- validate-interval-csv artifacts/demo_evidence/inputs/baseline_capture.csv.fixture
+cargo run -q -p replay-host -- validate-interval-csv artifacts/demo_evidence/inputs/perturbed_frame017_plus1.csv.fixture
+cargo run -q -p replay-host -- import-interval-csv artifacts/demo_evidence/inputs/baseline_capture.csv.fixture artifacts/demo_evidence/_generated/outputs/baseline.rpl
+cargo run -q -p replay-host -- import-interval-csv artifacts/demo_evidence/inputs/perturbed_frame017_plus1.csv.fixture artifacts/demo_evidence/_generated/outputs/perturbed_frame017_plus1.rpl
+PYTHONPATH=. python3 scripts/artifact_tool.py hash artifacts/demo_evidence/_generated/outputs/baseline.rpl
+PYTHONPATH=. python3 scripts/artifact_tool.py hash artifacts/demo_evidence/_generated/outputs/perturbed_frame017_plus1.rpl
+cargo run -q -p replay-host -- diff artifacts/demo_evidence/_generated/outputs/baseline.rpl artifacts/demo_evidence/_generated/outputs/baseline.rpl
+cargo run -q -p replay-host -- diff artifacts/demo_evidence/_generated/outputs/baseline.rpl artifacts/demo_evidence/_generated/outputs/perturbed_frame017_plus1.rpl
+PYTHONPATH=. python3 scripts/artifact_diff.py artifacts/demo_evidence/_generated/outputs/baseline.rpl artifacts/demo_evidence/_generated/outputs/baseline.rpl
+PYTHONPATH=. python3 scripts/artifact_diff.py artifacts/demo_evidence/_generated/outputs/baseline.rpl artifacts/demo_evidence/_generated/outputs/perturbed_frame017_plus1.rpl
