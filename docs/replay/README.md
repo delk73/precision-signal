@@ -6,6 +6,8 @@ execution analysis infrastructure implemented by `precision-signal`.
 Release status is classified in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
 Verification authority is defined in [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md).
 Replay-tooling boundary routing lives in [docs/replay/tooling.md](tooling.md).
+The canonical packaged proof route for the completed replay pipeline is
+[docs/demos/demo_evidence_packaging.md](../demos/demo_evidence_packaging.md).
 
 ## In Scope
 - Legacy artifact wire contract for RPL0 format version 0 (`Header0`,
@@ -38,6 +40,7 @@ Replay-tooling boundary routing lives in [docs/replay/tooling.md](tooling.md).
 - [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md): normative RPL0 artifact contract
   (`[HEADER][SCHEMA BLOCK][FRAME DATA]`)
 - [docs/replay/tooling.md](tooling.md): released Python replay-facing operator tooling and experimental Rust replay boundary
+- [docs/demos/demo_evidence_packaging.md](../demos/demo_evidence_packaging.md): canonical packaged proof route and retained bundle for the completed replay pipeline
 - [docs/replay/RPL0_PARSER_TRACEABILITY.md](RPL0_PARSER_TRACEABILITY.md): rule-level spec -> parser -> tests -> CI traceability matrix
 - [docs/replay/ARTIFACT_VALIDATION_WORKFLOW.md](ARTIFACT_VALIDATION_WORKFLOW.md): operator/local/CI validation workflow for artifact parser + toolchain
 - [docs/replay/HOST_REPLAY_v0.md](HOST_REPLAY_v0.md): experimental Rust replay state transition, hashing, and legacy-frame replay semantics

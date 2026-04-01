@@ -9,7 +9,10 @@ deterministic execution analysis infrastructure.
 This index is descriptive only. Use [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md)
 for release classification, [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md) for
 verification authority, and [docs/replay/tooling.md](replay/tooling.md)
-for replay-tooling boundaries.
+for replay-tooling boundaries. Use
+[docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md) for
+the canonical packaged proof route covering the completed Phase 1 through Phase
+5 replay pipeline.
 Experimental notes live under [docs/wip/README.md](wip/README.md) and are non-normative.
 
 Normative behavior is defined outside this index:
@@ -30,6 +33,7 @@ wins.
 
 - [docs/architecture/workspace.md](architecture/workspace.md): workspace framing and routing
 - [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md): release-surface routing and classification
+- [docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md): canonical packaged proof route and retained bundle for the completed replay pipeline
 - [docs/architecture/architecture_whitepaper.md](architecture/architecture_whitepaper.md): replay architecture whitepaper
 - [docs/architecture/signal_path.md](architecture/signal_path.md): non-normative signal-path overview
 - [docs/architecture/float_boundary.md](architecture/float_boundary.md): float quarantine and allowed surfaces
@@ -75,7 +79,7 @@ wins.
 - [docs/demos/demo_v4_region_attribution.md](demos/demo_v4_region_attribution.md): divergence region attribution demo
 - [docs/demos/demo_v5_evolution.md](demos/demo_v5_evolution.md): divergence evolution semantics demo
 - [docs/demos/demo_captured_divergence.md](demos/demo_captured_divergence.md): hardware capture evidence demo
-- [docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md): end-to-end replay evidence packaging path
+- [docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md): canonical packaged proof route and retained bundle for the completed replay pipeline
 - [docs/demos/demo_visual.html](demos/demo_visual.html): visual demo artifact retained for local inspection
 - [docs/architecture/replay_explained.md](architecture/replay_explained.md): narrative replay explanation ladder
 - [docs/replay/DIVERGENCE_SEMANTICS.md](replay/DIVERGENCE_SEMANTICS.md): normative replay explanation contract

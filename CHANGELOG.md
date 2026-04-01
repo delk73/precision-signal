@@ -16,11 +16,13 @@
 - Replay equivalence proof: verified that identical artifacts produce no divergence
 - Controlled divergence injection: single-site input perturbation produces deterministic first-divergence detection (frame 17), extending replay proof from detection to reproducible causal control in input space
 - Classification outputs validated (transient, self-healing, reconvergence)
+- End-to-end evidence packaging: canonical proof path (make demo-evidence-package) with retained bundle and reproducibility verification
 
 ### Changed
 
 - normalized divergence demo output to:
   first_divergence_frame / classification / baseline_invariant
+- Release surface alignment: packaged proof route is now the canonical replay pipeline evidence path; experimental components remain explicitly non-released
 - reclassified STM32 capture path (`replay-fw-f446`) from Release to Experimental to reflect interval CSV operator path maturity and Phase 1 evidence status
 
 ### Notes
