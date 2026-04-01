@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use replay_host::{parse_artifact, ParsedArtifact};
+use replay_host::{parse_artifact, parse_replay_frames_legacy0, ParsedArtifact};
 
 fn repo_root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -69,6 +69,39 @@ fn canonical_capture_csv() -> String {
         csv.push_str(&format!("{idx},{interval}\n"));
     }
     csv
+}
+
+fn load_expected_intervals(csv_path: &PathBuf) -> Vec<i32> {
+    let text = fs::read_to_string(csv_path).expect("csv fixture must be readable");
+    let mut lines = text.lines();
+    assert_eq!(
+        lines.next(),
+        Some("index,interval_us"),
+        "csv fixture header must match contract"
+    );
+
+    lines
+        .enumerate()
+        .map(|(idx, line)| {
+            let mut parts = line.split(',');
+            let row_idx = parts
+                .next()
+                .expect("row index must exist")
+                .parse::<usize>()
+                .expect("row index must parse");
+            let interval = parts
+                .next()
+                .expect("row interval must exist")
+                .parse::<i32>()
+                .expect("row interval must parse");
+            assert_eq!(row_idx, idx, "csv fixture indices must stay contiguous");
+            assert!(
+                parts.next().is_none(),
+                "csv fixture rows must have exactly two columns"
+            );
+            interval
+        })
+        .collect()
 }
 
 #[test]
@@ -158,6 +191,48 @@ fn operator_path_imports_interval_csv_into_canonical_artifact() {
     assert_eq!(code, 0, "stderr: {stderr}");
     assert_eq!(stdout, "no divergence\n");
     assert!(stderr.is_empty(), "unexpected stderr: {stderr}");
+}
+
+#[test]
+fn operator_path_import_is_byte_deterministic_for_self_contained_interval_csv() {
+    let temp_dir = unique_temp_dir();
+    fs::create_dir_all(&temp_dir).expect("temp dir must be creatable");
+
+    let csv_path = temp_dir.join("intervals.csv");
+    let first_out = temp_dir.join("imported.first.rpl");
+    let second_out = temp_dir.join("imported.second.rpl");
+    fs::write(&csv_path, canonical_capture_csv()).expect("csv fixture must be writable");
+
+    let first = run_import(&csv_path, &first_out);
+    let second = run_import(&csv_path, &second_out);
+    assert_eq!(first.0, 0, "first import failed: {}", first.2);
+    assert_eq!(second.0, 0, "second import failed: {}", second.2);
+    assert_eq!(first.2, "", "unexpected stderr for first import");
+    assert_eq!(second.2, "", "unexpected stderr for second import");
+
+    let first_bytes = fs::read(&first_out).expect("first artifact must exist");
+    let second_bytes = fs::read(&second_out).expect("second artifact must exist");
+    assert_eq!(
+        first_bytes, second_bytes,
+        "re-importing identical csv must reproduce identical bytes"
+    );
+
+    let expected_intervals = load_expected_intervals(&csv_path);
+    let frames = parse_replay_frames_legacy0(&first_bytes).expect("imported artifact must parse");
+    assert_eq!(frames.len(), 10_000, "import frame count must stay fixed");
+    for (idx, expected_interval) in expected_intervals.iter().enumerate() {
+        assert_eq!(
+            frames[idx].input_sample,
+            *expected_interval,
+            "frame {idx} must carry csv interval_us directly"
+        );
+    }
+    for (idx, frame) in frames.iter().enumerate().skip(expected_intervals.len()) {
+        assert_eq!(
+            frame.input_sample, 0,
+            "frame {idx} must stay zero-padded beyond fixture rows"
+        );
+    }
 }
 
 #[test]
