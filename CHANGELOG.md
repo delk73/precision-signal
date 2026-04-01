@@ -10,11 +10,20 @@
 ### Added
 
 - make demo-divergence canonical entrypoint for quantization divergence witness
+- interval CSV capture contract (`INTERVAL_CAPTURE_CONTRACT_v1`) as canonical STM32 self-stimulus input boundary
+- schema validator (`validate-interval-csv`) enforcing interval capture invariants at the import boundary
 
 ### Changed
 
 - normalized divergence demo output to:
   first_divergence_frame / classification / baseline_invariant
+- reclassified STM32 capture path (`replay-fw-f446`) from Release to Experimental to reflect interval CSV operator path maturity and Phase 1 evidence status
+
+### Notes
+
+- interval CSV capture path is the active STM32 self-stimulus operator contract; prior firmware-emitted RPL0 capture path retained as historical
+- no change to artifact format
+- no change to replay semantics
 
 ### Internal
 

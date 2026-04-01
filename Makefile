@@ -149,9 +149,9 @@ help:
 	echo "  make demo-captured-release"
 
 fixture-drift-check:
-	python3 scripts/generate_demo_v3_fixtures.py --out-dir "$(DEMO_V3_DIR)"
-	python3 scripts/generate_demo_v4_fixtures.py --out-dir "$(DEMO_V4_DIR)"
-	python3 scripts/generate_demo_v5_fixtures.py --out-dir "$(DEMO_V5_DIR)"
+	PYTHONPATH=. python3 scripts/generate_demo_v3_fixtures.py --out-dir "$(DEMO_V3_DIR)"
+	PYTHONPATH=. python3 scripts/generate_demo_v4_fixtures.py --out-dir "$(DEMO_V4_DIR)"
+	PYTHONPATH=. python3 scripts/generate_demo_v5_fixtures.py --out-dir "$(DEMO_V5_DIR)"
 	git diff --exit-code "$(DEMO_V3_DIR)" "$(DEMO_V4_DIR)" "$(DEMO_V5_DIR)"
 
 shell-check:

@@ -1,24 +1,30 @@
 # replay-fw-f446
 
-Bare-metal STM32F446RE capture firmware for the active released replay path.
+Bare-metal STM32F446RE capture firmware for the active experimental STM32
+self-stimulus capture path.
 
 Release classification is owned by `docs/RELEASE_SURFACE.md`. The active
-capture contract is `docs/replay/FW_F446_CAPTURE_v1.md`, and retained release
-evidence for release `1.2.2` lives under `docs/verification/releases/1.2.2/`.
+capture contract is `docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md`. The retained
+historical RPL0 artifact-capture description lives in
+`docs/replay/FW_F446_CAPTURE_v1.md`, and retained release evidence for release
+`1.2.2` lives under `docs/verification/releases/1.2.2/`.
 
 ## Current capture path
 
-The firmware captures deterministic frames from the TIM2 ISR and emits an RPL0
-format version 1 artifact over USART2 after capture halts. Replay semantics remain
-the legacy 16-byte `EventFrame0` interpretation documented in the capture
-contract.
+The active self-stimulus operator path emits a UART success preamble followed by
+interval CSV over USART2 after capture halts. The canonical downstream file is
+the CSV payload body captured by `scripts/csv_capture.py`, not the `STATE,...`
+transport line.
 
 ## Behavior
 
 - Capture source: TIM2 update interrupt at nominal 1 kHz.
-- Frame count: 10,000.
-- Capture phase: TIM2 ISR writes deterministic placeholder samples into static buffer.
-- Dump phase: TIM2 interrupt disabled, global interrupts disabled, then raw artifact bytes written over USART2 TX using polling.
+- Interval count: 138.
+- Capture phase: TIM2/TIM3 self-stimulus path records interval measurements into
+  a fixed in-memory buffer.
+- Dump phase: capture halts, firmware emits `STATE,CAPTURE_DONE,138` on success,
+  then writes the canonical `index,interval_us` CSV body over USART2 TX using
+  polling.
 
 ## Host capture
 
@@ -33,7 +39,8 @@ python3 scripts/csv_capture.py --serial /dev/ttyACM0 --out observed.csv --reset-
 
 Notes:
 - Manual reset is canonical for UART capture on this flow.
-- Success prints `STATE,CAPTURE_DONE,138` before CSV output.
+- `STATE,CAPTURE_DONE,138` is the transport-level success condition.
+- The canonical downstream file is the CSV payload only.
 - `--reset-mode stlink` is present in tooling but not validated as reliable in this characterization.
 
 ## Debug IRQ counter (optional)

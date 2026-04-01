@@ -1,0 +1,8 @@
+capture_contract_version=stm32_interval_capture_v1
+canonical_header=index,interval_us
+canonical_rows=138
+sample_1=artifacts/capture_contract_v1/run_20260331T150000Z.csv
+sample_1_sha256=d27a29dde05d29aa568482c229fe9b2e84f46994b6269e0a790c6ec7bc3fdf4a
+sample_2=artifacts/capture_contract_v1/run_20260331T160000Z.csv
+sample_2_sha256=d27a29dde05d29aa568482c229fe9b2e84f46994b6269e0a790c6ec7bc3fdf4a
+note=Samples are separate retained capture runs with identical bytes under the frozen contract.

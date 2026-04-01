@@ -20,10 +20,12 @@ const BUILD_HASH_INPUT: &[u8] = b"replay-host:import-interval-csv:v1";
 const CONFIG_HASH_INPUT: &[u8] = b"source=index,interval_us;pad=zero;timer_delta=1000;irq=0x02";
 const BOARD_ID: [u8; 16] = *b"interval-csv-run";
 const CLOCK_PROFILE: [u8; 16] = *b"offline-fixed-v1";
+const INTERVAL_CSV_HEADER: &str = "index,interval_us";
+const INTERVAL_CSV_ROW_COUNT: usize = 138;
 
 fn usage(program: &str) {
     eprintln!(
-        "usage: {program} diff <artifact-a.rpl> <artifact-b.rpl>\n       {program} import-interval-csv <intervals.csv> <artifact.rpl>"
+        "usage: {program} diff <artifact-a.rpl> <artifact-b.rpl>\n       {program} validate-interval-csv <intervals.csv>\n       {program} import-interval-csv <intervals.csv> <artifact.rpl>"
     );
 }
 
@@ -39,8 +41,11 @@ fn load_interval_csv(path: &Path) -> Result<Vec<u32>, String> {
     let Some(header) = lines.next() else {
         return Err(format!("{}: empty csv", path.display()));
     };
-    if header != "index,interval_us" {
-        return Err(format!("{}: invalid header", path.display()));
+    if header != INTERVAL_CSV_HEADER {
+        return Err(format!(
+            "{}: invalid header, expected {INTERVAL_CSV_HEADER}",
+            path.display()
+        ));
     }
 
     let mut intervals = Vec::new();
@@ -77,18 +82,46 @@ fn load_interval_csv(path: &Path) -> Result<Vec<u32>, String> {
                 expected_index + 1
             )
         })?;
+        if interval == 0 {
+            return Err(format!(
+                "{}: interval must be > 0 at row {}",
+                path.display(),
+                expected_index + 1
+            ));
+        }
         intervals.push(interval);
     }
 
     if intervals.is_empty() {
         return Err(format!("{}: no interval rows", path.display()));
     }
+    if intervals.len() != INTERVAL_CSV_ROW_COUNT {
+        return Err(format!(
+            "{}: expected {INTERVAL_CSV_ROW_COUNT} interval rows, found {}",
+            path.display(),
+            intervals.len()
+        ));
+    }
 
     Ok(intervals)
 }
 
+fn validate_interval_csv_quiet(csv_path: &Path) -> Result<Vec<u32>, String> {
+    load_interval_csv(csv_path)
+}
+
+fn validate_interval_csv(csv_path: &Path) -> Result<(), String> {
+    let intervals = validate_interval_csv_quiet(csv_path)?;
+    println!("validated: {}", csv_path.display());
+    println!("header: {INTERVAL_CSV_HEADER}");
+    println!("rows: {}", intervals.len());
+    println!("first_index: 0");
+    println!("last_index: {}", intervals.len() - 1);
+    Ok(())
+}
+
 fn import_interval_csv(csv_path: &Path, out_path: &Path) -> Result<(), String> {
-    let intervals = load_interval_csv(csv_path)?;
+    let intervals = validate_interval_csv_quiet(csv_path)?;
 
     let header = Header1 {
         magic: MAGIC,
@@ -181,6 +214,19 @@ fn run() -> Result<(), String> {
                 }
                 Err(err) => Err(format!("parse error: {err:?}")),
             }
+        }
+        "validate-interval-csv" => {
+            let Some(csv_path) = args.next() else {
+                usage(&program);
+                return Err("missing interval csv path".to_string());
+            };
+
+            if args.next().is_some() {
+                usage(&program);
+                return Err("unexpected extra arguments".to_string());
+            }
+
+            validate_interval_csv(Path::new(&csv_path))
         }
         "import-interval-csv" => {
             let Some(csv_path) = args.next() else {
