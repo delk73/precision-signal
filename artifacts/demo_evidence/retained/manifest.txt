@@ -13,5 +13,5 @@ generated_perturbed_artifact=artifacts/demo_evidence/_generated/outputs/perturbe
 generated_perturbed_sha256=5c43fe11843c77bd171bffc8cdccc5b3646f3d28e299bfa52f1ce75884d5cc78
 expected_replay_diff_identical=no divergence
 expected_replay_diff_perturbed=first divergence at frame 17
-commands_record=artifacts/demo_evidence/_generated/commands.txt
-transcript_record=artifacts/demo_evidence/_generated/transcript.txt
+commands_record=artifacts/demo_evidence/retained/commands.txt
+transcript_record=artifacts/demo_evidence/retained/transcript.txt
