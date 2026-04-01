@@ -28,8 +28,10 @@ Replay-tooling boundary routing lives in [docs/replay/tooling.md](tooling.md).
 - [docs/wip/](../wip/) research work that is not part of the current release surface
 
 ## Docs Index
-- [docs/replay/FW_F446_CAPTURE_v1.md](FW_F446_CAPTURE_v1.md): current normative F446 capture contract for the active
-  RPL0 format version 1 operator path
+- [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md): canonical STM32 self-stimulus interval CSV capture contract frozen for
+  downstream import
+- [docs/replay/FW_F446_CAPTURE_v1.md](FW_F446_CAPTURE_v1.md): retained historical RPL0 artifact-capture contract note
+  superseded by the interval CSV contract for the active STM32 self-stimulus path
 - [docs/replay/REPLAY_CAPTURE_CONTRACT_v0.md](REPLAY_CAPTURE_CONTRACT_v0.md): legacy RPL0 format version 0 capture acceptance contract retained
   for historical inspection
 - [docs/replay/WIRE_FORMAT_v0.md](WIRE_FORMAT_v0.md): byte-level artifact format and parser validation rules

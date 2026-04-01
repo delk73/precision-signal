@@ -1,7 +1,7 @@
-# F446 Capture v1 — Normative Capture Contract
+# F446 Capture v1 — Retained Historical RPL0 Capture Contract
 
 **Document revision:** 1.2.2  
-**Applies to:** release 1.2.2 (content unchanged)
+**Applies to:** retained release 1.2.2 evidence only
 
 ## Versioning Terminology
 
@@ -9,17 +9,20 @@
 - Release versions identify the shipped software release.
 - `v1` in this document name and `version = 1` in emitted headers identify the artifact/header version, not the software release version.
 
-> **Status: NORMATIVE**
-> This document defines the current NUCLEO-F446RE capture contract for `replay-fw-f446`.
-> Firmware capture emits RPL0 `version = 1` container artifacts using `[HEADER][SCHEMA BLOCK][FRAME DATA]`.
-> Replay frame payload semantics remain the legacy 16-byte `EventFrame0` interpretation.
+> **Status: RETAINED HISTORICAL**
+> This document is retained only for the older hardware-backed RPL0 artifact
+> capture record. It is superseded for the active STM32 self-stimulus operator
+> path by [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md).
+> The active path no longer uses this document as its operator-facing capture
+> contract.
 
 ---
 
 ## Scope
 
-This contract defines the active operator-facing firmware capture path for the
-NUCLEO-F446RE board workflow, UART artifact egress, and host verification flow.
+This retained document describes the older RPL0 artifact-emission path captured
+in the release `1.2.2` evidence bundle. It is not the active operator-facing
+capture contract for the current STM32 self-stimulus interval CSV path.
 
 ---
 
@@ -66,7 +69,7 @@ The normative artifact-format definition remains [docs/spec/rpl0_artifact_contra
 
 ## Schema Block
 
-The current firmware emits a fixed embedded schema block immediately after the header.
+The retained historical firmware path emitted a fixed embedded schema block immediately after the header.
 
 - Schema bytes are deterministic and have no runtime variability.
 - `schema_hash` is the SHA-256 digest of exactly the emitted `schema_len` bytes.
@@ -94,7 +97,7 @@ No schema-aware replay behavior is introduced by this contract.
 
 ## Capture Boundary
 
-Current firmware emits `capture_boundary = 0`, which maps to the ISR boundary for the active firmware path.
+The retained historical firmware path emitted `capture_boundary = 0`, which maps to the ISR boundary for that capture record.
 
 ---
 
@@ -114,13 +117,13 @@ Metadata is retained in `artifacts/baseline.json` and `artifacts/baseline.sha256
 ## Determinism Contract
 
 Identical firmware binary and capture configuration MUST produce byte-identical
-RPL0 v1 artifacts. No nondeterministic fields are permitted in the active capture path.
+RPL0 v1 artifacts. No nondeterministic fields were permitted in that retained capture path.
 
 ---
 
-## Operator Verification Expectations
+## Historical Verification Expectations
 
-Active operator path:
+Historical operator path:
 
 ```bash
 make replay-check
@@ -128,7 +131,7 @@ make replay-repeat-auto REPLAY_REPEAT_RUNS=3
 make firmware-release-check
 ```
 
-Host tooling expectations for the active path:
+Host tooling expectations for the retained historical path:
 
 - `scripts/artifact_tool.py capture` reads the v1 container from UART
 - `scripts/artifact_tool.py verify` enforces strict structure and signal-model checks

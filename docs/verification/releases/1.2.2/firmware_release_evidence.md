@@ -1,5 +1,10 @@
 # Firmware Release Evidence (1.2.2)
 
+Retained historical note: this file records the older hardware-backed RPL0
+artifact capture rerun retained with the `1.2.2` release bundle. It is not the
+active STM32 self-stimulus capture contract. The active operator-facing capture
+contract is [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](../../../replay/INTERVAL_CAPTURE_CONTRACT_v1.md).
+
 This directory is the canonical retained release-evidence location for the
 `1.2.2` release record.
 
