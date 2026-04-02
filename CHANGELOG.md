@@ -7,6 +7,19 @@
 
 ## [Unreleased]
 
+## [1.3.1] - 2026-04-02
+
+### Fixed
+
+- proof-route repair: restored `make demo-evidence-package` by aligning generated manifest emission with the retained demo-evidence bundle
+- retained evidence completion: added the `docs/verification/releases/1.3.1/` patch-release bundle with the required release-checklist outputs and reproducibility record
+- locked-toolchain lockfile correction: pinned `fixed` back to the Rust `1.91.1` compatible `1.30.0` line so locked builds pass again
+
+### Notes
+
+- Patch release only; no new capability surface
+- No change to replay semantics, artifact format, capture contract, or experimental boundaries
+
 ## [1.3.0] - 2026-04-01
 
 ### Added

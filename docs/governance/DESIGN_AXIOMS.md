@@ -1,14 +1,14 @@
 ## Axiom: Discretization Follows Finite Observation
 
-**Document revision:** 1.3.0  
-**Applies to:** release 1.3.0 (content unchanged)  
+**Document revision:** 1.3.1  
+**Applies to:** release 1.3.1 (content unchanged)  
 **Status:** Normative
 
 ## Versioning Terminology
 
 - Document revision labels editorial history for this governance document.
 - Release versions identify the shipped software release.
-- This document states governance axioms; unchanged content remains applicable to release `1.3.0`.
+- This document states governance axioms; unchanged content remains applicable to release `1.3.1`.
 
 ### Statement
 Continuous dynamics are primary. Discrete states (modes, events, classes) are

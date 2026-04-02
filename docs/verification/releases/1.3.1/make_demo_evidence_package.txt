@@ -1,0 +1,6 @@
+$ make demo-evidence-package
+PYTHONPATH=. python3 scripts/package_demo_evidence.py
+generated bundle: artifacts/demo_evidence/_generated
+retained bundle matches: artifacts/demo_evidence/retained
+replay diff identical: no divergence
+replay diff perturbed: first divergence at frame 17

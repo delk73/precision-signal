@@ -112,8 +112,8 @@ def write_manifest() -> None:
             f"generated_perturbed_sha256={sha256_file(GENERATED_PERTURBED_RPL)}",
             "expected_replay_diff_identical=no divergence",
             "expected_replay_diff_perturbed=first divergence at frame 17",
-            f"commands_record={repo_rel(GENERATED_DIR / 'commands.txt')}",
-            f"transcript_record={repo_rel(GENERATED_DIR / 'transcript.txt')}",
+            f"commands_record={repo_rel(RETAINED_DIR / 'commands.txt')}",
+            f"transcript_record={repo_rel(RETAINED_DIR / 'transcript.txt')}",
             "",
         ]
     )

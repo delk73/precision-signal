@@ -1,6 +1,6 @@
 # STM32 Interval Capture Contract v1
 
-**Document revision:** 1.3.0  
+**Document revision:** 1.3.1  
 **Status:** NORMATIVE  
 **Scope:** STM32F446 self-stimulus interval capture emitted by `replay-fw-f446`,
 captured by `scripts/csv_capture.py`, and accepted by `replay-host validate-interval-csv`

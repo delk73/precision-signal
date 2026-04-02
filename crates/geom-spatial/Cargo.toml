@@ -6,7 +6,7 @@ authors.workspace = true
 description = "128-bit Spatial Coordinate engine for Precision-DPW"
 
 [dependencies]
-fixed = { version = "1.27", features = ["num-traits"] }
+fixed = { version = "=1.30.0", features = ["num-traits"] }
 geom-signal = { path = "../geom-signal" }
 
 [dev-dependencies]
