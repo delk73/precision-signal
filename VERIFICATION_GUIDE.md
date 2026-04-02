@@ -1,5 +1,5 @@
 # precision-signal: Canonical Verification Protocol
-**Version: 1.3.0 (Active Release Baseline)**
+**Version: 1.3.1 (Active Release Baseline)**
 **Status: Frozen Definition**
 
 ## Purpose
@@ -21,11 +21,11 @@ For release-surface questions, use this guide as the source of truth for:
 - what command is canonical
 - where retained release evidence lives
 
-For release `1.3.0`, reviewers should traverse this path: `make gate` for the
+For release `1.3.1`, reviewers should traverse this path: `make gate` for the
 canonical gate, [docs/replay/tooling.md](docs/replay/tooling.md) for released
-replay-tooling boundaries, and `docs/verification/releases/1.3.0/` for the
-retained release evidence bundle once generated. The latest retained release
-evidence present in-tree remains `1.2.2`.
+replay-tooling boundaries, and `docs/verification/releases/1.3.1/` for the
+retained release evidence bundle. Historical hardware-backed retained evidence
+remains explicit under `docs/verification/releases/1.2.2/`.
 
 The rest of the release-adjacent documentation is supporting only:
 

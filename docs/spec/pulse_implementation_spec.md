@@ -1,12 +1,12 @@
 # Specification: Pulse & Square Implementation
 **Document revision:** v1.0.0-rc5  
-**Applies to:** release 1.3.0 (content unchanged)
+**Applies to:** release 1.3.1 (content unchanged)
 
 ## Versioning Terminology
 
 - Document revision labels editorial history for this specification.
 - Release versions identify the shipped software release.
-- This document defines waveform behavior for the current pulse/square implementation; unchanged content remains applicable to release `1.3.0`.
+- This document defines waveform behavior for the current pulse/square implementation; unchanged content remains applicable to release `1.3.1`.
 
 This document defines the normative implementation for relaying Pulse and Square waveforms.
 

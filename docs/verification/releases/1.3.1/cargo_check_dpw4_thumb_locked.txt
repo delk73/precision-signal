@@ -1,0 +1,2 @@
+$ cargo check -p dpw4 --no-default-features --target thumbv7em-none-eabihf --locked
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s

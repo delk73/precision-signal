@@ -822,7 +822,7 @@ promoted by [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
 | Hash-locked reference outputs (6 scenarios) | Stable | `crates/dpw4/src/bin/precision.rs` |
 | Deterministic build verification | Stable | `verify_release_repro.sh` |
 | Multi-tier validation gate | Stable | `precision validate` CLI |
-| Bare-metal capture firmware (STM32F446RE) | Implemented; current release-surface classification for `replay-fw-f446` is routed to [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md). The active workspace/package version is `1.3.0`, while the latest retained hardware-backed release evidence currently present in-tree lives under [docs/verification/releases/1.2.2/](../verification/releases/1.2.2/). | `crates/replay-fw-f446/` |
+| Bare-metal capture firmware (STM32F446RE) | Implemented; current release-surface classification for `replay-fw-f446` is routed to [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md). The active workspace/package version is `1.3.1`, while the latest retained patch-release evidence lives under [docs/verification/releases/1.3.1/](../verification/releases/1.3.1/) and the latest retained hardware-backed release evidence remains under [docs/verification/releases/1.2.2/](../verification/releases/1.2.2/). | `crates/replay-fw-f446/` |
 | Artifact parsing and comparison tools | Stable | `scripts/` Python tooling |
 | Demo divergence ladder (Demo V1-Demo V5) | Stable | `scripts/generate_demo_v*_fixtures.py` |
 | Normative divergence semantics | Stable | [docs/replay/DIVERGENCE_SEMANTICS.md](../replay/DIVERGENCE_SEMANTICS.md) |
