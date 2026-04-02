@@ -29,7 +29,6 @@
 
 - No changes to artifact format, capture contract, or replay semantics
 - interval CSV capture path is the active STM32 self-stimulus operator contract; prior firmware-emitted RPL0 capture path retained as historical
-- no change to artifact format
 - no change to replay semantics
 
 ### Internal

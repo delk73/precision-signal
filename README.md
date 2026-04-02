@@ -37,6 +37,13 @@ Operator-facing released tooling remains the Python replay toolchain plus the
 including `replay-host` and the STM32 replay firmware path, are not promoted by
 that proof bundle.
 
+## Manual Release Checklist
+
+- `make gate`
+- `make demo-evidence-package`
+- `make doc-link-check`
+- final claim/evidence sweep: `README.md`, `docs/RELEASE_SURFACE.md`, `CHANGELOG.md`, `docs/demos/demo_evidence_packaging.md`
+
 ## License
 
 MIT. See `LICENSE`.
