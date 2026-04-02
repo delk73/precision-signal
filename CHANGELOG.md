@@ -7,6 +7,8 @@
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-04-01
+
 ### Added
 
 - make demo-divergence canonical entrypoint for quantization divergence witness

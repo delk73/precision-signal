@@ -75,7 +75,7 @@ checksum = "7f202df86484c868dbad7eaa557ef785d5c66295e41b460ef922eca0723b842c"
 
 [[package]]
 name = "audit-float-boundary"
-version = "1.2.2"
+version = "1.3.0"
 dependencies = [
  "proc-macro2",
  "syn",
@@ -372,7 +372,7 @@ dependencies = [
 
 [[package]]
 name = "dpw4"
-version = "1.2.2"
+version = "1.3.0"
 dependencies = [
  "clap",
  "geom-signal",
@@ -464,7 +464,7 @@ dependencies = [
 
 [[package]]
 name = "geom-signal"
-version = "1.2.2"
+version = "1.3.0"
 dependencies = [
  "criterion",
  "dpw4",
@@ -474,7 +474,7 @@ dependencies = [
 
 [[package]]
 name = "geom-spatial"
-version = "1.2.2"
+version = "1.3.0"
 dependencies = [
  "fixed",
  "geom-signal",
@@ -885,25 +885,25 @@ checksum = "dc897dd8d9e8bd1ed8cdad82b5966c3e0ecae09fb1907d58efaa013543185d0a"
 
 [[package]]
 name = "replay-cli"
-version = "1.2.2"
+version = "1.3.0"
 dependencies = [
  "replay-host",
 ]
 
 [[package]]
 name = "replay-core"
-version = "1.2.2"
+version = "1.3.0"
 
 [[package]]
 name = "replay-embed"
-version = "1.2.2"
+version = "1.3.0"
 dependencies = [
  "replay-core",
 ]
 
 [[package]]
 name = "replay-fw-f446"
-version = "1.2.2"
+version = "1.3.0"
 dependencies = [
  "cortex-m",
  "cortex-m-rt",
@@ -915,7 +915,7 @@ dependencies = [
 
 [[package]]
 name = "replay-host"
-version = "1.2.2"
+version = "1.3.0"
 dependencies = [
  "replay-core",
  "sha2",
@@ -1462,7 +1462,7 @@ dependencies = [
 
 [[package]]
 name = "xtask"
-version = "1.2.2"
+version = "1.3.0"
 dependencies = [
  "dunce",
  "serde",

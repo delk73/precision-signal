@@ -1,13 +1,13 @@
 # DPW Gain Specification
 **Document revision:** v1.0.0-rc5  
-**Applies to:** release 1.2.2 (content unchanged)  
+**Applies to:** release 1.3.0 (content unchanged)  
 **Status:** Normative (Contract Surface Lock)
 
 ## Versioning Terminology
 
 - Document revision labels editorial history for this specification.
 - Release versions identify the shipped software release.
-- This document defines the gain-field contract; unchanged content remains applicable to release `1.2.2`.
+- This document defines the gain-field contract; unchanged content remains applicable to release `1.3.0`.
 
 ## Scope
 Defines the forward and inverse gain fields in `DpwGain`.

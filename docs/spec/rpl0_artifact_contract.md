@@ -1,7 +1,7 @@
 # RPL0 Artifact Contract (Normative)
 
-**Document revision:** 1.2.2  
-**Applies to:** release 1.2.2 (content unchanged)
+**Document revision:** 1.3.0  
+**Applies to:** release 1.3.0 (content unchanged)
 
 This document defines the normative binary artifact format for the RPL0 `version = 1` header path.
 It is sufficient to implement a compliant parser and deterministic artifact hasher without guessing.
