@@ -1,0 +1,4 @@
+    Blocking waiting for file lock on build directory
+    Checking geom-signal v1.4.0 (/home/dce/src/precision-signal/crates/geom-signal)
+    Checking dpw4 v1.4.0 (/home/dce/src/precision-signal/crates/dpw4)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.43s

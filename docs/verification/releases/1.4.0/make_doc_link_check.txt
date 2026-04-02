@@ -1,0 +1,2 @@
+python3 scripts/check_doc_links.py
+PASS: documentation link integrity

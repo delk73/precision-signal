@@ -1,5 +1,5 @@
 # precision-signal: Canonical Verification Protocol
-**Version: 1.3.1 (Active Release Baseline)**
+**Version: 1.4.0 (Active Release Baseline)**
 **Status: Frozen Definition**
 
 ## Purpose
@@ -21,11 +21,12 @@ For release-surface questions, use this guide as the source of truth for:
 - what command is canonical
 - where retained release evidence lives
 
-For release `1.3.1`, reviewers should traverse this path: `make gate` for the
+For release `1.4.0`, reviewers should traverse this path: `make gate` for the
 canonical gate, [docs/replay/tooling.md](docs/replay/tooling.md) for released
-replay-tooling boundaries, and `docs/verification/releases/1.3.1/` for the
-retained release evidence bundle. Historical hardware-backed retained evidence
-remains explicit under `docs/verification/releases/1.2.2/`.
+replay-tooling boundaries, and `docs/verification/releases/1.4.0/` for the
+retained release evidence bundle. Historical retained evidence for `1.3.1`
+and hardware-backed `1.2.2` remains explicit under
+`docs/verification/releases/`.
 
 The rest of the release-adjacent documentation is supporting only:
 
@@ -46,7 +47,7 @@ This document defines the **only** valid interpretation of "precision-signal con
 | Signal | Authority | Role | Failure Consequence |
 | --- | --- | --- | --- |
 | **SHA-256 Hashes** | **Normative** | The absolute definition of correctness. | **Immediate Rejection** |
-| **Formal Proofs** | **Normative** | Kani symbolic execution of core kernels. | **Non-Conformance** |
+| **Formal Proofs** | **Normative** | Kani symbolic execution of core kernels within stated harness assumptions. | **Non-Conformance** |
 | **Phase Invariants** | **Normative** | Phase Engine locked to Scalar addition / O(1) Modulo. | **Non-Conformance** |
 | **Pinned Toolchain** | **Normative** | The only valid execution environment (`1.91.1`). | **CI Failure** |
 | **`libm` Shadow Model** | *Advisory* | Sanity check for drift and residual observation. | **Audit Warning** |
@@ -125,15 +126,35 @@ KEEP_LOGS=1 bash verify_kani.sh
   for Tier-1, with additional manifest-defined Tier-2 harnesses when
   `RUN_HEAVY=1`.
 - **Status**: Each per-harness log must contain `VERIFICATION:- SUCCESSFUL` and must not contain `** N of M failed` where `N > 0`.
-- **Implication**: Provides panic-safety and invariant evidence for the kernels covered by these harnesses and their assumptions.
+- **Implication**: Provides panic-safety and invariant evidence for the kernels covered by these harnesses and their assumptions. The active release-scoped proof boundary and exclusions must be read from `docs/verification/releases/1.4.0/VERIFICATION_SCOPE.md`.
 
 ### 3.4 Harness-to-Crate Mapping
 | Harness | Crate | Tier |
 | --- | --- | --- |
 | `proof_compute_x2_safe` | `dpw4` | Tier-1 |
 | `proof_saturate_safe` | `dpw4` | Tier-1 |
+| `proof_phase_u32_no_overflow` | `dpw4` | Tier-1 |
+| `proof_phase_u32_fixed_to_u32_conversion` | `dpw4` | Tier-1 |
+| `proof_sine_scale_no_overflow` | `dpw4` | Tier-1 |
+| `proof_sine_to_i32_in_range` | `dpw4` | Tier-1 |
+| `proof_sine_egress_bounded` | `dpw4` | Tier-1 |
+| `proof_triangle_delta_clamp_identity_when_in_range` | `dpw4` | Tier-1 |
+| `proof_triangle_delta_clamp_saturates_when_out_of_range` | `dpw4` | Tier-1 |
+| `proof_triangle_z_update_is_saturating` | `dpw4` | Tier-1 |
+| `proof_i256_sub_matches_spec` | `dpw4` | Tier-1 |
+| `proof_i256_sar_in_range_matches_spec` | `dpw4` | Tier-1 |
+| `proof_i256_sar_out_of_range_matches_spec` | `dpw4` | Tier-1 |
+| `proof_i256_clamp_matches_spec` | `dpw4` | Tier-1 |
+| `proof_spec_clamp_in_range_contract` | `dpw4` | Tier-1 |
+| `proof_spec_clamp_out_of_range_contract` | `dpw4` | Tier-1 |
+| `proof_spec_sar_sanity` | `dpw4` | Tier-1 |
+| `proof_triangle_freeze_invariant` | `dpw4` | Tier-1 |
+| `proof_triangle_freeze_egress_invariant` | `dpw4` | Tier-1 |
 | `proof_sqrt_no_panic` | `geom-signal` | Tier-1 |
 | `proof_sin_cos_no_panic` | `geom-signal` | Tier-1 |
+| `proof_v0_wire_size_constants` | `replay-core` | Tier-1 |
+| `proof_encode_header0_wire_layout_and_le` | `replay-core` | Tier-1 |
+| `proof_encode_event_frame0_wire_layout_and_le` | `replay-core` | Tier-1 |
 | `proof_atan2_q1` | `geom-signal` | Tier-2 |
 | `proof_atan2_q2` | `geom-signal` | Tier-2 |
 | `proof_atan2_q3` | `geom-signal` | Tier-2 |
@@ -149,6 +170,11 @@ KEEP_LOGS=1 bash verify_kani.sh
   (`cargo kani list --lib` is rejected by this Kani version.)
   This is optional local harness discovery only. It is not required by the canonical runner (`bash verify_kani.sh` / `RUN_HEAVY=1 bash verify_kani.sh`), may fail in some workspace/feature-gated-bin (`required-features`) layouts, and is not normative evidence. Only runner logs and success token checks are normative evidence.
 - **"dereference failure ... Status: SUCCESS" lines**: These indicate Kani proved the failing path unreachable under harness constraints; they are successful checks, not proof failures.
+
+### 3.6 Release-Scoped Correctness and Limits
+- The `1.4.0` release adds one explicit bounded correctness claim for the released sine path over the finite domain documented in `docs/verification/releases/1.4.0/VERIFICATION_SCOPE.md`.
+- That claim is empirical, not global. It is retained as release evidence and does not upgrade the repository claim to full waveform equivalence outside the stated domain.
+- Heavy Tier-2 proofs remain optional unless the active release bundle explicitly retains a heavy proof run. If omitted, the retained release bundle must state the exclusion and the remaining release-claim boundary explicitly.
 
 ---
 

@@ -1,0 +1,12 @@
+cargo check --workspace --locked
+    Checking replay-core v1.4.0 (/home/dce/src/precision-signal/crates/replay-core)
+   Compiling replay-fw-f446 v1.4.0 (/home/dce/src/precision-signal/crates/replay-fw-f446)
+    Checking audit-float-boundary v1.4.0 (/home/dce/src/precision-signal/crates/audit-float-boundary)
+    Checking geom-signal v1.4.0 (/home/dce/src/precision-signal/crates/geom-signal)
+    Checking xtask v1.4.0 (/home/dce/src/precision-signal/crates/xtask)
+    Checking replay-host v1.4.0 (/home/dce/src/precision-signal/crates/replay-host)
+    Checking replay-embed v1.4.0 (/home/dce/src/precision-signal/crates/replay-embed)
+    Checking dpw4 v1.4.0 (/home/dce/src/precision-signal/crates/dpw4)
+    Checking geom-spatial v1.4.0 (/home/dce/src/precision-signal/crates/geom-spatial)
+    Checking replay-cli v1.4.0 (/home/dce/src/precision-signal/crates/replay-cli)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.30s

@@ -1,0 +1,91 @@
+=== Δ-04 Release Reproducibility Check ===
+Toolchain: rustc 1.91.1 (ed61e7d7e 2025-11-07)
+Cargo:     cargo 1.91.1 (ea2d97820 2025-10-10)
+
+[1/2] First build → target_a/
+   Compiling proc-macro2 v1.0.106
+   Compiling unicode-ident v1.0.24
+   Compiling quote v1.0.45
+   Compiling typenum v1.19.0
+   Compiling version_check v0.9.5
+   Compiling autocfg v1.5.0
+   Compiling zerocopy v0.8.48
+   Compiling utf8parse v0.2.2
+   Compiling cfg-if v1.0.4
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling colorchoice v1.0.5
+   Compiling anstyle v1.0.14
+   Compiling anstyle-query v1.1.5
+   Compiling fixed v1.30.0
+   Compiling clap_lex v1.1.0
+   Compiling heck v0.5.0
+   Compiling az v1.3.0
+   Compiling anstyle-parse v1.0.0
+   Compiling bytemuck v1.25.0
+   Compiling strsim v0.11.1
+   Compiling libm v0.2.16
+   Compiling cpufeatures v0.2.17
+   Compiling hex v0.4.3
+   Compiling anstream v1.0.0
+   Compiling generic-array v0.14.7
+   Compiling num-traits v0.2.19
+   Compiling clap_builder v4.6.0
+   Compiling syn v2.0.117
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling digest v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling zerocopy-derive v0.8.48
+   Compiling clap_derive v4.6.0
+   Compiling clap v4.6.0
+   Compiling half v2.7.1
+   Compiling geom-signal v1.4.0 (/home/dce/src/precision-signal/crates/geom-signal)
+   Compiling dpw4 v1.4.0 (/home/dce/src/precision-signal/crates/dpw4)
+    Finished `release` profile [optimized] target(s) in 14.90s
+
+[2/2] Second build → target_b/
+   Compiling proc-macro2 v1.0.106
+   Compiling quote v1.0.45
+   Compiling unicode-ident v1.0.24
+   Compiling typenum v1.19.0
+   Compiling version_check v0.9.5
+   Compiling autocfg v1.5.0
+   Compiling zerocopy v0.8.48
+   Compiling utf8parse v0.2.2
+   Compiling cfg-if v1.0.4
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling colorchoice v1.0.5
+   Compiling fixed v1.30.0
+   Compiling anstyle v1.0.14
+   Compiling anstyle-query v1.1.5
+   Compiling libm v0.2.16
+   Compiling bytemuck v1.25.0
+   Compiling az v1.3.0
+   Compiling anstyle-parse v1.0.0
+   Compiling heck v0.5.0
+   Compiling strsim v0.11.1
+   Compiling clap_lex v1.1.0
+   Compiling cpufeatures v0.2.17
+   Compiling hex v0.4.3
+   Compiling anstream v1.0.0
+   Compiling generic-array v0.14.7
+   Compiling num-traits v0.2.19
+   Compiling clap_builder v4.6.0
+   Compiling syn v2.0.117
+   Compiling block-buffer v0.10.4
+   Compiling crypto-common v0.1.7
+   Compiling digest v0.10.7
+   Compiling sha2 v0.10.9
+   Compiling zerocopy-derive v0.8.48
+   Compiling clap_derive v4.6.0
+   Compiling clap v4.6.0
+   Compiling half v2.7.1
+   Compiling geom-signal v1.4.0 (/home/dce/src/precision-signal/crates/geom-signal)
+   Compiling dpw4 v1.4.0 (/home/dce/src/precision-signal/crates/dpw4)
+    Finished `release` profile [optimized] target(s) in 14.82s
+
+=== Hashing artifacts ===
+Build A: c3a051aa71cbb24140c475102ccda430ef8f02da783a8e37eb52f8dbc67b9204  target_a/release/precision
+Build B: c3a051aa71cbb24140c475102ccda430ef8f02da783a8e37eb52f8dbc67b9204  target_b/release/precision
+
+✅ PASS — builds are bit-for-bit identical: c3a051aa71cbb24140c475102ccda430ef8f02da783a8e37eb52f8dbc67b9204

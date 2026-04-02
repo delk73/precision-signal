@@ -36,9 +36,9 @@ The active STM32 self-stimulus capture contract is
 [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](../replay/INTERVAL_CAPTURE_CONTRACT_v1.md).
 The historical retained board-capture note remains
 [docs/replay/FW_F446_CAPTURE_v1.md](../replay/FW_F446_CAPTURE_v1.md). The
-active workspace/package version is `1.3.1`, and the latest retained patch
+active workspace/package version is `1.4.0`, and the latest retained patch
 release evidence currently present in-tree lives under
-[docs/verification/releases/1.3.1/](../verification/releases/1.3.1/). The
+[docs/verification/releases/1.4.0/](../verification/releases/1.4.0/). The
 older hardware-backed retained release record remains explicit under
 [docs/verification/releases/1.2.2/](../verification/releases/1.2.2/).
 
