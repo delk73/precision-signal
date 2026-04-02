@@ -46,7 +46,8 @@ wins.
 - [docs/replay/README.md](replay/README.md): replay subsystem scope and document index
 - [docs/replay/tooling.md](replay/tooling.md): replay-tooling boundary, operator tools, validation suites, and local gates
 - [docs/replay/HOST_REPLAY_v0.md](replay/HOST_REPLAY_v0.md): host replay and divergence semantics
-- [docs/replay/FW_F446_CAPTURE_v1.md](replay/FW_F446_CAPTURE_v1.md): current capture contract and board workflow
+- [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](replay/INTERVAL_CAPTURE_CONTRACT_v1.md): current STM32 self-stimulus capture contract
+- [docs/replay/FW_F446_CAPTURE_v1.md](replay/FW_F446_CAPTURE_v1.md): historical board-capture contract retained as superseded material
 - [docs/replay/FW_F446_CAPTURE_v0.md](replay/FW_F446_CAPTURE_v0.md): legacy historical capture contract
 - [docs/replay/WIRE_FORMAT_v0.md](replay/WIRE_FORMAT_v0.md): byte-level artifact format
 - [docs/replay/DIVERGENCE_SEMANTICS.md](replay/DIVERGENCE_SEMANTICS.md): normative replay explanation and classification contract
