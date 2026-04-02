@@ -27,7 +27,7 @@ fn test_triangle_freeze_tick_keeps_z_constant() {
     // Warm-up tick: clears state.tri.init (first tick returns 0 and sets init=true,
     // establishing state.tri.prev_phase_u32 as the baseline for loop phase driving).
     let warmup_phase = phase_from_u32(0u32);
-    dpw4::TriangleDPW4::tick(&mut state, warmup_phase, &gain);
+    let mut previous_output = dpw4::TriangleDPW4::tick(&mut state, warmup_phase, &gain);
 
     // After warm-up: never assign state.tri.prev_phase_u32.
     // Each iteration reads it to derive the next phase_u32, then passes that phase
@@ -45,7 +45,7 @@ fn test_triangle_freeze_tick_keeps_z_constant() {
         // Snapshot accumulator before freeze tick.
         let z_before: i128 = if is_freeze { state.tri.z } else { 0 };
 
-        dpw4::TriangleDPW4::tick(&mut state, phase, &gain);
+        let output = dpw4::TriangleDPW4::tick(&mut state, phase, &gain);
 
         // Primary invariant: freeze tick must not change z.
         if is_freeze {
@@ -54,6 +54,13 @@ fn test_triangle_freeze_tick_keeps_z_constant() {
                 "freeze tick {}: z must be unchanged (dphi > DISCONTINUITY_THRESHOLD)",
                 i
             );
+            assert_eq!(
+                output, previous_output,
+                "freeze tick {}: emitted sample must remain unchanged when z is frozen",
+                i
+            );
         }
+
+        previous_output = output;
     }
 }

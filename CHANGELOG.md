@@ -7,6 +7,23 @@
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-04-02
+
+### Added
+
+- bounded correctness evidence for the released sine path over the explicit 4097-point phase domain `phase_i = i * 2π / 4096`, with retained `1.4.0` evidence for the observed max normalized residual
+- explicit `1.4.0` verification-scope publication covering Tier-1 proof coverage, heavy-proof disposition, and release-facing limits/non-goals
+
+### Changed
+
+- strengthened the triangle freeze composition claim from a local accumulator fact to an active-path invariant that preserves the emitted triangle sample when the discontinuity guard freezes `dphi`
+- promoted `docs/verification/releases/1.4.0/` to the active retained release bundle target
+
+### Notes
+
+- Verification-depth release only; no new capability surface
+- No change to CLI behavior, artifact format, release-surface boundaries, or determinism policy
+
 ## [1.3.1] - 2026-04-02
 
 ### Fixed

@@ -498,3 +498,37 @@ fn proof_triangle_freeze_invariant() {
     kani::assert(delta_i128 == 0, "delta_i128 is zero when frozen");
     kani::assert(z_next == z_prev, "z unchanged when frozen");
 }
+
+/// Δ-06 / Tier-1: Control-surface egress identity.
+///
+/// Assumes the guard has already set dphi = 0 and proves the released
+/// triangle egress sample is unchanged for this tick under the default
+/// retained release gain routing because z_next == z_prev.
+#[cfg(kani)]
+#[kani::proof]
+fn proof_triangle_freeze_egress_invariant() {
+    let raw_a: i128 = kani::any();
+    let raw_b: i128 = kani::any();
+    let z_prev: i128 = kani::any();
+    let dphi_after_guard: u32 = 0;
+    let m_q63: u64 = 1u64 << 63;
+    let exp: i32 = 0;
+
+    let wide_a = i256::I256::from_i128(raw_a);
+    let wide_b = i256::I256::from_i128(raw_b);
+    let raw_square_diff = wide_a.sub(wide_b);
+    let shifted = raw_square_diff.sar(DPW_TRUNCATION_BITS as u32);
+    let delta_wide = shifted.mul_u32(dphi_after_guard);
+    let delta_i128 = delta_wide.clamp_to_i128();
+    let z_next = z_prev.saturating_add(delta_i128);
+
+    let out_prev = apply_gain(z_prev, m_q63, exp);
+    let out_next = apply_gain(z_next, m_q63, exp);
+
+    kani::assert(delta_i128 == 0, "delta_i128 is zero when frozen");
+    kani::assert(z_next == z_prev, "z unchanged when frozen");
+    kani::assert(
+        out_next == out_prev,
+        "triangle egress is unchanged when frozen",
+    );
+}

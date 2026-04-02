@@ -32,6 +32,7 @@ tier1|dpw4|proof_spec_clamp_in_range_contract|lib
 tier1|dpw4|proof_spec_clamp_out_of_range_contract|lib
 tier1|dpw4|proof_spec_sar_sanity|lib
 tier1|dpw4|proof_triangle_freeze_invariant|lib
+tier1|dpw4|proof_triangle_freeze_egress_invariant|lib
 tier1|geom-signal|proof_sqrt_no_panic|lib
 tier1|geom-signal|proof_sin_cos_no_panic|lib
 tier1|replay-core|proof_v0_wire_size_constants|lib
