@@ -17,7 +17,8 @@ For release decisions, use:
   [docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md)
 - retained packaged proof bundle for that path: `artifacts/demo_evidence/retained/`
 - retained release records: [docs/verification/releases/](verification/releases/)
-- current retained release record for release `1.2.2`:
+- active workspace/package version: `1.3.0`
+- latest retained release record currently present in-tree:
   [docs/verification/releases/1.2.2/](verification/releases/1.2.2/)
 
 If a descriptive document conflicts with a normative document, the normative

@@ -1,7 +1,7 @@
 # Precision CLI Reference (Normative)
-**Document revision:** 1.2.2  
-**Applies to:** release 1.2.2 (content unchanged)  
-**Surface status:** Normative (release 1.2.2)  
+**Document revision:** 1.3.0  
+**Applies to:** release 1.3.0 (content unchanged)  
+**Surface status:** Normative (release 1.3.0)  
 **Status:** Normative (Tooling Surface Lock)
 
 ## Versioning Terminology
