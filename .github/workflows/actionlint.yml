@@ -38,8 +38,11 @@ jobs:
           curl --fail --location --silent --show-error --output "$checksums" \
             "$base_url/$checksums"
 
-          # Verify the exact release artifact before installing the binary.
-          grep "  $archive$" "$checksums" | sha256sum --check --
+          # Fail closed unless the checksum file has exactly one match for this artifact.
+          match_count="$(grep -c "  $archive$" "$checksums")"
+          test "$match_count" -eq 1
+          grep "  $archive$" "$checksums" > actionlint.sha256
+          sha256sum --check actionlint.sha256
 
           tar -xzf "$archive" actionlint
           install -m 0755 actionlint "$ACTIONLINT_BIN_DIR/actionlint"
