@@ -3,6 +3,9 @@ name: Opt-In WASM
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   dpw4-wasm-nostd:
     runs-on: ubuntu-24.04
