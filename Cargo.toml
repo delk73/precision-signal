@@ -1,6 +1,6 @@
 [workspace]
-# Multi-crate platform workspace. The public v1 release boundary is the
-# deterministic replay infrastructure, not every workspace member.
+# Multi-crate platform workspace. The public release boundary for the
+# 1.x line is the deterministic replay infrastructure, not every workspace member.
 members = [
     "crates/audit-float-boundary",
     "crates/dpw4",

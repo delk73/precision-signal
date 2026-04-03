@@ -32,6 +32,7 @@ Tagged release closeout order is:
 
 ## Runlog Retention
 
-`docs/audits/runlogs/` is an ignored payload directory (`.gitkeep` only).
-Runlogs must be retained through the selected release/archive process outside
-normal git tracking.
+`docs/audits/runlogs/` is primarily an ignored payload directory. The committed
+exceptions are limited non-release samples such as `ci_local_sample.txt`;
+operational runlogs must still be retained through the selected release/archive
+process outside normal git tracking.

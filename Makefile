@@ -152,13 +152,10 @@ help:
 	echo "  make demo-captured-release"
 
 fixture-drift-check:
-	PYTHONPATH=. python3 scripts/generate_demo_v3_fixtures.py --out-dir "$(DEMO_V3_DIR)"
-	PYTHONPATH=. python3 scripts/generate_demo_v4_fixtures.py --out-dir "$(DEMO_V4_DIR)"
-	PYTHONPATH=. python3 scripts/generate_demo_v5_fixtures.py --out-dir "$(DEMO_V5_DIR)"
-	git diff --exit-code "$(DEMO_V3_DIR)" "$(DEMO_V4_DIR)" "$(DEMO_V5_DIR)"
+	cargo run --quiet -p xtask -- workflow fixture-drift-check
 
 demo-evidence-package:
-	PYTHONPATH=. python3 scripts/package_demo_evidence.py
+	cargo run --quiet -p xtask -- workflow demo-evidence-package
 
 shell-check:
 	test -x "$(SHELL)"
@@ -892,27 +889,19 @@ check-workspace:
 	cargo check --workspace --locked
 
 doc-link-check:
-	python3 scripts/check_doc_links.py
+	cargo run --quiet -p xtask -- workflow doc-link-check
 
 test:
 	cargo test --workspace --locked
 
 parser-tests:
-	PYTHONPATH=. python3 scripts/test_artifact_parser_adversarial.py
-	PYTHONPATH=. python3 scripts/test_artifact_parser_valid_v1.py
-	PYTHONPATH=. python3 scripts/test_artifact_parser_mutation_corpus.py
+	cargo run --quiet -p xtask -- workflow parser-tests
 
 replay-tool-tests:
-	PYTHONPATH=. python3 scripts/test_artifact_tool_verify.py
-	PYTHONPATH=. python3 scripts/test_artifact_tool_hash.py
-	PYTHONPATH=. python3 scripts/test_doc_link_check.py
-	PYTHONPATH=. python3 scripts/test_artifact_diff.py
-	PYTHONPATH=. python3 scripts/test_demo_v3_fixtures.py
-	PYTHONPATH=. python3 tests/test_demo_v4_region_attribution.py
-	PYTHONPATH=. python3 tests/test_demo_v5_evolution.py
-	PYTHONPATH=. python3 scripts/test_compare_artifact.py
+	cargo run --quiet -p xtask -- workflow replay-tool-tests
 
-replay-tests: parser-tests replay-tool-tests
+replay-tests:
+	cargo run --quiet -p xtask -- workflow replay-tests
 
 demo-divergence:
 	@test -x "$(SHELL)"
@@ -940,7 +929,8 @@ gate:
 gate-full:
 	cargo run --locked --release -p dpw4 --features cli --bin precision -- validate --mode full
 
-ci-local: doc-link-check fw test replay-tests gate fixture-drift-check
+ci-local:
+	cargo run --quiet -p xtask -- workflow ci-local
 
 clean:
 	cargo clean -p $(FW_PKG) -p dpw4
