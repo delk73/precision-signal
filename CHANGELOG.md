@@ -7,6 +7,15 @@
 
 ## [Unreleased]
 
+### Maintenance
+
+- clarified workflow authority between `make gate` and `make ci-local` without changing release acceptance semantics
+- modularized large entrypoints to reduce maintenance surface
+- consolidated stable developer workflow orchestration under `xtask`
+- clarified audit runlog handling for limited non-release samples
+
+- no behavior or artifact changes
+
 ## [1.4.0] - 2026-04-02
 
 ### Added
