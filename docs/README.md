@@ -14,6 +14,7 @@ for replay-tooling boundaries. Use
 the canonical packaged proof route covering the completed Phase 1 through Phase
 5 replay pipeline.
 Experimental notes live under [docs/wip/README.md](wip/README.md) and are non-normative.
+This index is maintained as a navigation aid and does not define release or verification requirements.
 
 Normative behavior is defined outside this index:
 
