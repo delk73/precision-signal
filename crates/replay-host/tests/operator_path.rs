@@ -241,8 +241,7 @@ fn operator_path_import_is_byte_deterministic_for_self_contained_interval_csv() 
     assert_eq!(frames.len(), 10_000, "import frame count must stay fixed");
     for (idx, expected_interval) in expected_intervals.iter().enumerate() {
         assert_eq!(
-            frames[idx].input_sample,
-            *expected_interval,
+            frames[idx].input_sample, *expected_interval,
             "frame {idx} must carry csv interval_us directly"
         );
     }
@@ -267,7 +266,11 @@ fn operator_path_reports_no_divergence_for_self_contained_phase3_baseline_import
     let first_import = run_import(&csv_path, &first_out);
     let second_import = run_import(&csv_path, &second_out);
     assert_eq!(first_import.0, 0, "first import failed: {}", first_import.2);
-    assert_eq!(second_import.0, 0, "second import failed: {}", second_import.2);
+    assert_eq!(
+        second_import.0, 0,
+        "second import failed: {}",
+        second_import.2
+    );
 
     let (code, stdout, stderr) = run_diff_paths(first_out, second_out);
     assert_eq!(code, 0, "stderr: {stderr}");
@@ -284,19 +287,31 @@ fn operator_path_reports_stable_first_divergence_for_self_contained_controlled_p
     let perturbed_csv = temp_dir.join("perturbed.csv");
     let baseline = temp_dir.join("baseline.rpl");
     let perturbed = temp_dir.join("perturbed.rpl");
-    fs::write(&baseline_csv, canonical_capture_csv()).expect("baseline csv fixture must be writable");
+    fs::write(&baseline_csv, canonical_capture_csv())
+        .expect("baseline csv fixture must be writable");
     fs::write(&perturbed_csv, controlled_perturbation_capture_csv())
         .expect("perturbed csv fixture must be writable");
 
     let baseline_import = run_import(&baseline_csv, &baseline);
     let perturbed_import = run_import(&perturbed_csv, &perturbed);
-    assert_eq!(baseline_import.0, 0, "baseline import failed: {}", baseline_import.2);
-    assert_eq!(perturbed_import.0, 0, "perturbed import failed: {}", perturbed_import.2);
+    assert_eq!(
+        baseline_import.0, 0,
+        "baseline import failed: {}",
+        baseline_import.2
+    );
+    assert_eq!(
+        perturbed_import.0, 0,
+        "perturbed import failed: {}",
+        perturbed_import.2
+    );
 
     let first = run_diff_paths(baseline.clone(), perturbed.clone());
     let second = run_diff_paths(baseline, perturbed);
 
-    assert_eq!(first, second, "controlled perturbation diff must stay stable");
+    assert_eq!(
+        first, second,
+        "controlled perturbation diff must stay stable"
+    );
     assert_eq!(first.0, 0, "stderr: {}", first.2);
     assert_eq!(first.1, "first divergence at frame 17\n");
     assert!(first.2.is_empty(), "unexpected stderr: {}", first.2);
@@ -324,8 +339,11 @@ fn operator_path_rejects_short_interval_csv() {
     fs::create_dir_all(&temp_dir).expect("temp dir must be creatable");
 
     let csv_path = temp_dir.join("intervals.csv");
-    fs::write(&csv_path, "index,interval_us\n0,305564\n1,304000\n2,304000\n")
-        .expect("csv fixture must be writable");
+    fs::write(
+        &csv_path,
+        "index,interval_us\n0,305564\n1,304000\n2,304000\n",
+    )
+    .expect("csv fixture must be writable");
 
     let (code, stdout, stderr) = run_validate(&csv_path);
     assert_eq!(code, 1, "stdout: {stdout}");

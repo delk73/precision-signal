@@ -7,9 +7,9 @@ const EXIT_FAIL: i32 = 1;
 const EXIT_USAGE: i32 = 2;
 
 pub(crate) fn run(args: Vec<String>, repo_root: &Path) -> i32 {
-    if args.is_empty() {
-        eprintln!("{}", usage());
-        return EXIT_USAGE;
+    if args.is_empty() || matches!(args.first().map(String::as_str), Some("--help" | "-h")) {
+        println!("{}", usage());
+        return EXIT_OK;
     }
 
     match args[0].as_str() {
@@ -139,11 +139,7 @@ fn run_workspace_tests(repo_root: &Path) -> i32 {
 }
 
 fn run_gate(repo_root: &Path) -> i32 {
-    run_command(
-        Command::new("make")
-            .arg("gate")
-            .current_dir(repo_root),
-    )
+    run_command(Command::new("make").arg("gate").current_dir(repo_root))
 }
 
 fn run_python(repo_root: &Path, args: &[&str]) -> i32 {
@@ -164,6 +160,27 @@ fn run_command(command: &mut Command) -> i32 {
 }
 
 fn usage() -> String {
-    "usage: cargo xtask workflow doc-link-check\n       cargo xtask workflow fixture-drift-check\n       cargo xtask workflow parser-tests\n       cargo xtask workflow replay-tool-tests\n       cargo xtask workflow replay-tests\n       cargo xtask workflow demo-evidence-package\n       cargo xtask workflow ci-local"
+    "usage: cargo xtask workflow <command>\n\navailable workflow subcommands:\n  doc-link-check\n  fixture-drift-check\n  parser-tests\n  replay-tool-tests\n  replay-tests\n  demo-evidence-package\n  ci-local"
         .to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{run, EXIT_OK, EXIT_USAGE};
+    use std::path::Path;
+
+    #[test]
+    fn workflow_help_paths_exit_zero() {
+        assert_eq!(run(Vec::new(), Path::new(".")), EXIT_OK);
+        assert_eq!(run(vec!["--help".to_string()], Path::new(".")), EXIT_OK);
+        assert_eq!(run(vec!["-h".to_string()], Path::new(".")), EXIT_OK);
+    }
+
+    #[test]
+    fn workflow_unknown_subcommand_still_exits_usage() {
+        assert_eq!(
+            run(vec!["not-a-command".to_string()], Path::new(".")),
+            EXIT_USAGE
+        );
+    }
 }

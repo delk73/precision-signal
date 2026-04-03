@@ -36,6 +36,11 @@ pub(crate) fn main() {
 }
 
 pub(crate) fn run(args: Vec<String>, repo_root: &Path) -> i32 {
+    if args.is_empty() || matches!(args.first().map(String::as_str), Some("--help" | "-h")) {
+        println!("{}", top_level_usage());
+        return EXIT_OK;
+    }
+
     if args.first().map(String::as_str) == Some("workflow") {
         return workflow::run(args[1..].to_vec(), repo_root);
     }
@@ -62,7 +67,7 @@ pub(crate) fn run(args: Vec<String>, repo_root: &Path) -> i32 {
 
 pub(crate) fn run_internal(args: Vec<String>, repo_root: &Path) -> Result<RunOutcome, UsageError> {
     if args.first().map(String::as_str) != Some("usb") {
-        return Err(UsageError(usage()));
+        return Err(UsageError(top_level_usage()));
     }
     if args.len() < 2 {
         return Err(UsageError(usage()));
@@ -317,6 +322,11 @@ pub(crate) fn run_internal(args: Vec<String>, repo_root: &Path) -> Result<RunOut
     }
 }
 
+fn top_level_usage() -> String {
+    "usage: cargo xtask usb <command> [options]\n       cargo xtask workflow <command>\n\ncommands:\n  usb       operator USB workflows (doctor, flash, debug)\n  workflow  repository verification and replay workflows"
+        .to_string()
+}
+
 #[cfg(test)]
 mod tests {
     use super::{run, run_internal, EXIT_FAIL, EXIT_OK, EXIT_USAGE};
@@ -541,6 +551,14 @@ mod tests {
             &root,
         );
         assert_eq!(fail_code, EXIT_FAIL);
+    }
+
+    #[test]
+    fn top_level_help_paths_exit_zero() {
+        let root = temp_test_dir("top_level_help");
+        assert_eq!(run(Vec::new(), &root), EXIT_OK);
+        assert_eq!(run(vec!["--help".to_string()], &root), EXIT_OK);
+        assert_eq!(run(vec!["-h".to_string()], &root), EXIT_OK);
     }
 
     #[test]
