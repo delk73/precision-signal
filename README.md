@@ -27,6 +27,13 @@ If this fails, see [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md) → Failure Mo
 - Replay tooling boundary: [docs/replay/tooling.md](docs/replay/tooling.md)
 - Exploratory WIP notes: [docs/wip/README.md](docs/wip/README.md)
 
+Workflow authority
+
+- `make gate`: canonical release verification
+- `make ci-local`: aggregate developer pre-merge check
+
+These serve different purposes and are not interchangeable.
+
 Completed Phase 1 through Phase 5 replay evidence is packaged through one proof
 path: `make demo-evidence-package`, with the retained proof bundle under
 `artifacts/demo_evidence/retained/`.
