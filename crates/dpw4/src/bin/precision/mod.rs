@@ -101,8 +101,8 @@ pub(crate) enum ValidateMode {
 #[derive(Parser)]
 struct ValidateArgs {
     /// Output directory for validation run artifacts
-    #[arg(long, default_value = "target/precision_validate")]
-    out: PathBuf,
+    #[arg(long)]
+    out: Option<PathBuf>,
 
     /// Validation mode
     #[arg(long, value_enum, default_value_t = ValidateMode::Quick)]
