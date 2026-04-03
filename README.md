@@ -34,6 +34,13 @@ Workflow authority
 
 These serve different purposes and are not interchangeable.
 
+`make ci-local` is a convenience aggregate for local confidence before merge.
+As implemented, it includes documentation checks, firmware build validation,
+workspace tests, replay tooling tests, canonical `make gate`, and fixture drift
+checks. It does not require attached hardware, so it is CI-safe in a provisioned
+toolchain environment, but it is not release authority and passing it does not
+by itself imply release readiness.
+
 Completed Phase 1 through Phase 5 replay evidence is packaged through one proof
 path: `make demo-evidence-package`, with the retained proof bundle under
 `artifacts/demo_evidence/retained/`.

@@ -15,6 +15,7 @@ docs/verification/*
 !docs/verification/cross_context/**
 docs/audits/runlogs/*
 !docs/audits/runlogs/.gitkeep
+!docs/audits/runlogs/ci_local_sample.txt
 # binary artifacts
 *.bin
 

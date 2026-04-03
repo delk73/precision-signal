@@ -28,6 +28,102 @@ pub(crate) fn stlink_image_compat_plan(
     }
 }
 
+const FW_PKG: &str = "replay-fw-f446";
+const FW_TARGET: &str = "thumbv7em-none-eabihf";
+
+pub(crate) fn run_firmware_build_check(repo_root: &Path) -> i32 {
+    let mut build = Command::new("cargo");
+    build
+        .args(["build", "-p", FW_PKG, "--target", FW_TARGET, "--locked"])
+        .current_dir(repo_root);
+    if let Ok(raw_features) = std::env::var("FW_FEATURES") {
+        let features = raw_features
+            .split_whitespace()
+            .collect::<Vec<_>>()
+            .join(",");
+        if !features.is_empty() {
+            build.args(["--features", &features]);
+        }
+    }
+    if let Err(code) = run_status(&mut build) {
+        return code;
+    }
+
+    let elf_path = repo_root
+        .join("target")
+        .join(FW_TARGET)
+        .join("debug")
+        .join(FW_PKG);
+    if !elf_path.is_file() {
+        eprintln!("missing firmware ELF: {}", elf_path.display());
+        return 1;
+    }
+
+    let sections = match Command::new("readelf")
+        .args(["-S", &elf_path.to_string_lossy()])
+        .output()
+    {
+        Ok(output) if output.status.success() => {
+            String::from_utf8_lossy(&output.stdout).to_string()
+        }
+        Ok(output) => {
+            eprintln!("{}", String::from_utf8_lossy(&output.stderr));
+            return output.status.code().unwrap_or(1);
+        }
+        Err(err) => {
+            eprintln!("{err}");
+            return 1;
+        }
+    };
+    if !sections.contains(".text") {
+        eprintln!("missing .text section in {}", elf_path.display());
+        return 1;
+    }
+    if !(sections.contains(".vector_table") || sections.contains(".isr_vector")) {
+        eprintln!("missing vector table section in {}", elf_path.display());
+        return 1;
+    }
+
+    let header = match Command::new("readelf")
+        .args(["-h", &elf_path.to_string_lossy()])
+        .output()
+    {
+        Ok(output) if output.status.success() => {
+            String::from_utf8_lossy(&output.stdout).to_string()
+        }
+        Ok(output) => {
+            eprintln!("{}", String::from_utf8_lossy(&output.stderr));
+            return output.status.code().unwrap_or(1);
+        }
+        Err(err) => {
+            eprintln!("{err}");
+            return 1;
+        }
+    };
+    let entry = header
+        .lines()
+        .find_map(|line| line.trim().strip_prefix("Entry point address:"))
+        .map(str::trim);
+    match entry {
+        Some("0x0") | None => {
+            eprintln!("invalid entry point for {}", elf_path.display());
+            1
+        }
+        Some(_) => 0,
+    }
+}
+
+fn run_status(command: &mut Command) -> Result<(), i32> {
+    match command.status() {
+        Ok(status) if status.success() => Ok(()),
+        Ok(status) => Err(status.code().unwrap_or(1)),
+        Err(err) => {
+            eprintln!("{err}");
+            Err(1)
+        }
+    }
+}
+
 pub(crate) fn run_flash_execute(
     repo_root: &Path,
     plan: &xtask::usb::FlashPlan,

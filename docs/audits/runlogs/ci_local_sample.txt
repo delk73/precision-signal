@@ -1,0 +1,469 @@
+== ci-local sample runlog ==
+status=real-sample
+authority=non-release
+scope=aggregate developer pre-merge check
+command=make ci-local
+note=Captured sample. Not release evidence.
+
+cargo run --quiet -p xtask -- workflow ci-local
+PASS: documentation link integrity
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
+   Compiling replay-host v1.4.0 (/home/dce/src/precision-signal/crates/replay-host)
+   Compiling xtask v1.4.0 (/home/dce/src/precision-signal/crates/xtask)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.28s
+     Running unittests src/main.rs (target/debug/deps/audit_float_boundary-f2f8934303a19f5f)
+
+running 2 tests
+test tests::detects_expected_false_cases ... ok
+test tests::detects_true_cfg_cases ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/dpw4-032883b420dbe105)
+
+running 32 tests
+test checksum::tests::test_all_zeros ... ok
+test checksum::tests::test_bitflip_changes_checksum ... ok
+test checksum::tests::test_checked_even_length_matches_known_vector ... ok
+test checksum::tests::test_checked_odd_length_returns_err ... ok
+test checksum::tests::test_empty_input ... ok
+test checksum::tests::test_known_vector ... ok
+test checksum::tests::test_word_swap_changes_checksum ... ok
+test tests::test_apply_gain_i128_min_plus_one_unity_gain_no_panic ... ok
+test tests::test_apply_gain_i128_min_unity_exp_max_no_panic ... ok
+test tests::test_apply_gain_i128_min_unity_exp_min_no_panic ... ok
+test tests::test_apply_gain_i128_min_unity_gain_no_panic ... ok
+test tests::test_apply_gain_low_freq_precision ... ok
+test tests::test_dpw4_precision_audit ... ok
+test tests::test_header_offsets_are_canonical ... ok
+test tests::test_header_reserved_gap_is_zeroed ... ok
+test tests::test_normative_no_clamp_no_saturate ... ignored, evidence characterization: 10M ticks, run with --ignored
+test tests::test_pulse_vs_square ... ok
+test tests::test_saturate_i128_to_i32_monotonicity ... ok
+test tests::test_saturate ... ok
+test tests::test_saturating_mul_i128_negative_overflow_saturates_low ... ok
+test tests::test_saturating_shift_i128_left_shift_overflow_policy ... ok
+test tests::test_saturating_shift_i128_right_shift_beyond_width_policy ... ok
+test tests::test_saturate_i128_to_i32_regression_no_i64_wrap ... ok
+test tests::test_oscillator_accumulation ... ok
+test tests::test_saturating_shift_i128_zero_left_shift_overflow_policy ... ok
+test tests::test_saturating_mul_i128_positive_overflow_saturates_high ... ok
+test tests::test_sine_saw_phase_sync ... ok
+test tests::test_sine_shape_applies_headroom_policy ... ok
+test tests::triangle_rail_negative_determinism ... ok
+test tests::triangle_rail_positive_determinism ... ok
+test tests::test_all_shapes_honor_headroom_container_cap ... ok
+test tests::test_triangle_integration_stability ... ok
+
+test result: ok. 31 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/d03_runtime_probe.rs (target/debug/deps/d03_runtime_probe-b5d92be1a2c1a7ff)
+
+running 1 test
+test test_d03_runtime_probe ... ignored, runtime probe: manual benchmark only
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/forensic_audit.rs (target/debug/deps/forensic_audit-ba686963dc95c699)
+
+running 1 test
+test test_golden_lock ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/kani_checksum.rs (target/debug/deps/kani_checksum-7e64549d8fd316c0)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/sine_bounded_correctness.rs (target/debug/deps/sine_bounded_correctness-75f7ef0409bbd78c)
+
+running 1 test
+test test_sine_bounded_correctness_over_phase_sweep ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/sine_scaling_safety.rs (target/debug/deps/sine_scaling_safety-2f4e439b5db1b94e)
+
+running 4 tests
+test test_sine_scaling_integer_part_extraction ... ok
+test test_sine_scaling_bit_extraction_equivalence ... ok
+test test_sine_scaling_safety_sweep ... ok
+test test_sine_scaling_sign_symmetry ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+
+     Running tests/triangle_control_surface.rs (target/debug/deps/triangle_control_surface-c1cb5ba466b0c5d1)
+
+running 1 test
+test test_triangle_freeze_tick_keeps_z_constant ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/triangle_normative_drift.rs (target/debug/deps/triangle_normative_drift-c3a8e45fd27d248b)
+
+running 1 test
+test test_triangle_normative_drift ... ignored, evidence: 10M ticks; run manually with --ignored
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/triangle_phase_pump.rs (target/debug/deps/triangle_phase_pump-51f710a16f3db85d)
+
+running 1 test
+test test_triangle_phase_pump ... ignored, characterization: 1M ticks; run manually with --ignored
+
+test result: ok. 0 passed; 0 failed; 1 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/geom_signal-4e7d44a8bd5e91f7)
+
+running 10 tests
+test algebraic::tests::test_asymptotic_trim ... ok
+test algebraic::tests::test_accuracy_vs_std ... ok
+test algebraic::tests::test_determinism_golden ... ok
+test algebraic::tests::test_quadrants_exhaustive ... ok
+test math::tests::test_pythagorean_identity ... ok
+test algebraic::tests::test_parity_invariant ... ok
+test math::tests::test_sin_cos_determinism ... ok
+test math::tests::test_sqrt_accuracy ... ok
+test math::tests::test_sin_cos_accuracy ... ok
+test tests::test_large_theta_normalized ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/stress_math.rs (target/debug/deps/stress_math-64ac448adb434fc5)
+
+running 3 tests
+test test_extended_phase_continuity ... ok
+test test_periodicity_law_fuzz ... ok
+test test_pythagorean_identity_fuzz ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running unittests src/lib.rs (target/debug/deps/geom_spatial-1d91aef7115bc611)
+
+running 5 tests
+test tests::test_astronomical_stability ... ok
+test tests::test_hard_saturation ... ok
+test tests::test_pythagorean_tuning ... ok
+test tests::test_safe_range ... ok
+test tests::test_shift_transition ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/saturation_boundary.rs (target/debug/deps/saturation_boundary-8a909908e468b053)
+
+running 5 tests
+test max_max_max_saturates ... ok
+test transition_boundary_approximate ... ok
+test diagonal_transition_continuity ... ok
+test saturation_at_max ... ok
+test monotonicity_at_transition ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/replay_cli-4be6d70cd92f9817)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/replay_core-a8f8a778237c4f78)
+
+running 2 tests
+test artifact::tests::encode_header1_places_key_fields_at_v1_offsets ... ok
+test artifact::tests::encoded_sizes_match_versioned_wire_constants ... ok
+
+test result: ok. 2 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/replay_embed-208724dec4a1f64d)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/replay_fw_f446-255d08afbfab50a9)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/host_stub.rs (target/debug/deps/host_stub-20888a5fe15035c8)
+
+running 1 test
+test firmware_digest_constants_match_metadata_inputs ... ok
+
+test result: ok. 1 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/replay_host-1e4a52606caf4fe6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/replay_host-23336e46e6106bc0)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/artifact_parser.rs (target/debug/deps/artifact_parser-baecb9209b1b8c78)
+
+running 15 tests
+test parse_accepts_metadata_only_mutations ... ok
+test parse_accepts_v1_extended_header ... ok
+test parse_accepts_v1_zero_frames_and_empty_schema ... ok
+test parse_rejects_bad_length_v0 ... ok
+test parse_rejects_bad_magic_v0 ... ok
+test parse_rejects_v0_nonzero_reserved_in_generic_path ... ok
+test parse_rejects_v1_dispatch_boundary_with_unsupported_u16_version ... ok
+test parse_rejects_v1_header_len_above_file_len ... ok
+test parse_rejects_v1_header_len_too_small ... ok
+test parse_rejects_v1_invalid_frame_size ... ok
+test parse_rejects_v1_length_mismatch_cases ... ok
+test parse_rejects_v1_nonzero_flags_and_reserved ... ok
+test parse_rejects_v1_schema_hash_mismatch ... ok
+test parse_rejects_v1_schema_out_of_bounds ... ok
+test parse_valid_header_and_frames_v0 ... ok
+
+test result: ok. 15 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/corpus_parity.rs (target/debug/deps/corpus_parity-ba220508955b4d7e)
+
+running 5 tests
+test trailing_bytes_preserve_canonical_prefix_but_do_not_broaden_replay ... ok
+test valid_v1_real_corpus_matches_python_acceptance ... ok
+test mutation_v1_real_path_corpus_matches_python_policy ... ok
+test adversarial_v1_real_path_corpus_matches_python_rejection ... ok
+test v1_replay_support_is_explicit_legacy_frame_replay ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+     Running tests/operator_path.rs (target/debug/deps/operator_path-68b38cf20b09a4bc)
+
+running 9 tests
+test operator_path_rejects_short_interval_csv ... ok
+test operator_path_validates_interval_csv_contract ... ok
+test operator_path_reports_no_divergence_for_identical_real_artifacts ... ok
+test operator_path_reports_known_real_v1_divergence_at_frame_zero ... ok
+test operator_path_import_is_byte_deterministic_for_self_contained_interval_csv ... ok
+test operator_path_output_is_stable_across_repeated_runs ... ok
+test operator_path_imports_interval_csv_into_canonical_artifact ... ok
+test operator_path_reports_no_divergence_for_self_contained_phase3_baseline_imports ... ok
+test operator_path_reports_stable_first_divergence_for_self_contained_controlled_perturbation ... ok
+
+test result: ok. 9 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.02s
+
+     Running tests/replay_diff.rs (target/debug/deps/replay_diff-e2fd7724905cb3ea)
+
+running 5 tests
+test identical_v0_artifacts_have_no_divergence ... ok
+test identical_v1_artifacts_have_no_divergence ... ok
+test malformed_length_is_rejected_by_v0_parser ... ok
+test single_frame_perturbation_reports_its_index_for_v0 ... ok
+test single_frame_perturbation_reports_its_index_for_v1 ... ok
+
+test result: ok. 5 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/xtask-7d85e8aaa754b3d4)
+
+running 10 tests
+test render::tests::json_renderer_is_deterministic_with_schema_version ... ok
+test render::tests::text_renderer_is_deterministic ... ok
+test board::tests::enforces_required_fields ... ok
+test board::tests::rejects_unknown_top_level_key ... ok
+test board::tests::rejects_unknown_table ... ok
+test usb::tests::flash_plan_openocd_is_elf_only ... ok
+test usb::tests::render_command_line_quotes_paths_with_spaces ... ok
+test usb::tests::events_order_preserved_for_flash_plan ... ok
+test usb::tests::flash_plan_stlink_has_objcopy_and_st_flash_with_target_temp_bin ... ok
+test usb::tests::stlink_does_not_touch_gdb_port ... ok
+
+test result: ok. 10 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/xtask-4421128570312da8)
+
+running 20 tests
+test release::tests::board_arg_id_and_path_resolution ... ok
+test release::tests::board_path_style_absolute_inside_repo_passes ... ok
+test release::tests::board_path_style_missing_file_reports_board_file_missing ... ok
+test release::tests::board_path_style_absolute_outside_repo_is_rejected ... ok
+test release::tests::board_path_style_relative_escape_is_rejected ... ok
+test release::tests::board_path_style_symlink_outside_repo_is_rejected ... ok
+test release::tests::exit_code_policy_fail_and_usage ... ok
+test release::tests::board_path_style_repo_root_canonicalize_failure_reports_path_resolve ... ok
+test release::tests::needs_usb_tempdir_true_for_objcopy_semantics_without_markers ... ok
+test release::tests::flash_missing_elf_is_fail_report_exit1 ... ok
+test release::tests::exit_code_policy_warn_or_pass_is_zero ... ok
+test release::tests::needs_usb_tempdir_true_for_stlink_elf_false_for_openocd ... ok
+test release::tests::image_fail_check_ids_are_split ... ok
+test release::tests::repo_root_discovery_works_from_subdir ... ok
+test release::tests::execute_success_check_is_present_on_all_steps_success ... ok
+test release::tests::runlog_contains_stdout_stderr_byte_counts ... ok
+test release::tests::flash_execute_step_check_ids_are_unique_per_step_and_backend_shape ... ok
+test release::tests::execute_fail_message_includes_exit_code_and_instrumentation_check ... ok
+test release::tests::tool_diagnostics_presence_probe_command_is_platform_correct ... ok
+test release::tests::tool_diagnostics_version_probes_are_present_and_ordered ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.01s
+
+   Doc-tests dpw4
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests geom_signal
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests geom_spatial
+
+running 3 tests
+test crates/geom-spatial/src/lib.rs - Vector3::new (line 40) ... ok
+test crates/geom-spatial/src/lib.rs - Vector3::magnitude (line 140) ... ok
+test crates/geom-spatial/src/lib.rs - Vector3::distance (line 159) ... ok
+
+test result: ok. 3 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.10s
+
+   Doc-tests replay_cli
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests replay_core
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests replay_embed
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests replay_host
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+   Doc-tests xtask
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+PASS: magic_exact_rpl0_accepts
+PASS: valid_v0
+PASS: valid_v1_empty_schema
+PASS: valid_v1_nonempty_schema
+PASS: exact_schema_frame_boundary_valid
+PASS: bad_magic
+PASS: truncated_header
+PASS: nonzero_u32_invalid_v1_u16_version
+PASS: v0_nonzero_reserved
+PASS: v1_nonzero_flags
+PASS: v1_nonzero_reserved
+PASS: ambiguous_header_v1_like_but_invalid_header_len
+PASS: header_len_too_small
+PASS: oversized_header_len
+PASS: invalid_frame_size
+PASS: schema_hash_mismatch
+PASS: schema_byte_mutated_without_hash_update
+PASS: corrupted_schema_len
+PASS: empty_schema_with_corrupted_empty_hash
+PASS: schema_len_consumes_frame_region
+PASS: frame_count_mismatch
+PASS: partial_frame_region
+PASS: truncate_one_byte_at_schema_frame_boundary
+PASS: truncated_schema_region
+PASS: trailing_bytes_rejected_strict_mode
+PASS: trailing_bytes_ignored_for_hash_mode
+PASS: adversarial parser suite
+PASS: v1 valid artifact corpus (explicit=3, stratified=4, random=200, total=207)
+PASS: mutation corpus (bases=8, reject_mutations=11, accept_mutations=5, total=128)
+PASS: artifact_tool verify CLI regression suite
+PASS: artifact_tool hash CLI regression suite
+PASS: documentation link integrity regression suite
+PASS: artifact_diff CLI regression suite
+PASS: Demo V3 fixture hashes match expected values
+PASS: Demo V4 region attribution regression suite
+PASS: Demo V5 evolution regression suite
+PASS: compare_artifact CLI regression suite
+make[1]: Entering directory '/home/dce/src/precision-signal'
+cargo run --locked --release -p dpw4 --features cli --bin precision -- validate --mode quick
+    Finished `release` profile [optimized] target(s) in 0.04s
+     Running `target/release/precision validate --mode quick`
+PASS version_consistency: workspace=1.4.0 lock=1.4.0
+PASS toolchain_pin: channel=1.91.1
+PASS header_stream_integrity: header-only stream valid (100 frames)
+WARN non_normative_canary: id=phase_wrap_440 actual=957018c2fdf8bc8c20ddb61d9d7412a8145083cad930356da889a7580e060db6
+PASS determinism_bit_exact:
+    phase_wrap_440.canon.sig
+      Golden:   Unpinned
+      Actual:   957018c2fdf8bc8c20ddb61d9d7412a8145083cad930356da889a7580e060db6
+    pulse_relational_8k.canon.sig
+      Golden:   953d0533d83ba3573e7f7948199f5cd66adc6f5c43fdedf9ceb2ffe45fdb324c
+      Actual:   953d0533d83ba3573e7f7948199f5cd66adc6f5c43fdedf9ceb2ffe45fdb324c
+    saw_20_headroom.canon.sig
+      Golden:   143d4613ab993dbacc5e5f735d4985ee1a188b8b18d1a906dd44ae621086993e
+      Actual:   143d4613ab993dbacc5e5f735d4985ee1a188b8b18d1a906dd44ae621086993e
+    triangle_linearity_1k.canon.sig
+      Golden:   74ef101edcdcbffb20be729ed503eaa04dd47301ec2f3b26f76786879850dbfd
+      Actual:   74ef101edcdcbffb20be729ed503eaa04dd47301ec2f3b26f76786879850dbfd
+    sine_linearity_1k.canon.sig
+      Golden:   00a9577a82ffe1c9b6a05ee9bcd6f93947463bd901ef05d528e2a7704006bfbc
+      Actual:   00a9577a82ffe1c9b6a05ee9bcd6f93947463bd901ef05d528e2a7704006bfbc
+    long_run_0_1hz.canon.sig
+      Golden:   1e116cc76d4c460f5eab421a30f20b42157fe516d53440baca3c7dabdb92d420
+      Actual:   1e116cc76d4c460f5eab421a30f20b42157fe516d53440baca3c7dabdb92d420
+    master_sweep_20_20k.canon.sig
+      Golden:   0ac058b60498cbfb129d4a35b37f2f6c785752fa888c6c4367b0608a4ef825ea
+      Actual:   0ac058b60498cbfb129d4a35b37f2f6c785752fa888c6c4367b0608a4ef825ea
+
+VERIFICATION PASSED
+make[1]: Leaving directory '/home/dce/src/precision-signal'
+PASS: demo-v3 fixtures generated
+base: artifacts/demo_persistent/run_A.rpl
+out_dir: artifacts/demo_v3
+first_divergence_frame: 4096
+rate_growth_frames: 64
+wrote: artifacts/demo_v3/transient_A.rpl
+wrote: artifacts/demo_v3/transient_B.rpl
+wrote: artifacts/demo_v3/offset_A.rpl
+wrote: artifacts/demo_v3/offset_B.rpl
+wrote: artifacts/demo_v3/rate_A.rpl
+wrote: artifacts/demo_v3/rate_B.rpl
+PASS: demo-v4 fixtures generated
+base: artifacts/demo_persistent/run_A.rpl
+out_dir: artifacts/demo_v4
+first_divergence_frame: 4096
+wrote: artifacts/demo_v4/header_schema_A.rpl sha256=b246aa88e5ffdfff32ff32bb39c6aa517601888772e278a285b1b42674430bf3
+wrote: artifacts/demo_v4/header_schema_B.rpl sha256=d9f2e7cd55f77d7ad53c69de7d8248ef1fb81aa3c9c8d226ae4e7cad745f0251
+wrote: artifacts/demo_v4/header_schema_sample_payload_A.rpl sha256=b246aa88e5ffdfff32ff32bb39c6aa517601888772e278a285b1b42674430bf3
+wrote: artifacts/demo_v4/header_schema_sample_payload_B.rpl sha256=70e69d3923ead927b2feb77885650117a525ec6760d1a141ca734dceff8ba839
+wrote: artifacts/demo_v4/timer_delta_A.rpl sha256=b246aa88e5ffdfff32ff32bb39c6aa517601888772e278a285b1b42674430bf3
+wrote: artifacts/demo_v4/timer_delta_B.rpl sha256=ad2041a65ca78fb86ad46db095e613198a11710ad27c08eedcd7b9573555565b
+wrote: artifacts/demo_v4/irq_state_A.rpl sha256=b246aa88e5ffdfff32ff32bb39c6aa517601888772e278a285b1b42674430bf3
+wrote: artifacts/demo_v4/irq_state_B.rpl sha256=2767848e930ce03abb9e242d3558d3b75f8f1d001037808549aa6c47c8fd2ef7
+wrote: artifacts/demo_v4/sample_payload_A.rpl sha256=b246aa88e5ffdfff32ff32bb39c6aa517601888772e278a285b1b42674430bf3
+wrote: artifacts/demo_v4/sample_payload_B.rpl sha256=b0f93d0c2e4a674c30c358f799d0b798a7d4989220477583c53d37f08fa48256
+wrote: artifacts/demo_v4/mixed_A.rpl sha256=b246aa88e5ffdfff32ff32bb39c6aa517601888772e278a285b1b42674430bf3
+wrote: artifacts/demo_v4/mixed_B.rpl sha256=06f4f7063be7215c8b03346313b62a8765b4b5b2c472009f0e54148bf77465d4
+PASS: demo-v5 fixtures generated
+base: artifacts/demo_persistent/run_A.rpl
+out_dir: artifacts/demo_v5
+first_divergence_frame: 4096
+wrote: artifacts/demo_v5/self_healing_A.rpl sha256=b246aa88e5ffdfff32ff32bb39c6aa517601888772e278a285b1b42674430bf3
+wrote: artifacts/demo_v5/self_healing_B.rpl sha256=5957b539722fdd0021b56882c7eb04b9c68ef16484c18b6293cb4ff0d80a5d6d
+wrote: artifacts/demo_v5/bounded_persistent_A.rpl sha256=b246aa88e5ffdfff32ff32bb39c6aa517601888772e278a285b1b42674430bf3
+wrote: artifacts/demo_v5/bounded_persistent_B.rpl sha256=b0f93d0c2e4a674c30c358f799d0b798a7d4989220477583c53d37f08fa48256
+wrote: artifacts/demo_v5/monotonic_growth_A.rpl sha256=b246aa88e5ffdfff32ff32bb39c6aa517601888772e278a285b1b42674430bf3
+wrote: artifacts/demo_v5/monotonic_growth_B.rpl sha256=126bacf334716541ecbc7cbd1f57a7b5ae573d8f9feffe0c3cd47fab9aafdec4
+wrote: artifacts/demo_v5/region_transition_A.rpl sha256=b246aa88e5ffdfff32ff32bb39c6aa517601888772e278a285b1b42674430bf3
+wrote: artifacts/demo_v5/region_transition_B.rpl sha256=5847c400779e7867f71b56b2494097c00c3c7bbbc0d5bcd3bb3141980497f5a8

@@ -5,6 +5,7 @@ use crate::firmware::{
 };
 use crate::replay::usage;
 use crate::util::{discover_repo_root, ensure_empty, take_flag, take_optional_value, take_value};
+use crate::workflow;
 use std::path::{Path, PathBuf};
 use xtask::board::PreferredBackend;
 use xtask::usb::{
@@ -35,6 +36,10 @@ pub(crate) fn main() {
 }
 
 pub(crate) fn run(args: Vec<String>, repo_root: &Path) -> i32 {
+    if args.first().map(String::as_str) == Some("workflow") {
+        return workflow::run(args[1..].to_vec(), repo_root);
+    }
+
     let run = run_internal(args, repo_root);
     match run {
         Ok(outcome) => {
