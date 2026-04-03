@@ -8,8 +8,11 @@ use sha2::{Digest, Sha256};
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader, Read};
 use std::path::{Path, PathBuf};
+use std::process;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 const TOOLCHAIN_PIN: &str = "1.91.1";
+const DEFAULT_VALIDATE_OUT_BASE: &str = "target/precision_validate";
 
 #[derive(Clone, Copy)]
 enum CheckStatus {
@@ -33,7 +36,14 @@ struct CheckResult {
 }
 
 pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
-    let out_dir = args.out;
+    let out_selection = match resolve_out_dir(args.out) {
+        Ok(selection) => selection,
+        Err(msg) => {
+            emit_validate_line(args.json, &format!("FAIL setup: {}", msg));
+            return finalize_validate(args.json, None, Vec::new(), args.keep, true);
+        }
+    };
+    let out_dir = out_selection.path.clone();
     let run1 = out_dir.join("run1");
     let run2 = out_dir.join("run2");
 
@@ -48,7 +58,7 @@ pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
             status: CheckStatus::Fail,
             details: msg,
         });
-        return finalize_validate(args.json, out_dir, checks, args.keep, overall_fail || true);
+        return finalize_validate(args.json, Some(&out_selection), checks, args.keep, true);
     }
 
     let workspace_version = read_workspace_version(Path::new("Cargo.toml"));
@@ -141,7 +151,13 @@ pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
             details: msg,
         });
         overall_fail = true;
-        return finalize_validate(args.json, out_dir, checks, args.keep, overall_fail);
+        return finalize_validate(
+            args.json,
+            Some(&out_selection),
+            checks,
+            args.keep,
+            overall_fail,
+        );
     }
 
     let header_test_path = run_header.join("header_stream_integrity_test.bin");
@@ -234,18 +250,27 @@ pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
     };
     checks.push(determinism_result);
 
-    finalize_validate(args.json, out_dir, checks, args.keep, overall_fail)
+    finalize_validate(
+        args.json,
+        Some(&out_selection),
+        checks,
+        args.keep,
+        overall_fail,
+    )
 }
 
 fn finalize_validate(
     json: bool,
-    out_dir: PathBuf,
+    out_selection: Option<&OutDirSelection>,
     checks: Vec<CheckResult>,
     keep: bool,
     failed: bool,
 ) -> i32 {
     let status = if failed { "failed" } else { "passed" };
     if json {
+        let out_dir = out_selection
+            .map(|selection| selection.path.clone())
+            .unwrap_or_else(|| PathBuf::from(DEFAULT_VALIDATE_OUT_BASE));
         let json = build_validate_json(status, &out_dir, &checks);
         println!("{}", json);
     } else if failed {
@@ -255,21 +280,38 @@ fn finalize_validate(
     }
 
     if !failed && !keep {
-        for run_dir in [
-            out_dir.join("run1"),
-            out_dir.join("run2"),
-            out_dir.join("run_header"),
-        ] {
-            if run_dir.exists() {
-                if let Err(e) = fs::remove_dir_all(&run_dir) {
-                    emit_validate_line(
-                        json,
-                        &format!(
-                            "WARN cleanup: failed to remove {}: {}",
-                            run_dir.display(),
-                            e
-                        ),
-                    );
+        if let Some(selection) = out_selection {
+            if selection.auto_created {
+                if selection.path.exists() {
+                    if let Err(e) = fs::remove_dir_all(&selection.path) {
+                        emit_validate_line(
+                            json,
+                            &format!(
+                                "WARN cleanup: failed to remove {}: {}",
+                                selection.path.display(),
+                                e
+                            ),
+                        );
+                    }
+                }
+            } else {
+                for run_dir in [
+                    selection.path.join("run1"),
+                    selection.path.join("run2"),
+                    selection.path.join("run_header"),
+                ] {
+                    if run_dir.exists() {
+                        if let Err(e) = fs::remove_dir_all(&run_dir) {
+                            emit_validate_line(
+                                json,
+                                &format!(
+                                    "WARN cleanup: failed to remove {}: {}",
+                                    run_dir.display(),
+                                    e
+                                ),
+                            );
+                        }
+                    }
                 }
             }
         }
@@ -280,6 +322,58 @@ fn finalize_validate(
     } else {
         0
     }
+}
+
+struct OutDirSelection {
+    path: PathBuf,
+    auto_created: bool,
+}
+
+fn resolve_out_dir(out: Option<PathBuf>) -> Result<OutDirSelection, String> {
+    match out {
+        Some(path) => Ok(OutDirSelection {
+            path,
+            auto_created: false,
+        }),
+        None => create_default_run_dir(),
+    }
+}
+
+fn create_default_run_dir() -> Result<OutDirSelection, String> {
+    let base = PathBuf::from(DEFAULT_VALIDATE_OUT_BASE);
+    fs::create_dir_all(&base)
+        .map_err(|e| format!("failed to create base out dir {}: {}", base.display(), e))?;
+
+    let pid = process::id();
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_err(|e| format!("system clock before unix epoch: {}", e))?
+        .as_nanos();
+
+    for attempt in 0..1024u32 {
+        let run_dir = base.join(format!("run-{}-{}-{}", nanos, pid, attempt));
+        match fs::create_dir(&run_dir) {
+            Ok(()) => {
+                return Ok(OutDirSelection {
+                    path: run_dir,
+                    auto_created: true,
+                });
+            }
+            Err(err) if err.kind() == std::io::ErrorKind::AlreadyExists => continue,
+            Err(err) => {
+                return Err(format!(
+                    "failed to create run dir {}: {}",
+                    run_dir.display(),
+                    err
+                ));
+            }
+        }
+    }
+
+    Err(format!(
+        "failed to allocate unique run dir under {} after 1024 attempts",
+        base.display()
+    ))
 }
 
 fn emit_validate_line(json: bool, line: &str) {
@@ -703,4 +797,90 @@ fn compiled_features() -> Vec<&'static str> {
         features.push("audit");
     }
     features
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+
+    fn unique_test_path(label: &str) -> PathBuf {
+        let nanos = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system time after epoch")
+            .as_nanos();
+        std::env::temp_dir().join(format!(
+            "precision-validate-{label}-{}-{}",
+            process::id(),
+            nanos
+        ))
+    }
+
+    #[test]
+    fn explicit_out_dir_is_preserved() {
+        let explicit = PathBuf::from("target/custom-validate-output");
+        let resolved = resolve_out_dir(Some(explicit.clone())).expect("resolve explicit out dir");
+        assert_eq!(resolved.path, explicit);
+        assert!(!resolved.auto_created);
+    }
+
+    #[test]
+    fn default_out_dir_allocates_unique_run_directories() {
+        let first = create_default_run_dir().expect("create first run dir");
+        let second = create_default_run_dir().expect("create second run dir");
+
+        assert!(first.auto_created);
+        assert!(second.auto_created);
+        assert_ne!(first.path, second.path);
+        assert_eq!(
+            first.path.parent().expect("default parent"),
+            Path::new(DEFAULT_VALIDATE_OUT_BASE)
+        );
+        assert_eq!(
+            second.path.parent().expect("default parent"),
+            Path::new(DEFAULT_VALIDATE_OUT_BASE)
+        );
+
+        fs::remove_dir_all(&first.path).expect("cleanup first run dir");
+        fs::remove_dir_all(&second.path).expect("cleanup second run dir");
+    }
+
+    #[test]
+    fn auto_cleanup_removes_entire_generated_run_dir() {
+        let out_dir = unique_test_path("auto-cleanup");
+        fs::create_dir_all(out_dir.join("run1")).expect("create auto run directory");
+        let selection = OutDirSelection {
+            path: out_dir.clone(),
+            auto_created: true,
+        };
+
+        assert_eq!(
+            finalize_validate(false, Some(&selection), Vec::new(), false, false),
+            0
+        );
+        assert!(!out_dir.exists());
+    }
+
+    #[test]
+    fn explicit_cleanup_preserves_root_directory() {
+        let out_dir = unique_test_path("explicit-cleanup");
+        for subdir in ["run1", "run2", "run_header"] {
+            fs::create_dir_all(out_dir.join(subdir)).expect("create explicit subdir");
+        }
+        let selection = OutDirSelection {
+            path: out_dir.clone(),
+            auto_created: false,
+        };
+
+        assert_eq!(
+            finalize_validate(false, Some(&selection), Vec::new(), false, false),
+            0
+        );
+        assert!(out_dir.exists());
+        for subdir in ["run1", "run2", "run_header"] {
+            assert!(!out_dir.join(subdir).exists());
+        }
+
+        fs::remove_dir_all(&out_dir).expect("cleanup explicit root");
+    }
 }
