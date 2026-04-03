@@ -42,6 +42,7 @@ that proof bundle.
 - `make gate`
 - `make demo-evidence-package`
 - `make doc-link-check`
+- `make release-bundle-check VERSION=<version>`
 - final claim/evidence sweep: [README.md](README.md), [docs/RELEASE_SURFACE.md](docs/RELEASE_SURFACE.md), [CHANGELOG.md](CHANGELOG.md), [docs/demos/demo_evidence_packaging.md](docs/demos/demo_evidence_packaging.md)
 
 ## License
