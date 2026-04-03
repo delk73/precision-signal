@@ -1,0 +1,52 @@
+name: Workflow Security Scan
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+  push:
+    paths:
+      - ".github/workflows/**"
+
+permissions:
+  contents: read
+
+jobs:
+  actionlint:
+    name: actionlint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        # pinned commit from actions/checkout v4 series
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+
+      - name: Install actionlint
+        env:
+          ACTIONLINT_VERSION: 1.7.8
+          ACTIONLINT_BIN_DIR: ${{ runner.temp }}/bin
+        run: |
+          set -euo pipefail
+          archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          checksums="actionlint_${ACTIONLINT_VERSION}_checksums.txt"
+          base_url="https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}"
+
+          mkdir -p "$ACTIONLINT_BIN_DIR"
+          curl --fail --location --silent --show-error --output "$archive" \
+            "$base_url/$archive"
+          curl --fail --location --silent --show-error --output "$checksums" \
+            "$base_url/$checksums"
+
+          # Fail closed unless the checksum file has exactly one match for this artifact.
+          match_count="$(grep -c "  $archive$" "$checksums")"
+          test "$match_count" -eq 1
+          grep "  $archive$" "$checksums" > actionlint.sha256
+          sha256sum --check actionlint.sha256
+
+          tar -xzf "$archive" actionlint
+          install -m 0755 actionlint "$ACTIONLINT_BIN_DIR/actionlint"
+          echo "$ACTIONLINT_BIN_DIR" >> "$GITHUB_PATH"
+
+      - name: Lint GitHub Actions workflows
+        run: actionlint -color
