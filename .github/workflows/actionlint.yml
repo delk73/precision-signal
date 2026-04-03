@@ -24,11 +24,26 @@ jobs:
 
       - name: Install actionlint
         env:
-          GOBIN: ${{ runner.temp }}/bin
+          ACTIONLINT_VERSION: 1.7.8
+          ACTIONLINT_BIN_DIR: ${{ runner.temp }}/bin
         run: |
-          mkdir -p "$GOBIN"
-          go install github.com/rhysd/actionlint/cmd/actionlint@v1.7.8
-          echo "$GOBIN" >> "$GITHUB_PATH"
+          set -euo pipefail
+          archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          checksums="actionlint_${ACTIONLINT_VERSION}_checksums.txt"
+          base_url="https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}"
+
+          mkdir -p "$ACTIONLINT_BIN_DIR"
+          curl --fail --location --silent --show-error --output "$archive" \
+            "$base_url/$archive"
+          curl --fail --location --silent --show-error --output "$checksums" \
+            "$base_url/$checksums"
+
+          # Verify the exact release artifact before installing the binary.
+          grep "  $archive$" "$checksums" | sha256sum --check --
+
+          tar -xzf "$archive" actionlint
+          install -m 0755 actionlint "$ACTIONLINT_BIN_DIR/actionlint"
+          echo "$ACTIONLINT_BIN_DIR" >> "$GITHUB_PATH"
 
       - name: Lint GitHub Actions workflows
         run: actionlint -color
