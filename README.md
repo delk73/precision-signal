@@ -2,6 +2,52 @@
 
 A deterministic execution validation system that captures runtime artifacts and verifies replay equivalence across contexts.
 
+## Orientation Contract
+
+`precision-signal` is deterministic execution analysis infrastructure for
+capturing runtime artifacts and verifying replay equivalence across pinned
+contexts.
+
+### Stable Surface
+
+| Path / Command | Role |
+| --- | --- |
+| `make gate` | canonical first verification path and canonical release gate |
+| [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md) | release authority and verification contract |
+| [docs/RELEASE_SURFACE.md](docs/RELEASE_SURFACE.md) | stable release-surface classification and routing |
+| [docs/verification/releases/index.md](docs/verification/releases/index.md) | retained release evidence index |
+
+### Experimental / Reference Surface
+
+| Path | Role |
+| --- | --- |
+| [docs/README.md](docs/README.md) | descriptive documentation index, not the release contract |
+| [docs/replay/tooling.md](docs/replay/tooling.md) | deeper replay-tooling boundary and operator-tool routing |
+| [docs/wip/README.md](docs/wip/README.md) | exploratory notes and non-normative work in progress |
+
+### Run This First
+
+```bash
+make gate
+```
+
+This is the canonical first-run verification path. Lower-level tooling commands,
+including direct Python tool invocations, are deeper operator paths and should
+not be mistaken for the top-level entry surface.
+
+### Contribution Contract
+
+- keep pull requests narrow and reviewable
+- back claims with retained evidence
+- do not widen the release surface casually
+- treat workflow and release-path changes as governed changes
+
+### Canonical References
+
+- [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md)
+- [docs/RELEASE_SURFACE.md](docs/RELEASE_SURFACE.md)
+- [docs/verification/releases/index.md](docs/verification/releases/index.md)
+
 ## First 5 Minutes
 
 ```bash
