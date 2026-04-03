@@ -13,7 +13,10 @@ This document is the canonical release contract for `precision-signal`.
 Release readiness for a retained repository release record requires:
 
 - the canonical operator-facing release gate `make gate` to pass
+- the retained evidence-packaging route `make demo-evidence-package` to pass
+- the documentation integrity check `make doc-link-check` to pass
 - the retained release evidence bundle to live under `docs/verification/releases/<version>/`
+- `make release-bundle-check VERSION=<version>` to pass against that retained bundle
 
 For release-surface questions, use this guide as the source of truth for:
 
@@ -255,16 +258,22 @@ as the canonical release gate and should be retained separately when used.
 For retained release evidence, archive the release-ready gate record under
 `docs/verification/releases/<version>/`.
 
-### 6.2 Normative Determinism Hash Set (v1.0 Hardened Baseline)
+### 6.2 Normative Determinism Hash Source of Truth
 
-| Artifact | SHA-256 Fingerprint |
-| --- | --- |
-| `saw_20_headroom.det.csv` | `ec99d4d0407bb48ec442e629e66f08f13547913c0583b31fe1c0e48df067edc1` |
-| `pulse_relational_8k.det.csv` | `a3b8e9f6cfa2e0f9c35819eb2d23247b97c5acbf01703f242849a68f767d70cd` |
-| `triangle_linearity_1k.det.csv` | `9d2cb61f1edc5eb0d2a288f0632db02662ccfd091369eb6819b16270c813c74e` |
-| `sine_linearity_1k.det.csv` | `e30e44002036a3f296b84c4907c7172364457b9ac751f55ddfce311419eed4ab` |
-| `master_sweep_20_20k.det.csv` | `6ad85015a9eeee2d81305013c238bc0e666b40e3bb786d4befa4c9f5d3688b0c` |
-| `long_run_0_1hz.det.csv` | `3f2a364cf0e0697a77b75ff89cb0f55153b41cdd070e4eedafb6868a1017fa12` |
+The normative `.det.csv` baseline hashes are maintained in code at
+`crates/dpw4/src/bin/precision.rs` via `NORMATIVE_DET_HASHES`.
+
+This guide does not duplicate the active hash table. The authoritative review
+path is:
+
+- inspect the current `NORMATIVE_DET_HASHES` definition for the active release
+  source of truth
+- retain the command transcript from `make gate` in
+  `docs/verification/releases/<version>/`
+
+Historical retained transcripts may quote the hashes observed for a specific
+release, but those retained copies are historical evidence, not the active
+normative table.
 
 ### 6.3 Supported Entry Surface
 Use `make gate` for routine operator execution of the quick validation gate.
@@ -289,10 +298,24 @@ decision.
 For a retained repository release record under
 `docs/verification/releases/<version>/`, the required evidence set is:
 
-- `firmware_release_evidence.md`: retained release summary for the release record
-- `sha256_summary.txt`: retained firmware replay hash summary
-- `replay_manifest_v1.txt`: retained firmware replay manifest for the active firmware capture/release path
-- `hash_check.txt`: retained explicit firmware replay hash check
+- Non-firmware retained release bundle:
+  - `README.md`
+  - `index.md`
+  - `cargo_check_dpw4_thumb_locked.txt`
+  - `kani_evidence.txt`
+  - `make_demo_evidence_package.txt`
+  - `make_doc_link_check.txt`
+  - `make_gate.txt`
+  - `make_replay_tests.txt`
+  - `release_reproducibility.txt`
+  - `verify_release_repro.txt`
+- Firmware-including retained release bundle:
+  - `firmware_release_evidence.md`
+  - `sha256_summary.txt`
+  - `hash_check.txt`
+  - `replay_manifest_v1.txt` for the active RPL0 `version = 1` capture path
+  - `replay_manifest_v0.txt` only for historical retained bundles captured
+    before the `v1` manifest transition
 
 For the active RPL0 `version = 1` firmware capture path, the retained
 `replay_manifest_v1.txt` record must preserve the current release-defining
@@ -307,9 +330,9 @@ metadata actually archived by the firmware-release workflow:
   (`requested_runs`, `completed_runs`, `final_status`, `failure_class`,
   `baseline_hash_match`, `timestamp_utc`, `run_dir`)
 
-For `1.2.0`, `release_reproducibility.txt` is supporting-only and is not
-required for release admissibility. If present, it remains supporting evidence
-in the same retained release directory.
+Additional release-specific outputs may be retained alongside either bundle
+class, but they are additive. They do not replace the class-specific required
+files above.
 
 Reviewer sequence for a retained release bundle: inspect the retained evidence
 summary in `docs/verification/releases/<version>/`, then run

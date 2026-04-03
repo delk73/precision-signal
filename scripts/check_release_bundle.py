@@ -13,6 +13,44 @@ RUN_ID_RE = re.compile(r"run_\d{8}T\d{6}Z")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 RUN_DIR_REL_RE = re.compile(r"^artifacts/replay_runs/(run_\d{8}T\d{6}Z)$")
 
+NON_FIRMWARE_REQUIRED_FILES = (
+    "README.md",
+    "index.md",
+    "cargo_check_dpw4_thumb_locked.txt",
+    "kani_evidence.txt",
+    "make_demo_evidence_package.txt",
+    "make_doc_link_check.txt",
+    "make_gate.txt",
+    "make_replay_tests.txt",
+    "release_reproducibility.txt",
+    "verify_release_repro.txt",
+)
+
+FIRMWARE_REQUIRED_FILE_SETS = {
+    "firmware_v1": (
+        "firmware_release_evidence.md",
+        "hash_check.txt",
+        "replay_manifest_v1.txt",
+        "sha256_summary.txt",
+    ),
+    "firmware_v0": (
+        "firmware_release_evidence.md",
+        "hash_check.txt",
+        "replay_manifest_v0.txt",
+        "sha256_summary.txt",
+    ),
+}
+
+FIRMWARE_SENTINEL_FILES = frozenset(
+    {
+        "firmware_release_evidence.md",
+        "hash_check.txt",
+        "replay_manifest_v0.txt",
+        "replay_manifest_v1.txt",
+        "sha256_summary.txt",
+    }
+)
+
 
 def load_text(path: Path) -> str:
     return path.read_text(encoding="utf-8")
@@ -77,6 +115,7 @@ def parse_hash_check(path: Path) -> list[tuple[str, str]]:
 def validate_run_dir(
     run_dir_value: str,
     run_id: str,
+    manifest_name: str,
     repo_root: Path,
     strict_paths: bool,
 ) -> tuple[Path, list[str], list[str]]:
@@ -88,55 +127,75 @@ def validate_run_dir(
         resolved_run_dir = manifest_run_dir.resolve()
         if strict_paths:
             errors.append(
-                f"replay_manifest_v1.txt run_dir must be repo-relative in --strict-paths mode: {run_dir_value}"
+                f"{manifest_name} run_dir must be repo-relative in --strict-paths mode: {run_dir_value}"
             )
             return resolved_run_dir, errors, warnings
         warnings.append(
-            f"replay_manifest_v1.txt run_dir is absolute and non-portable: {run_dir_value}"
+            f"{manifest_name} run_dir is absolute and non-portable: {run_dir_value}"
         )
         if resolved_run_dir.name != run_id:
             errors.append(
-                f"replay_manifest_v1.txt run_dir basename does not match retained run id {run_id}: {run_dir_value}"
+                f"{manifest_name} run_dir basename does not match retained run id {run_id}: {run_dir_value}"
             )
         if not resolved_run_dir.is_dir():
-            errors.append(f"replay_manifest_v1.txt run_dir does not exist: {run_dir_value}")
+            errors.append(f"{manifest_name} run_dir does not exist: {run_dir_value}")
         return resolved_run_dir, errors, warnings
 
     normalized_run_dir = manifest_run_dir.as_posix()
     match = RUN_DIR_REL_RE.fullmatch(normalized_run_dir)
     if match is None:
         errors.append(
-            "replay_manifest_v1.txt run_dir must match artifacts/replay_runs/run_<timestamp>: "
+            f"{manifest_name} run_dir must match artifacts/replay_runs/run_<timestamp>: "
             f"{run_dir_value}"
         )
         return (repo_root / manifest_run_dir).resolve(), errors, warnings
     if match.group(1) != run_id:
         errors.append(
-            f"replay_manifest_v1.txt run_dir does not match retained run id {run_id}: {run_dir_value}"
+            f"{manifest_name} run_dir does not match retained run id {run_id}: {run_dir_value}"
         )
     resolved_run_dir = (repo_root / manifest_run_dir).resolve()
     if not resolved_run_dir.is_dir():
-        errors.append(f"replay_manifest_v1.txt run_dir does not exist: {run_dir_value}")
+        errors.append(f"{manifest_name} run_dir does not exist: {run_dir_value}")
     return resolved_run_dir, errors, warnings
 
 
 def validate_bundle(bundle_dir: Path, repo_root: Path, strict_paths: bool) -> tuple[list[str], list[str]]:
-    required = {
-        "firmware_release_evidence.md": bundle_dir / "firmware_release_evidence.md",
-        "replay_manifest_v1.txt": bundle_dir / "replay_manifest_v1.txt",
-        "sha256_summary.txt": bundle_dir / "sha256_summary.txt",
-        "hash_check.txt": bundle_dir / "hash_check.txt",
-    }
+    if not bundle_dir.is_dir():
+        return [f"retained release bundle directory does not exist: {display_path(bundle_dir, repo_root)}"], []
+
+    file_names = {path.name for path in bundle_dir.iterdir() if path.is_file()}
     errors: list[str] = []
     warnings: list[str] = []
+
+    if "replay_manifest_v0.txt" in file_names and "replay_manifest_v1.txt" in file_names:
+        return ["retained release bundle cannot contain both replay_manifest_v0.txt and replay_manifest_v1.txt"], []
+
+    bundle_class = "non_firmware"
+    required_files = NON_FIRMWARE_REQUIRED_FILES
+    manifest_name = "replay_manifest_v1.txt"
+    if file_names & FIRMWARE_SENTINEL_FILES:
+        if "replay_manifest_v0.txt" in file_names:
+            bundle_class = "firmware_v0"
+            manifest_name = "replay_manifest_v0.txt"
+        else:
+            bundle_class = "firmware_v1"
+            manifest_name = "replay_manifest_v1.txt"
+        required_files = FIRMWARE_REQUIRED_FILE_SETS[bundle_class]
+
+    required = {name: bundle_dir / name for name in required_files}
     for name, path in required.items():
+        if name == "index.md" and bundle_class != "non_firmware":
+            continue
         if not path.is_file():
             errors.append(f"missing required retained file: {name}")
     if errors:
         return errors, warnings
 
+    if bundle_class == "non_firmware":
+        return errors, warnings
+
     evidence_text = load_text(required["firmware_release_evidence.md"])
-    manifest_text = load_text(required["replay_manifest_v1.txt"])
+    manifest_text = load_text(required[manifest_name])
     hash_check_text = load_text(required["hash_check.txt"])
 
     run_ids = set(RUN_ID_RE.findall(evidence_text))
@@ -147,10 +206,10 @@ def validate_bundle(bundle_dir: Path, repo_root: Path, strict_paths: bool) -> tu
         return errors, warnings
     run_id = next(iter(run_ids))
 
-    manifest = parse_manifest(required["replay_manifest_v1.txt"])
+    manifest = parse_manifest(required[manifest_name])
     for key in ("baseline_path", "baseline_sha256", "completed_runs", "timestamp_utc", "run_dir"):
         if key not in manifest:
-            errors.append(f"replay_manifest_v1.txt missing required key: {key}")
+            errors.append(f"{manifest_name} missing required key: {key}")
     if errors:
         return errors, warnings
 
@@ -163,6 +222,7 @@ def validate_bundle(bundle_dir: Path, repo_root: Path, strict_paths: bool) -> tu
     run_dir, run_dir_errors, run_dir_warnings = validate_run_dir(
         run_dir_value,
         run_id,
+        manifest_name,
         repo_root,
         strict_paths,
     )
@@ -170,13 +230,13 @@ def validate_bundle(bundle_dir: Path, repo_root: Path, strict_paths: bool) -> tu
     warnings.extend(run_dir_warnings)
 
     if not baseline_path.is_file():
-        errors.append(f"replay_manifest_v1.txt baseline_path does not exist: {expected_baseline_path}")
+        errors.append(f"{manifest_name} baseline_path does not exist: {expected_baseline_path}")
 
     manifest_baseline_sha = manifest["baseline_sha256"]
     if baseline_sha != manifest_baseline_sha:
-        errors.append("baseline sha mismatch between sha256_summary.txt and replay_manifest_v1.txt")
+        errors.append(f"baseline sha mismatch between sha256_summary.txt and {manifest_name}")
     if hash_map.get(expected_baseline_path) != manifest_baseline_sha:
-        errors.append("baseline sha mismatch between hash_check.txt and replay_manifest_v1.txt")
+        errors.append(f"baseline sha mismatch between hash_check.txt and {manifest_name}")
     if hash_map.get("artifacts/run.bin") != manifest_baseline_sha:
         errors.append("artifacts/run.bin hash does not match retained baseline sha")
 
@@ -186,7 +246,7 @@ def validate_bundle(bundle_dir: Path, repo_root: Path, strict_paths: bool) -> tu
 
     run_entries = [(sha, rel_path) for sha, rel_path in hash_entries if rel_path.startswith("artifacts/replay_runs/")]
     if len(run_entries) != completed_runs:
-        errors.append("hash_check.txt run count does not match replay_manifest_v1.txt completed_runs")
+        errors.append(f"hash_check.txt run count does not match {manifest_name} completed_runs")
 
     expected_run_paths = [f"artifacts/replay_runs/{run_id}/run_{idx:02d}.bin" for idx in range(1, completed_runs + 1)]
     actual_run_paths = [rel_path for _, rel_path in run_entries]
@@ -203,7 +263,7 @@ def validate_bundle(bundle_dir: Path, repo_root: Path, strict_paths: bool) -> tu
             continue
         if repo_path.parent != run_dir:
             errors.append(
-                f"referenced run artifact is not located under replay_manifest_v1.txt run_dir {run_dir_value}: {expected_path}"
+                f"referenced run artifact is not located under {manifest_name} run_dir {run_dir_value}: {expected_path}"
             )
         expected_name = repo_path.name
         if expected_name not in summary_map:
@@ -221,7 +281,7 @@ def validate_bundle(bundle_dir: Path, repo_root: Path, strict_paths: bool) -> tu
         errors.append("firmware_release_evidence.md RUN_ID does not match retained run id")
     evidence_timestamp = re.search(r"^TIMESTAMP_UTC=(.+)$", evidence_text, re.MULTILINE)
     if evidence_timestamp and evidence_timestamp.group(1).strip() != manifest["timestamp_utc"]:
-        errors.append("firmware_release_evidence.md TIMESTAMP_UTC does not match replay_manifest_v1.txt")
+        errors.append(f"firmware_release_evidence.md TIMESTAMP_UTC does not match {manifest_name}")
     evidence_run_dir = re.search(r"^RUN_DIR=(.+)$", evidence_text, re.MULTILINE)
     if evidence_run_dir:
         evidence_run_dir_value = evidence_run_dir.group(1).strip()
