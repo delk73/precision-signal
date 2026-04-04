@@ -1,5 +1,5 @@
 # precision-signal: Canonical Verification Protocol
-**Version: 1.4.0 (Active Release Baseline)**
+**Version: 1.5.0 (Active Release Baseline)**
 **Status: Frozen Definition**
 
 ## Purpose
@@ -24,9 +24,9 @@ For release-surface questions, use this guide as the source of truth for:
 - what command is canonical
 - where retained release evidence lives
 
-For release `1.4.0`, reviewers should traverse this path: `make gate` for the
+For release `1.5.0`, reviewers should traverse this path: `make gate` for the
 canonical gate, [docs/replay/tooling.md](docs/replay/tooling.md) for released
-replay-tooling boundaries, and `docs/verification/releases/1.4.0/` for the
+replay-tooling boundaries, and `docs/verification/releases/1.5.0/` for the
 retained release evidence bundle. Historical retained evidence for `1.3.1`
 and hardware-backed `1.2.2` remains explicit under
 `docs/verification/releases/`.
@@ -129,7 +129,7 @@ KEEP_LOGS=1 bash verify_kani.sh
   for Tier-1, with additional manifest-defined Tier-2 harnesses when
   `RUN_HEAVY=1`.
 - **Status**: Each per-harness log must contain `VERIFICATION:- SUCCESSFUL` and must not contain `** N of M failed` where `N > 0`.
-- **Implication**: Provides panic-safety and invariant evidence for the kernels covered by these harnesses and their assumptions. The active release-scoped proof boundary and exclusions must be read from `docs/verification/releases/1.4.0/VERIFICATION_SCOPE.md`.
+- **Implication**: Provides panic-safety and invariant evidence for the kernels covered by these harnesses and their assumptions. The active release-scoped proof boundary and exclusions must be read from `docs/verification/releases/1.5.0/`.
 
 ### 3.4 Harness-to-Crate Mapping
 | Harness | Crate | Tier |
@@ -175,7 +175,7 @@ KEEP_LOGS=1 bash verify_kani.sh
 - **"dereference failure ... Status: SUCCESS" lines**: These indicate Kani proved the failing path unreachable under harness constraints; they are successful checks, not proof failures.
 
 ### 3.6 Release-Scoped Correctness and Limits
-- The `1.4.0` release adds one explicit bounded correctness claim for the released sine path over the finite domain documented in `docs/verification/releases/1.4.0/VERIFICATION_SCOPE.md`.
+- The active release (1.5.0) retains one explicit bounded correctness claim for the released sine path over the finite domain documented in `docs/verification/releases/1.5.0/`.
 - That claim is empirical, not global. It is retained as release evidence and does not upgrade the repository claim to full waveform equivalence outside the stated domain.
 - Heavy Tier-2 proofs remain optional unless the active release bundle explicitly retains a heavy proof run. If omitted, the retained release bundle must state the exclusion and the remaining release-claim boundary explicitly.
 
