@@ -1,5 +1,11 @@
 # Repository Health Audit — 1.5.0 baseline
 
+> Historical audit snapshot only. This document is reference material, not
+> release authority. It may describe gaps later closed by subsequent
+> documentation cleanups. Use `VERIFICATION_GUIDE.md`,
+> `docs/RELEASE_SURFACE.md`, and `docs/verification/releases/` for current
+> release truth.
+
 **Audit date:** 2026-04-04
 **Auditor:** automated agent (GitHub Copilot / Claude Sonnet 4.6)
 **Workspace version:** 1.5.0

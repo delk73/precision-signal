@@ -496,25 +496,3 @@ execution path.
 
 ---
 **Conclusion**: This protocol provides independent, reproducible verification evidence for assessing a `precision-signal` implementation under the pinned environment and repository-defined gates. For technical support or certification audits, consult the Normative Governance section of this guide.
-
-
-
-
-
-
-
-  --signal-model phase8 \
-  --artifacts-dir artifacts/phase_d
-
-# 4 verify each captured artifact semantically
-for f in artifacts/phase_d/run_*.bin; do
-  python3 scripts/artifact_tool.py verify "$f" --signal-model phase8 || break
-done
-
-# 5 compare each run to canonical baseline
-for f in artifacts/phase_d/run_*.bin; do
-  python3 scripts/artifact_tool.py compare artifacts/baseline.bin "$f" || break
-done
-
-# 6 confirm identical hashes
-sha256sum artifacts/baseline.bin artifacts/phase_d/run_*.bin
