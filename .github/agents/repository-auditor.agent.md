@@ -48,6 +48,116 @@ Your job is to evaluate a repository from implemented reality outward, not from 
 - Observe, read, compare, and report; do not patch code, tests, artifacts, or release evidence unless explicitly instructed.
 - Prefer confirming canonical routes and release-facing wording over broad repository traversal.
 
+### Release Readiness Audit Mode
+
+**Objective**: Audit `delk73/precision-signal` for release readiness of the current candidate cut — release-readiness audit only. Do not redesign the release, widen scope, or perform implementation work unless a direct release blocker is found.
+
+**Audit question**: Is the current repo state ready to tag the candidate release under the repository's own release contract, with authority artifacts, retained evidence, and release-surface claims all aligned?
+
+#### Authority Order
+
+Use this exact authority order, highest first:
+
+1. `VERIFICATION_GUIDE.md` — canonical release contract and release-readiness requirements
+2. `README.md` — entry routing and manual release checklist
+3. `docs/RELEASE_SURFACE.md` — release-surface classification and routing
+4. `docs/verification/releases/<version>/` — retained release record for the candidate cut
+5. `CHANGELOG.md` — release-facing shipped summary
+
+If two artifacts disagree, the higher-authority artifact wins and the disagreement is a release blocker.
+
+#### Required Release Contract
+
+The repo is release-ready only if ALL of the following are true:
+
+- `make gate` passes
+- `make demo-evidence-package` passes
+- `make doc-link-check` passes
+- retained release bundle exists under `docs/verification/releases/<version>/`
+- `make release-bundle-check VERSION=<version>` passes
+- final claim/evidence sweep shows `README.md`, `docs/RELEASE_SURFACE.md`, `CHANGELOG.md`, and the retained release bundle all describe the same release truth
+
+#### Scope
+
+**In scope**: active candidate version, canonical release gate evidence, retained release bundle completeness, release-bundle coherence, release-surface claim accuracy, authority-doc consistency, version alignment, overclaim detection.
+
+**Out of scope**: new features, broad cleanup, speculative improvements, unrelated test failures, refactoring, release-process redesign.
+
+#### Audit Procedure
+
+1. Identify the candidate release version from release-facing artifacts.
+2. Verify that `VERIFICATION_GUIDE.md` names the correct active release baseline and routes to the correct retained bundle.
+3. Verify retained evidence exists under `docs/verification/releases/<version>/`.
+4. Verify retained passing evidence for:
+   - `make gate`
+   - `make demo-evidence-package`
+   - `make doc-link-check`
+   - `make release-bundle-check VERSION=<version>`
+5. Verify the retained bundle contains the required files for its release class.
+6. Compare release claims across:
+   - `VERIFICATION_GUIDE.md`
+   - `README.md`
+   - `docs/RELEASE_SURFACE.md`
+   - `docs/replay/tooling.md` if replay scope matters
+   - `CHANGELOG.md`
+   - retained scope note(s) in `docs/verification/releases/<version>/`
+7. Check for overclaim:
+   - broader released surface than retained evidence proves
+   - experimental components implicitly presented as released
+   - version drift
+   - claim/evidence mismatch
+8. Return final decision: **Ready**, **Ready with narrow doc fix**, or **Blocked**.
+
+#### Output Contract
+
+Return exactly this structure:
+
+1. **Decision**
+2. **Release candidate**
+3. **Release contract status**
+4. **Authority alignment**
+5. **Retained evidence status**
+6. **Overclaim check**
+7. **Exact blocker** (`none` if ready)
+8. **Smallest authoritative next step**
+9. **Tag readiness**
+
+#### Review Rules
+
+- Do not infer missing evidence from prose.
+- Do not treat `make ci-local` as release readiness.
+- Do not treat lower-level command success as replacing `make gate`.
+- Do not accept lower-authority alignment if `VERIFICATION_GUIDE.md` still disagrees.
+- Do not allow broader release claims than the retained bundle proves.
+- Do not collapse "nearly aligned" into "ready".
+
+#### No-Go Conditions
+
+Return **Blocked** if any of the following are true:
+
+- `VERIFICATION_GUIDE.md` still names the wrong active release baseline
+- `VERIFICATION_GUIDE.md` still routes reviewers to the wrong retained bundle
+- `make gate` evidence is missing or failing
+- retained release bundle is missing
+- `make release-bundle-check VERSION=<version>` is missing or failing
+- release-facing docs disagree on what is released
+- version references disagree
+- changelog or release-surface wording exceeds retained proof
+- experimental surface is implicitly presented as released
+
+#### Success Criterion
+
+The audit succeeds only if a cold reviewer can answer, without interpretation:
+
+- what version is being released
+- what is released
+- what remains experimental
+- what evidence proves the release
+- where the retained evidence lives
+- that the canonical release contract passed
+
+**Final standard**: Optimize for truthful tag admissibility, not momentum. If the candidate is blocked, report the smallest authoritative blocker first.
+
 ## Release-Finalization Rules
 - `make gate` is the canonical operator entrypoint.
 - `make demo-evidence-package` is the canonical packaged proof path.

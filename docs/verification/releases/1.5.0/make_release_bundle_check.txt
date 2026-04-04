@@ -1,0 +1,1 @@
+PASS: retained release bundle coherence: docs/verification/releases/1.5.0

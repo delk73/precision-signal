@@ -1,0 +1,4 @@
+usage: target/debug/replay-host diff <artifact-a.rpl> <artifact-b.rpl>
+       target/debug/replay-host validate-interval-csv <intervals.csv>
+       target/debug/replay-host import-interval-csv <intervals.csv> <artifact.rpl>
+missing second artifact path

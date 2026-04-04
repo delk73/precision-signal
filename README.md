@@ -97,6 +97,11 @@ Operator-facing released tooling remains the Python replay toolchain plus the
 including `replay-host` and the STM32 replay firmware path, are not promoted by
 that proof bundle.
 
+Release `1.5.0` also classifies one bounded Rust replay slice as released:
+`replay-host diff` for the retained `artifacts/rpl0/` proof corpus only, with
+scope and retained transcripts under
+[docs/verification/releases/1.5.0/](docs/verification/releases/1.5.0/).
+
 ## Manual Release Checklist
 
 - `make gate`
