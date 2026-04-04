@@ -17,9 +17,9 @@ For release decisions, use:
   [docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md)
 - retained packaged proof bundle for that path: `artifacts/demo_evidence/retained/`
 - retained release records: [docs/verification/releases/](verification/releases/)
-- active workspace/package version: `1.4.0`
+- active workspace/package version: `1.5.0`
 - latest retained release record currently present in-tree:
-  [docs/verification/releases/1.4.0/](verification/releases/1.4.0/)
+  [docs/verification/releases/1.5.0/](verification/releases/1.5.0/)
 
 If a descriptive document conflicts with a normative document, the normative
 document wins.
@@ -34,6 +34,7 @@ Release
 - `precision validate` (canonical validation gate)
 - `artifact_tool.py` (artifact verification / hashing / inspection)
 - `artifact_diff.py` (deterministic divergence analysis)
+- `replay-host diff` (bounded Rust replay diff for the retained `artifacts/rpl0/` proof corpus only; exact observed command behavior and scope note retained under [docs/verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md](verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md))
 - `precision generate` (operator-path evidence: [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md))
 - `precision artifacts` (operator-path evidence: [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md))
 - `precision inspect` (operator-path evidence: [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md))
@@ -46,6 +47,9 @@ What is proven for the completed Phase 1 through Phase 5 replay pipeline:
   retained replay evidence bundle byte-for-byte from committed inputs
 - released Python tooling proves artifact verification, hashing, inspection, and
   deterministic divergence analysis on the packaged fixtures
+- released Rust replay is limited to the exact `replay-host diff` behavior
+  mechanically retained for the `artifacts/rpl0/` proof corpus in the `1.5.0`
+  release bundle
 - the packaged proof bundle demonstrates the completed replay evidence ladder up
   through captured-evidence packaging without changing the release contract
 
@@ -54,7 +58,9 @@ Experimental
 not part of the current release surface
 
 - `replay-fw-f446` (active STM32 self-stimulus interval CSV contract is explicit in [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](replay/INTERVAL_CAPTURE_CONTRACT_v1.md), but the current path is not promoted as released operator tooling)
-- `replay-host` (experimental Rust replay engine: RPL0 format version 0 replay, RPL0 `version = 1` container parsing, and legacy 16-byte `EventFrame0` replay semantics)
+- `replay-host` commands other than `diff`
+- broader `replay-host` capability outside the exact `artifacts/rpl0/` proof corpus and accepted artifact class retained under [docs/verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md](verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md)
+- schema-aware Rust replay semantics
 
 ## Release Routing
 
@@ -65,7 +71,7 @@ not part of the current release surface
 - Canonical retained proof bundle for that route: `artifacts/demo_evidence/retained/`
 - Canonical retained release-evidence location for release records:
   [docs/verification/releases/](verification/releases/)
-- Retained verification scope for this release surface includes the `1.4.0`
-  release-checklist outputs and verification-scope statement under [docs/verification/releases/1.4.0/](verification/releases/1.4.0/). Historical `1.3.1` and hardware-backed `1.2.2` retained evidence remains explicit under [docs/verification/releases/](verification/releases/).
+- Retained verification scope for this release surface includes the `1.5.0`
+  release-checklist outputs and the bounded Rust replay scope note under [docs/verification/releases/1.5.0/](verification/releases/1.5.0/). Historical `1.4.0`, `1.3.1`, and hardware-backed `1.2.2` retained evidence remains explicit under [docs/verification/releases/](verification/releases/).
 - This document classifies surfaced tools and routes proof bundles; it does not
   define release admissibility

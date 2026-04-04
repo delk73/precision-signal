@@ -4,10 +4,11 @@ This directory is the GitHub Pages route for retained release-evidence bundles.
 
 Active retained release evidence:
 
-- [Release 1.4.0](1.4.0/): verification-depth release bundle
+- [Release 1.5.0](1.5.0/): bounded Rust replay release bundle
 
 Historical retained release evidence:
 
+- [Release 1.4.0](1.4.0/): prior verification-depth release bundle
 - [Release 1.3.1](1.3.1/): prior patch-release retained bundle
 - [Release 1.2.2](1.2.2/): hardware-backed retained bundle with v1 replay manifest
 - [Release 1.2.1](1.2.1/): earlier hardware-backed retained bundle with v1 replay manifest

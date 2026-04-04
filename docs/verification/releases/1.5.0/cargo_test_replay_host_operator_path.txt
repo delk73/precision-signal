@@ -1,0 +1,41 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.03s
+     Running unittests src/lib.rs (target/debug/deps/replay_host-1e4a52606caf4fe6)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/main.rs (target/debug/deps/replay_host-23336e46e6106bc0)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running tests/artifact_parser.rs (target/debug/deps/artifact_parser-baecb9209b1b8c78)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 15 filtered out; finished in 0.00s
+
+     Running tests/corpus_parity.rs (target/debug/deps/corpus_parity-ba220508955b4d7e)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+
+     Running tests/operator_path.rs (target/debug/deps/operator_path-68b38cf20b09a4bc)
+
+running 4 tests
+test operator_path_reports_known_real_v1_divergence_at_frame_zero ... ok
+test operator_path_reports_no_divergence_for_identical_real_artifacts ... ok
+test operator_path_reports_no_divergence_for_self_contained_phase3_baseline_imports ... ok
+test operator_path_reports_stable_first_divergence_for_self_contained_controlled_perturbation ... ok
+
+test result: ok. 4 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.01s
+
+     Running tests/replay_diff.rs (target/debug/deps/replay_diff-e2fd7724905cb3ea)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 5 filtered out; finished in 0.00s
+

@@ -16,6 +16,22 @@
 
 - no behavior or artifact changes
 
+## [1.5.0] - 2026-04-04
+
+### Added
+
+- retained `1.5.0` release evidence for one bounded Rust replay command slice, including observed `replay-host diff` transcripts, a scope note, and release-check outputs under `docs/verification/releases/1.5.0/`
+
+### Changed
+
+- promoted `replay-host diff` to the release surface for the retained `artifacts/rpl0/` proof corpus only, with scope limited to the exact accepted artifact class mechanically demonstrated by that corpus
+- promoted `docs/verification/releases/1.5.0/` to the active retained release bundle target
+
+### Notes
+
+- Minor release because this cut adds one new released command surface
+- Broader Rust replay, including other `replay-host` commands and `replay-fw-f446`, remains experimental
+
 ## [1.4.0] - 2026-04-02
 
 ### Added

@@ -5,11 +5,10 @@ Release status is classified in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md)
 Verification authority is defined in [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md).
 The normative artifact contract is [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md).
 Released replay-facing operator tooling is the Python toolchain.
-Rust replay is present in the workspace and is not classified as released by
-[docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
-Its currently documented implementation scope uses RPL0 format version 0
-replay, RPL0 format version 1 container parsing, and legacy 16-byte
-`EventFrame0` replay semantics.
+Rust replay remains mostly experimental. Release `1.5.0` classifies one bounded
+Rust replay command slice as released, with the exact scope and retained
+transcripts documented under
+[docs/verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md](../verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md).
 
 ## Released Python Tooling
 
@@ -18,29 +17,44 @@ replay, RPL0 format version 1 container parsing, and legacy 16-byte
 - [scripts/artifact_diff.py](../../scripts/artifact_diff.py): released divergence-localization tool for demo and
   diagnosis
 
-## Experimental Rust Replay
+## Released Rust Replay
 
-- `replay-host` (experimental Rust replay engine with RPL0 format version 0
-  replay, RPL0 format version 1 container parsing, and legacy 16-byte
-  `EventFrame0` replay semantics)
+- `replay-host diff`
 
-### Experimental Rust Replay
+### Released `replay-host diff`
 
 ```bash
-cargo run -p replay-host -- diff artifacts/demo_v4/header_schema_B.rpl artifacts/demo_v4/header_schema_sample_payload_B.rpl
+cargo run -q -p replay-host -- diff artifacts/rpl0/run_20260331T150000Z.import1.rpl artifacts/rpl0/run_20260331T150000Z.frame017_plus1.rpl
 ```
 
-Current capabilities:
+Released scope:
+
+- the retained `artifacts/rpl0/` proof corpus only
+- the exact accepted artifact class mechanically demonstrated by that corpus and
+  retained under [docs/verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md](../verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md)
+- current replay behavior under the existing RPL0/EventFrame0 implementation
+  boundary already present in code
+
+## Experimental Rust Replay
+
+- `replay-host import-interval-csv`
+- `replay-host validate-interval-csv`
+- any broader `replay-host` capability outside the retained `artifacts/rpl0/`
+  proof corpus and accepted artifact class
+- schema-aware Rust replay semantics
+- `replay-fw-f446`
+
+Current implementation boundary behind the released `diff` slice:
 
 - RPL0 format version 0 replay
 - RPL0 format version 1 container parsing
 - legacy 16-byte `EventFrame0` replay semantics
-- Rust replay is present in the workspace and is not classified as released by
-  [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md)
 
 Limitations:
 
-- no schema-aware replay semantics are provided by the experimental Rust path
+- the `1.5.0` release does not generalize `replay-host diff` beyond the
+  retained `artifacts/rpl0/` proof corpus
+- no schema-aware replay semantics are provided by the Rust path
 - Python replay tooling remains the released operator tooling
 
 ## Example Commands
