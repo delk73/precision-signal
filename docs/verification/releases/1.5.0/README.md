@@ -4,12 +4,14 @@ This directory is the retained release record for minor release `1.5.0`.
 
 Scope of this cut:
 
+- one carry-forward verification-scope note for the inherited bounded sine correctness claim
 - one bounded Rust replay command promotion: `replay-host diff`
 - release scope anchored to the retained `artifacts/rpl0/` proof corpus only
 - retained command transcripts and release-check outputs supporting that narrow claim
 
 Retained files in this bundle:
 
+- `VERIFICATION_SCOPE.md`
 - `RUST_REPLAY_DIFF_SCOPE.md`
 - `cargo_check_dpw4_thumb_locked.txt`
 - `kani_evidence.txt`

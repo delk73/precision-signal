@@ -91,16 +91,15 @@ Completed Phase 1 through Phase 5 replay evidence is packaged through one proof
 path: `make demo-evidence-package`, with the retained proof bundle under
 `artifacts/demo_evidence/retained/`.
 
-Operator-facing released tooling remains the Python replay toolchain plus the
-`precision` validation CLI surface classified in
-[docs/RELEASE_SURFACE.md](docs/RELEASE_SURFACE.md). Experimental components,
-including `replay-host` and the STM32 replay firmware path, are not promoted by
-that proof bundle.
-
-Release `1.5.0` also classifies one bounded Rust replay slice as released:
-`replay-host diff` for the retained `artifacts/rpl0/` proof corpus only, with
-scope and retained transcripts under
+Operator-facing released tooling remains the broader Python replay toolchain
+plus the `precision` validation CLI surface classified in
+[docs/RELEASE_SURFACE.md](docs/RELEASE_SURFACE.md). Release `1.5.0` adds one
+bounded Rust replay exception: `replay-host diff` for the retained
+`artifacts/rpl0/` proof corpus only, with scope and retained transcripts under
 [docs/verification/releases/1.5.0/](docs/verification/releases/1.5.0/).
+Broader Rust replay, including the remaining `replay-host` commands and the
+STM32 replay firmware path, remains experimental and is not promoted by that
+proof bundle.
 
 ## Manual Release Checklist
 

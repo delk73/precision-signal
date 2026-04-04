@@ -63,6 +63,7 @@ wins.
 - [docs/verification/CROSS_CONTEXT_INVARIANCE.md](verification/CROSS_CONTEXT_INVARIANCE.md): cross-context replay invariance check for RPL0 format version 1 artifacts
 - [docs/verification/chaos_probes.md](verification/chaos_probes.md): chaos-probe verification notes
 - [docs/verification/FIRMWARE_CAPTURE_EVIDENCE.md](verification/FIRMWARE_CAPTURE_EVIDENCE.md): retained firmware capture evidence routing
+- [docs/verification/hardware_procedures.md](verification/hardware_procedures.md): non-authoritative manual hardware support procedures
 - [docs/verification/D-03_TriangleDPW4_Audit.md](verification/D-03_TriangleDPW4_Audit.md): retained TriangleDPW4 audit note
 - [docs/verification/releases/](verification/releases/): retained release evidence bundles
 
