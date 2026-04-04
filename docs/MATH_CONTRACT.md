@@ -1,16 +1,16 @@
 # DPW4 Math Contract — v1.2.1
 **Document revision:** contract lock v1.2.1 / revision 2  
-**Applies to:** release 1.4.0 (content unchanged)  
+**Applies to:** release 1.5.0 (content unchanged)  
 **Status:** LOCKED normative contract.
 **Lock revision:** Revision 2 (frozen at lock cut)
 **Lock Status:** LOCKED
-**Carry-forward note:** This contract was locked at release `1.2.1` and is carried forward unchanged for release `1.4.0`.
+**Carry-forward note:** This contract was locked at release `1.2.1` and is carried forward unchanged for release `1.5.0`.
 
 ## Versioning Terminology
 
 - Document revision identifies the locked contract text and its editorial revision.
 - Release versions identify the shipped software release that carries this contract forward.
-- The `v1.2.1` title label is the lock-release identifier for this contract, not a claim that release `1.4.0` changed the math contract.
+- The `v1.2.1` title label is the lock-release identifier for this contract, not a claim that release `1.5.0` changed the math contract.
 
 ---
 

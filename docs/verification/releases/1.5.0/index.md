@@ -6,6 +6,7 @@ correctly.
 Primary retained release record:
 
 - [README.md](README.md): release summary and retained file inventory
+- [VERIFICATION_SCOPE.md](VERIFICATION_SCOPE.md): carry-forward bounded sine correctness scope note for `1.5.0`
 - [RUST_REPLAY_DIFF_SCOPE.md](RUST_REPLAY_DIFF_SCOPE.md): bounded Rust replay release claim and observed command behavior
 
 Retained command outputs:

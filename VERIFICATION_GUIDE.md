@@ -37,6 +37,7 @@ The rest of the release-adjacent documentation is supporting only:
 - `docs/RELEASE_SURFACE.md`: release-surface classification and routing
 - `docs/verification/build_reproducibility.md`: supporting explanation for pinned builds and dual-build identity checks
 - `docs/verification/CI_EVIDENCE.md`: historical CI evidence, not the release contract
+- `docs/verification/hardware_procedures.md`: manual hardware support procedures, not release authority
 - retained files under `docs/verification/releases/<version>/`: evidence for a specific release once generated
 
 ---
@@ -175,7 +176,8 @@ KEEP_LOGS=1 bash verify_kani.sh
 - **"dereference failure ... Status: SUCCESS" lines**: These indicate Kani proved the failing path unreachable under harness constraints; they are successful checks, not proof failures.
 
 ### 3.6 Release-Scoped Correctness and Limits
-- The active release (1.5.0) retains one explicit bounded correctness claim for the released sine path over the finite domain documented in `docs/verification/releases/1.5.0/`.
+- The active release (1.5.0) retains one explicit bounded correctness claim for the released sine path over the finite domain documented in `docs/verification/releases/1.5.0/VERIFICATION_SCOPE.md`.
+- That `1.5.0` scope note is a carry-forward release record and explicitly inherits the unchanged bounded sine claim from `docs/verification/releases/1.4.0/VERIFICATION_SCOPE.md`.
 - That claim is empirical, not global. It is retained as release evidence and does not upgrade the repository claim to full waveform equivalence outside the stated domain.
 - Heavy Tier-2 proofs remain optional unless the active release bundle explicitly retains a heavy proof run. If omitted, the retained release bundle must state the exclusion and the remaining release-claim boundary explicitly.
 
@@ -501,25 +503,6 @@ execution path.
 
 
 
-**One block phased**
-
-# 0 record repo state
-git status --short
-git rev-parse HEAD
-
-# 1 build canonical firmware
-cargo build -p replay-fw-f446 --target thumbv7em-none-eabihf --locked
-cargo objcopy -p replay-fw-f446 --target thumbv7em-none-eabihf -- -O binary \
-  target/thumbv7em-none-eabihf/debug/replay-fw-f446.bin
-
-# 2 flash canonical firmware
-st-flash --connect-under-reset --reset write \
-  target/thumbv7em-none-eabihf/debug/replay-fw-f446.bin 0x08000000
-
-# 3 run Phase D repeat capture
-mkdir -p artifacts/phase_d
-SERIAL=/dev/ttyACM0 python3 scripts/repeat_capture.py \
-  --runs 3 \
   --signal-model phase8 \
   --artifacts-dir artifacts/phase_d
 
