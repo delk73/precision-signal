@@ -1,7 +1,13 @@
-use clap::{error::ErrorKind, Parser};
+#![forbid(unsafe_code)]
+
+#[path = "common/mod.rs"]
+mod common;
+
+use clap::Parser;
+use common::{CliError, CliResult, CliStatus};
 use dpw4::{verification::HeaderVerifier, HEADER_SIZE};
 use std::fs::File;
-use std::io::{self, Read, Seek, SeekFrom};
+use std::io::{Read, Seek, SeekFrom};
 use std::path::PathBuf;
 
 /// Header Audit Tool
@@ -29,35 +35,18 @@ struct Cli {
     frame_size: usize,
 }
 
-fn render_clap_error_and_exit(err: clap::Error) -> ! {
-    let exit_code = match err.kind() {
-        ErrorKind::DisplayHelp | ErrorKind::DisplayVersion => 1,
-        _ => 2,
-    };
-    eprint!("{err}");
-    std::process::exit(exit_code);
-}
-
-fn parse_or_exit() -> Cli {
-    match Cli::try_parse() {
-        Ok(cli) => cli,
-        Err(err) => render_clap_error_and_exit(err),
-    }
-}
-
-fn run() -> io::Result<i32> {
-    let cli = parse_or_exit();
+fn run() -> CliResult {
+    let cli = common::parse_args::<Cli>()?;
 
     if cli.frame_size < HEADER_SIZE {
-        eprintln!(
-            "ERROR: frame_size must be at least {} bytes (header size).",
+        return Err(CliError::User(format!(
+            "frame_size must be at least {} bytes (header size).",
             HEADER_SIZE
-        );
-        return Ok(2);
+        )));
     }
 
-    let mut file = File::open(&cli.file)?;
-    let file_size = file.metadata()?.len();
+    let mut file = File::open(&cli.file).map_err(CliError::Io)?;
+    let file_size = file.metadata().map_err(CliError::Io)?.len();
 
     // 1.7 Contract: Read full frame_size
     let mut buffer = vec![0u8; cli.frame_size];
@@ -68,7 +57,7 @@ fn run() -> io::Result<i32> {
     eprintln!("Auditing {} ({} bytes)...", cli.file.display(), file_size);
 
     while offset + cli.frame_size as u64 <= file_size {
-        file.seek(SeekFrom::Start(offset))?;
+        file.seek(SeekFrom::Start(offset)).map_err(CliError::Io)?;
         if let Err(e) = file.read_exact(&mut buffer) {
             eprintln!("Read error at offset {}: {}", offset, e);
             break;
@@ -90,23 +79,15 @@ fn run() -> io::Result<i32> {
 
     if error_count == 0 {
         eprintln!("Audit PASSED. Checked {} headers.", frame_count);
-        Ok(0)
+        Ok(CliStatus::Success)
     } else {
-        eprintln!("Audit FAILED. Found {} integrity violations.", error_count);
-        Ok(2)
+        Err(CliError::Integrity(format!(
+            "Audit FAILED. Found {} integrity violations.",
+            error_count
+        )))
     }
 }
 
 fn main() {
-    match run() {
-        Ok(code) => std::process::exit(code),
-        Err(err) => {
-            eprintln!("ERROR: {}", err);
-            let exit_code = match err.kind() {
-                io::ErrorKind::NotFound | io::ErrorKind::PermissionDenied => 2,
-                _ => 1,
-            };
-            std::process::exit(exit_code);
-        }
-    }
+    common::exit_with_result(run());
 }

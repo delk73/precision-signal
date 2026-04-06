@@ -1,5 +1,6 @@
-use clap::{error::ErrorKind, Parser, Subcommand, ValueEnum};
-use std::ffi::OsString;
+use crate::common;
+use clap::{Parser, Subcommand, ValueEnum};
+use common::{CliError, CliResult, CliStatus};
 use std::io;
 use std::path::PathBuf;
 
@@ -151,64 +152,29 @@ fn run_artifacts(args: ArtifactsArgs) -> io::Result<()> {
     artifacts::generate_forensic_artifacts(&args.out, None)
 }
 
-fn render_clap_error_and_exit(err: clap::Error) -> ! {
-    let exit_code = match err.kind() {
-        ErrorKind::DisplayHelp | ErrorKind::DisplayVersion => 1,
-        _ => 2,
-    };
-    eprint!("{err}");
-    std::process::exit(exit_code);
-}
-
-fn parse_or_exit<T>() -> T
-where
-    T: Parser,
-{
-    match T::try_parse() {
-        Ok(value) => value,
-        Err(err) => render_clap_error_and_exit(err),
-    }
-}
-
-fn parse_from_or_exit<T, I, U>(itr: I) -> T
-where
-    T: Parser,
-    I: IntoIterator<Item = U>,
-    U: Into<OsString> + Clone,
-{
-    match T::try_parse_from(itr) {
-        Ok(value) => value,
-        Err(err) => render_clap_error_and_exit(err),
-    }
-}
-
-pub(crate) fn main() {
-    let cli = parse_or_exit::<Cli>();
+pub(crate) fn run() -> CliResult {
+    let cli = common::parse_args::<Cli>()?;
 
     #[cfg(feature = "audit")]
     if cli.audit {
         dpw4::reset_audit_counters();
     }
 
-    let command = cli
-        .command
-        .unwrap_or_else(|| Commands::Generate(parse_from_or_exit(std::env::args())));
+    let command = match cli.command {
+        Some(command) => command,
+        None => Commands::Generate(common::parse_from_args(std::env::args())?),
+    };
 
-    let result: Result<(), Box<dyn std::error::Error>> = match command {
-        Commands::Generate(args) => generate::run_generate(args).map_err(|e| e.into()),
-        Commands::Artifacts(args) => run_artifacts(args).map_err(|e| e.into()),
-        Commands::Validate(args) => {
-            let exit_code = validate::run_validate(args);
-            std::process::exit(exit_code);
-        }
-        Commands::Inspect { file } => inspect::run_inspect(file).map_err(|e| e.into()),
+    let result = match command {
+        Commands::Generate(args) => generate::run_generate(args).map(|()| CliStatus::Success),
+        Commands::Artifacts(args) => run_artifacts(args).map(|()| CliStatus::Success).map_err(CliError::from),
+        Commands::Validate(args) => Ok(validate::run_validate(args)),
+        Commands::Inspect { file } => inspect::run_inspect(file).map(|()| CliStatus::Success).map_err(CliError::from),
         Commands::Verify { file } => match verify::run_verify(file) {
-            Ok(()) => Ok(()),
-            Err(VerifyError::Integrity(msg)) => {
-                eprintln!("Error: {}", msg);
-                std::process::exit(2);
-            }
-            Err(e) => Err(e.into()),
+            Ok(()) => Ok(CliStatus::Success),
+            Err(VerifyError::Integrity(msg)) => Err(CliError::Integrity(msg)),
+            Err(VerifyError::Io(err)) => Err(CliError::Io(err)),
+            Err(VerifyError::Parse(msg)) => Err(CliError::User(msg)),
         },
     };
 
@@ -225,10 +191,7 @@ pub(crate) fn main() {
         );
     }
 
-    if let Err(e) = result {
-        eprintln!("Error: {}", e);
-        std::process::exit(1);
-    }
+    result
 }
 
 #[cfg(test)]

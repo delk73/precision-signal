@@ -3,6 +3,7 @@ use super::artifacts::{
     GoldenPolicy, VerificationScenario, HEADER_TEST_FRAMES, HEADER_TEST_RATE, SCENARIOS,
 };
 use super::{ValidateArgs, ValidateMode};
+use crate::common::CliStatus;
 use dpw4::verification::HeaderVerifier;
 use sha2::{Digest, Sha256};
 use std::fs::{self, File};
@@ -35,7 +36,7 @@ struct CheckResult {
     details: String,
 }
 
-pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
+pub(crate) fn run_validate(args: ValidateArgs) -> CliStatus {
     let out_selection = match resolve_out_dir(args.out) {
         Ok(selection) => selection,
         Err(msg) => {
@@ -256,7 +257,7 @@ fn finalize_validate(
     checks: Vec<CheckResult>,
     keep: bool,
     failed: bool,
-) -> i32 {
+) -> CliStatus {
     let status = if failed { "failed" } else { "passed" };
     if json {
         let out_dir = out_selection
@@ -307,9 +308,9 @@ fn finalize_validate(
     }
 
     if failed {
-        1
+        CliStatus::UserError
     } else {
-        0
+        CliStatus::Success
     }
 }
 

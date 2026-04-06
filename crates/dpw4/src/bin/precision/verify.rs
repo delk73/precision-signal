@@ -55,7 +55,7 @@ pub(crate) fn run_verify(file_path: PathBuf) -> Result<(), VerifyError> {
     }
 
     let duration = (payload / 4) as f64 / rate as f64;
-    println!("✅ VERIFIED: DP32 Reference File");
-    println!("   Duration: {:.4} sec", duration);
+    eprintln!("✅ VERIFIED: DP32 Reference File");
+    eprintln!("   Duration: {:.4} sec", duration);
     Ok(())
 }

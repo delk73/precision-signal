@@ -1,17 +1,20 @@
 use super::{GenerateArgs, ShapeArg};
+use crate::common;
+use crate::common::CliError;
 use dpw4::{
     math, signal_pipe, DpwGain, OscState, Pulse, Sawtooth, Scalar, SignalFrameHeader, Square,
     TriangleDPW1, TriangleDPW4, BIT_DEPTH_32,
 };
-use std::fs::File;
 use std::io::{self, Write};
-use std::path::Path;
 
-pub(crate) fn run_generate(args: GenerateArgs) -> io::Result<()> {
+pub(crate) fn run_generate(args: GenerateArgs) -> Result<(), CliError> {
+    if args.seconds == Some(0) {
+        return Err(CliError::User("--seconds must be greater than 0".to_string()));
+    }
+
     if args.container_wav && args.seconds.is_none() {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "Error: --container-wav requires --seconds to be set.",
+        return Err(CliError::User(
+            "--container-wav requires --seconds to be set.".to_string(),
         ));
     }
 
@@ -32,21 +35,18 @@ pub(crate) fn run_generate(args: GenerateArgs) -> io::Result<()> {
 
     let gain = DpwGain::new(gain_f64 as u64, gain_exp, 0, 0);
 
-    let mut handle = open_output(&args.out)?;
+    let mut handle = common::open_output(&args.out)?;
 
     if args.container_wav {
         let seconds = args.seconds.ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "--container-wav requires --seconds",
-            )
+            CliError::User("--container-wav requires --seconds".to_string())
         })?;
         let total_samples = args.rate as u64 * seconds;
         let data_bytes = total_samples * 4;
-        write_wav_header(&mut handle, args.rate, data_bytes as u32)?;
+        write_wav_header(&mut handle, args.rate, data_bytes as u32).map_err(CliError::Io)?;
     } else {
         let header = SignalFrameHeader::new(0, args.rate);
-        handle.write_all(&header.to_bytes())?;
+        handle.write_all(&header.to_bytes()).map_err(CliError::Io)?;
     }
 
     let mut buffer = [0i32; 512];
@@ -125,23 +125,15 @@ pub(crate) fn run_generate(args: GenerateArgs) -> io::Result<()> {
             if e.kind() == io::ErrorKind::BrokenPipe {
                 break;
             }
-            return Err(e);
+            return Err(CliError::Io(e));
         }
 
         if args.seconds.is_some() {
             samples_remaining -= chunk_size as u64;
         }
     }
-    handle.flush()?;
+    handle.flush().map_err(CliError::Io)?;
     Ok(())
-}
-
-fn open_output(path: &Path) -> io::Result<Box<dyn Write>> {
-    if path == Path::new("-") {
-        Ok(Box::new(io::stdout()))
-    } else {
-        Ok(Box::new(File::create(path)?))
-    }
 }
 
 fn write_wav_header<W: Write>(writer: &mut W, sample_rate: u32, data_bytes: u32) -> io::Result<()> {
