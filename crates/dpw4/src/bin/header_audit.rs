@@ -12,6 +12,7 @@ use std::path::PathBuf;
 #[command(version = env!("CARGO_PKG_VERSION"))]
 struct Cli {
     /// Path to the binary file
+    #[arg(value_name = "FILE")]
     file: PathBuf,
 
     /// Smoke test mode: check only every Nth header

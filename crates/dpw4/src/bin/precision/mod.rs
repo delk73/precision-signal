@@ -38,13 +38,13 @@ enum Commands {
     /// Inspect a DP32 file header without reading the payload
     Inspect {
         /// Input file path (defaults to stdin if not provided)
-        #[arg(short, long)]
+        #[arg(short, long, value_name = "FILE")]
         file: Option<PathBuf>,
     },
     /// Verify a DP32 file for integrity and alignment
     Verify {
         /// Input file path
-        #[arg(short, long, required = true)]
+        #[arg(short, long, required = true, value_name = "FILE")]
         file: PathBuf,
     },
 }
@@ -84,12 +84,16 @@ struct GenerateArgs {
     /// Wrap in RIFF WAVE container (Requires --seconds)
     #[arg(long)]
     container_wav: bool,
+
+    /// Output path (`-` for stdout)
+    #[arg(short = 'o', long, default_value = "-", value_name = "PATH")]
+    out: PathBuf,
 }
 
 #[derive(Parser)]
 struct ArtifactsArgs {
     /// Output directory for generated forensic artifacts
-    #[arg(long, default_value = "docs/verification")]
+    #[arg(short = 'o', long, default_value = "docs/verification", value_name = "PATH")]
     out: PathBuf,
 }
 
@@ -102,7 +106,7 @@ pub(crate) enum ValidateMode {
 #[derive(Parser)]
 struct ValidateArgs {
     /// Output directory for validation run artifacts
-    #[arg(long)]
+    #[arg(short = 'o', long, value_name = "PATH")]
     out: Option<PathBuf>,
 
     /// Validation mode

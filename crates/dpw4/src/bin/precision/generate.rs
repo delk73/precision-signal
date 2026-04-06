@@ -3,7 +3,9 @@ use dpw4::{
     math, signal_pipe, DpwGain, OscState, Pulse, Sawtooth, Scalar, SignalFrameHeader, Square,
     TriangleDPW1, TriangleDPW4, BIT_DEPTH_32,
 };
+use std::fs::File;
 use std::io::{self, Write};
+use std::path::Path;
 
 pub(crate) fn run_generate(args: GenerateArgs) -> io::Result<()> {
     if args.container_wav && args.seconds.is_none() {
@@ -30,8 +32,7 @@ pub(crate) fn run_generate(args: GenerateArgs) -> io::Result<()> {
 
     let gain = DpwGain::new(gain_f64 as u64, gain_exp, 0, 0);
 
-    let stdout = io::stdout();
-    let mut handle = stdout.lock();
+    let mut handle = open_output(&args.out)?;
 
     if args.container_wav {
         let seconds = args.seconds.ok_or_else(|| {
@@ -133,6 +134,14 @@ pub(crate) fn run_generate(args: GenerateArgs) -> io::Result<()> {
     }
     handle.flush()?;
     Ok(())
+}
+
+fn open_output(path: &Path) -> io::Result<Box<dyn Write>> {
+    if path == Path::new("-") {
+        Ok(Box::new(io::stdout()))
+    } else {
+        Ok(Box::new(File::create(path)?))
+    }
 }
 
 fn write_wav_header<W: Write>(writer: &mut W, sample_rate: u32, data_bytes: u32) -> io::Result<()> {
