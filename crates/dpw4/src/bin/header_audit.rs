@@ -45,8 +45,8 @@ fn run() -> CliResult {
         )));
     }
 
-    let mut file = File::open(&cli.file).map_err(CliError::Io)?;
-    let file_size = file.metadata().map_err(CliError::Io)?.len();
+    let mut file = File::open(&cli.file)?;
+    let file_size = file.metadata()?.len();
 
     // 1.7 Contract: Read full frame_size
     let mut buffer = vec![0u8; cli.frame_size];
@@ -57,7 +57,7 @@ fn run() -> CliResult {
     eprintln!("Auditing {} ({} bytes)...", cli.file.display(), file_size);
 
     while offset + cli.frame_size as u64 <= file_size {
-        file.seek(SeekFrom::Start(offset)).map_err(CliError::Io)?;
+        file.seek(SeekFrom::Start(offset))?;
         if let Err(e) = file.read_exact(&mut buffer) {
             eprintln!("Read error at offset {}: {}", offset, e);
             break;

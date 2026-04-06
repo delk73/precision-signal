@@ -50,9 +50,14 @@ impl CliError {
         match self {
             CliError::Io(err) => match err.kind() {
                 io::ErrorKind::NotFound
-                | io::ErrorKind::PermissionDenied
                 | io::ErrorKind::InvalidInput
                 | io::ErrorKind::InvalidData => CliStatus::UserError,
+                io::ErrorKind::PermissionDenied
+                | io::ErrorKind::BrokenPipe
+                | io::ErrorKind::TimedOut
+                | io::ErrorKind::Interrupted
+                | io::ErrorKind::AddrInUse
+                | io::ErrorKind::AlreadyExists => CliStatus::SystemError,
                 _ => CliStatus::SystemError,
             },
             CliError::User(_) | CliError::Integrity(_) => CliStatus::UserError,
@@ -124,7 +129,10 @@ pub(crate) fn exit_with_result(result: CliResult) -> ! {
             match &err {
                 CliError::Io(io_err) => eprintln!("ERROR: {}", io_err),
                 CliError::User(msg) | CliError::Integrity(msg) => eprintln!("ERROR: {}", msg),
-                CliError::Clap(clap_err) => eprint!("{}", clap_err),
+                CliError::Clap(clap_err) => match clap_err.kind() {
+                    ErrorKind::DisplayHelp | ErrorKind::DisplayVersion => eprint!("{}", clap_err),
+                    _ => eprint!("ERROR: {}", clap_err),
+                },
             }
             std::process::exit(err.status().code());
         }

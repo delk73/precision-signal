@@ -43,10 +43,10 @@ pub(crate) fn run_generate(args: GenerateArgs) -> Result<(), CliError> {
         })?;
         let total_samples = args.rate as u64 * seconds;
         let data_bytes = total_samples * 4;
-        write_wav_header(&mut handle, args.rate, data_bytes as u32).map_err(CliError::Io)?;
+        write_wav_header(&mut handle, args.rate, data_bytes as u32)?;
     } else {
         let header = SignalFrameHeader::new(0, args.rate);
-        handle.write_all(&header.to_bytes()).map_err(CliError::Io)?;
+        handle.write_all(&header.to_bytes())?;
     }
 
     let mut buffer = [0i32; 512];
@@ -125,14 +125,14 @@ pub(crate) fn run_generate(args: GenerateArgs) -> Result<(), CliError> {
             if e.kind() == io::ErrorKind::BrokenPipe {
                 break;
             }
-            return Err(CliError::Io(e));
+            return Err(e.into());
         }
 
         if args.seconds.is_some() {
             samples_remaining -= chunk_size as u64;
         }
     }
-    handle.flush().map_err(CliError::Io)?;
+    handle.flush()?;
     Ok(())
 }
 
