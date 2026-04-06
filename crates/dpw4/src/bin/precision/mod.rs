@@ -1,4 +1,5 @@
-use clap::{Parser, Subcommand, ValueEnum};
+use clap::{error::ErrorKind, Parser, Subcommand, ValueEnum};
+use std::ffi::OsString;
 use std::io;
 use std::path::PathBuf;
 
@@ -146,8 +147,39 @@ fn run_artifacts(args: ArtifactsArgs) -> io::Result<()> {
     artifacts::generate_forensic_artifacts(&args.out, None)
 }
 
-pub(crate) fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let cli = Cli::parse();
+fn render_clap_error_and_exit(err: clap::Error) -> ! {
+    let exit_code = match err.kind() {
+        ErrorKind::DisplayHelp | ErrorKind::DisplayVersion => 1,
+        _ => 2,
+    };
+    eprint!("{err}");
+    std::process::exit(exit_code);
+}
+
+fn parse_or_exit<T>() -> T
+where
+    T: Parser,
+{
+    match T::try_parse() {
+        Ok(value) => value,
+        Err(err) => render_clap_error_and_exit(err),
+    }
+}
+
+fn parse_from_or_exit<T, I, U>(itr: I) -> T
+where
+    T: Parser,
+    I: IntoIterator<Item = U>,
+    U: Into<OsString> + Clone,
+{
+    match T::try_parse_from(itr) {
+        Ok(value) => value,
+        Err(err) => render_clap_error_and_exit(err),
+    }
+}
+
+pub(crate) fn main() {
+    let cli = parse_or_exit::<Cli>();
 
     #[cfg(feature = "audit")]
     if cli.audit {
@@ -156,7 +188,7 @@ pub(crate) fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let command = cli
         .command
-        .unwrap_or_else(|| Commands::Generate(GenerateArgs::parse_from(std::env::args())));
+        .unwrap_or_else(|| Commands::Generate(parse_from_or_exit(std::env::args())));
 
     let result: Result<(), Box<dyn std::error::Error>> = match command {
         Commands::Generate(args) => generate::run_generate(args).map_err(|e| e.into()),
@@ -193,8 +225,6 @@ pub(crate) fn main() -> Result<(), Box<dyn std::error::Error>> {
         eprintln!("Error: {}", e);
         std::process::exit(1);
     }
-
-    Ok(())
 }
 
 #[cfg(test)]

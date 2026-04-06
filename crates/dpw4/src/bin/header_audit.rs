@@ -1,4 +1,4 @@
-use clap::Parser;
+use clap::{error::ErrorKind, Parser};
 use dpw4::{verification::HeaderVerifier, HEADER_SIZE};
 use std::fs::File;
 use std::io::{self, Read, Seek, SeekFrom};
@@ -8,6 +8,8 @@ use std::path::PathBuf;
 ///
 /// Rapidly verifies Fletcher-32 checksums across a binary artifact.
 #[derive(Parser)]
+#[command(name = "header_audit")]
+#[command(version = env!("CARGO_PKG_VERSION"))]
 struct Cli {
     /// Path to the binary file
     file: PathBuf,
@@ -26,15 +28,31 @@ struct Cli {
     frame_size: usize,
 }
 
-fn main() -> io::Result<()> {
-    let cli = Cli::parse();
+fn render_clap_error_and_exit(err: clap::Error) -> ! {
+    let exit_code = match err.kind() {
+        ErrorKind::DisplayHelp | ErrorKind::DisplayVersion => 1,
+        _ => 2,
+    };
+    eprint!("{err}");
+    std::process::exit(exit_code);
+}
+
+fn parse_or_exit() -> Cli {
+    match Cli::try_parse() {
+        Ok(cli) => cli,
+        Err(err) => render_clap_error_and_exit(err),
+    }
+}
+
+fn run() -> io::Result<i32> {
+    let cli = parse_or_exit();
 
     if cli.frame_size < HEADER_SIZE {
         eprintln!(
             "ERROR: frame_size must be at least {} bytes (header size).",
             HEADER_SIZE
         );
-        std::process::exit(1);
+        return Ok(2);
     }
 
     let mut file = File::open(&cli.file)?;
@@ -46,7 +64,7 @@ fn main() -> io::Result<()> {
     let mut frame_count = 0;
     let mut error_count = 0;
 
-    println!("Auditing {} ({} bytes)...", cli.file.display(), file_size);
+    eprintln!("Auditing {} ({} bytes)...", cli.file.display(), file_size);
 
     while offset + cli.frame_size as u64 <= file_size {
         file.seek(SeekFrom::Start(offset))?;
@@ -70,13 +88,24 @@ fn main() -> io::Result<()> {
     }
 
     if error_count == 0 {
-        println!("✓ Audit PASSED. Checked {} headers.", frame_count);
-        std::process::exit(0);
+        eprintln!("Audit PASSED. Checked {} headers.", frame_count);
+        Ok(0)
     } else {
-        println!(
-            "❌ Audit FAILED. Found {} integrity violations.",
-            error_count
-        );
-        std::process::exit(2);
+        eprintln!("Audit FAILED. Found {} integrity violations.", error_count);
+        Ok(2)
+    }
+}
+
+fn main() {
+    match run() {
+        Ok(code) => std::process::exit(code),
+        Err(err) => {
+            eprintln!("ERROR: {}", err);
+            let exit_code = match err.kind() {
+                io::ErrorKind::NotFound | io::ErrorKind::PermissionDenied => 2,
+                _ => 1,
+            };
+            std::process::exit(exit_code);
+        }
     }
 }
