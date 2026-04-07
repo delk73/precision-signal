@@ -842,7 +842,7 @@ mod tests {
 
         assert_eq!(
             finalize_validate(false, Some(&selection), Vec::new(), false, false),
-            0
+            CliStatus::Success
         );
         assert!(!out_dir.exists());
     }
@@ -860,7 +860,7 @@ mod tests {
 
         assert_eq!(
             finalize_validate(false, Some(&selection), Vec::new(), false, false),
-            0
+            CliStatus::Success
         );
         assert!(out_dir.exists());
         for subdir in ["run1", "run2", "run_header"] {
