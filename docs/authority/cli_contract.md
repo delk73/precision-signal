@@ -5,6 +5,13 @@ This file is the sole authority for the CLI schema and the related operational c
 No other file is authoritative for the schema or operational contract.
 All downstream implementation and documentation must conform exactly to this contract.
 
+This document is formally reopened for the 1.6.0 pre-implementation amendment pass.
+The amendments in this revision lock the authoritative Result Block schema, exit
+precedence against staging failure, LF-only emission behavior, Safe ID format,
+single-shot collision handling, and POSIX same-filesystem publication
+assumptions. Once the 1.6.0 transition is accepted, this document returns to
+frozen status under Section 17.
+
 
 ## 2. Command Set
 The command set is fixed and consists of exactly `record`, `replay`, `diff`, and `envelope`.
@@ -31,12 +38,15 @@ TARGET: <input>
 MODE: <runtime_mode|mock|none>
 EQUIVALENCE: exact|diverged
 FIRST_DIVERGENCE: none|step=<uint64> node=<node_id> cause=VAL_MISMATCH|TYPE_MISMATCH|OOB
-ARTIFACT: artifacts/<run_id>
+ARTIFACT: artifacts/<YYYYMMDDThhmmssZ-RAND64_HEX>
 ```
 
 Field order is fixed.
 All seven lines are required.
 No additional lines are permitted.
+Every line, including the seventh line, must terminate with exactly one LF
+byte (`0x0A`).
+No CR, CRLF, trailing spaces, or blank padding lines are permitted.
 `result.txt` must contain the same result block content as stdout, byte-for-byte.
 For contract-valid invocations, stdout is reserved for this result block only.
 
@@ -59,6 +69,8 @@ Mock mode is a contract-valid failure state.
 `none` denotes that no mode applies.
 No other `MODE` value is valid.
 `node_id` lexical form is exactly `[A-Za-z0-9._:-]+`.
+`ARTIFACT` is the relative published artifact path and must use the Safe ID
+format defined in Section 13.
 
 ## 7. Divergence Cause Enum
 The divergence cause enum values are exactly `VAL_MISMATCH`, `TYPE_MISMATCH`, and `OOB`.
@@ -68,6 +80,7 @@ The divergence cause enum values are exactly `VAL_MISMATCH`, `TYPE_MISMATCH`, an
 
 ## 8. Exit Code Contract
 `PASS` exits with code `0`.
+Informational responses such as `--help` and `--version` exit with code `0`.
 Contract-valid `FAIL` exits with code `1`.
 Contract-invalid invocation or unrecoverable internal failure exits with code `2`.
 Where a result block exists, the exit code must agree with it.
@@ -83,6 +96,12 @@ If invocation parsing succeeds and target acquisition begins, the tool must atte
 If invocation parsing fails before a contract-valid result can be formed, or an unrecoverable internal failure prevents result-block emission, the process must exit `2`.
 Parse errors, missing required arguments, invalid command spelling, and illegal mode values are contract-invalid invocations.
 Artifact publication is not required for code-`2` failures.
+Artifact publication is a precondition for stdout result-block emission.
+If execution can form a contract-valid `FAIL` but staging, file write, fsync
+policy, or publication rename fails, the process must emit no result block,
+publish no partially visible final artifact, and exit `2`.
+`result.txt` must never exist without a successfully published final artifact
+directory.
 
 ## 11. Command Applicability
 All four commands must emit the same seven-line result block for every contract-valid invocation.
@@ -110,12 +129,18 @@ No alternative authoritative layout exists.
 The `run_id` format is defined exactly as:
 
 ```text
-<utc_iso8601_ns>-<rand64_hex>
+YYYYMMDDThhmmssZ-<rand64_hex>
 ```
 
-The timestamp component is UTC.
-The timestamp component is nanosecond-resolution ISO 8601.
-The suffix is a 64-bit random hexadecimal token.
+The timestamp component is UTC and second-resolution.
+The timestamp component uses only filesystem-safe characters and the exact
+calendar layout shown above.
+The suffix is a 64-bit cryptographically secure random hexadecimal token
+rendered as 16 lowercase hex characters.
+ID generation is single-shot.
+If `artifacts/.tmp_<run_id>/` already exists for the generated ID, the process
+must emit no result block and exit `2`.
+No retry loop, fallback PRNG, or time-derived substitute is valid.
 No alternate `run_id` form is valid.
 
 ## 14. Publication Rule
@@ -128,6 +153,10 @@ artifacts/.tmp_<run_id>/ -> artifacts/<run_id>/
 The temporary and final directories must be siblings.
 Both directories must reside under the same `artifacts/` parent.
 Publication occurs only by atomic rename.
+Atomic publication relies on POSIX same-filesystem rename semantics.
+Cross-filesystem publication is non-conforming.
+If the environment cannot satisfy same-filesystem atomic rename, the process
+must exit `2` without emitting a result block.
 No writes may be performed directly into the final directory before publication.
 No partially published final artifact directory may become visible.
 Artifact publication is required for contract-valid `PASS` and `FAIL` results.
