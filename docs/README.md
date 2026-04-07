@@ -69,6 +69,7 @@ wins.
 
 ## CLI
 
+- [docs/authority/cli_contract.md](authority/cli_contract.md): authoritative CLI invocation, stream, and exit contract
 - [docs/cli/precision.md](cli/precision.md): `precision` CLI reference
 - [docs/cli/examples.md](cli/examples.md): CLI usage examples
 
