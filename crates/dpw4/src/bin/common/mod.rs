@@ -4,6 +4,11 @@ use std::fs::File;
 use std::io::{self, Write};
 use std::path::Path;
 
+#[allow(dead_code)]
+mod generated {
+    include!(concat!(env!("OUT_DIR"), "/build_info.rs"));
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CliStatus {
     Success,
@@ -32,6 +37,16 @@ pub enum CliError {
 }
 
 pub type CliResult = Result<CliStatus, CliError>;
+
+#[allow(dead_code)]
+pub struct AuditState {
+    pub bin: &'static str,
+    pub version: &'static str,
+    pub commit: &'static str,
+    pub build_time: &'static str,
+    pub toolchain: &'static str,
+    pub features: &'static [&'static str],
+}
 
 impl From<io::Error> for CliError {
     fn from(err: io::Error) -> Self {
@@ -72,6 +87,39 @@ impl CliError {
 pub enum OutHandle {
     File(File),
     Stdout(io::Stdout),
+}
+
+#[allow(dead_code)]
+pub fn audit_state(bin: &'static str) -> AuditState {
+    AuditState {
+        bin,
+        version: env!("CARGO_PKG_VERSION"),
+        commit: generated::GIT_HASH,
+        build_time: generated::BUILD_TIME,
+        toolchain: generated::RUST_VERSION,
+        features: generated::FEATURES,
+    }
+}
+
+#[allow(dead_code)]
+pub fn short_commit(hash: &str) -> &str {
+    let len = hash.len().min(12);
+    &hash[..len]
+}
+
+#[allow(dead_code)]
+pub fn audit_state_json(bin: &'static str) -> String {
+    let state = audit_state(bin);
+    let features = state
+        .features
+        .iter()
+        .map(|feature| format!("{feature:?}"))
+        .collect::<Vec<_>>()
+        .join(",");
+    format!(
+        "{{\"bin\":{:?},\"version\":{:?},\"commit\":{:?},\"build_time\":{:?},\"toolchain\":{:?},\"features\":[{}]}}",
+        state.bin, state.version, state.commit, state.build_time, state.toolchain, features
+    )
 }
 
 impl Write for OutHandle {

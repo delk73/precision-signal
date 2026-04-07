@@ -22,6 +22,10 @@ struct Cli {
     #[command(subcommand)]
     command: Option<Commands>,
 
+    /// Emit build provenance metadata as JSON
+    #[arg(long, global = true)]
+    audit_state: bool,
+
     #[cfg(feature = "audit")]
     /// Print audit telemetry at end of run
     #[arg(long)]
@@ -154,6 +158,11 @@ fn run_artifacts(args: ArtifactsArgs) -> io::Result<()> {
 
 pub(crate) fn run() -> CliResult {
     let cli = common::parse_args::<Cli>()?;
+
+    if cli.audit_state {
+        println!("{}", common::audit_state_json("precision"));
+        return Ok(CliStatus::Info);
+    }
 
     #[cfg(feature = "audit")]
     if cli.audit {

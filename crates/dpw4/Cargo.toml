@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 description = "Reference oscillator crate with validation and artifact tooling entry points"
+build = "build.rs"
 
 [lib]
 name = "dpw4"
