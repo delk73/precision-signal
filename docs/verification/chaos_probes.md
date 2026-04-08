@@ -3,7 +3,7 @@
 This document defines advisory chaos probes for the Signal Core. These probes are diagnostic only and do not participate in release gating.
 
 Normative release gating remains:
-- `cargo run --release -p dpw4 --features cli --bin precision -- validate --mode quick`
+- `cargo run --release -p dpw4 --features cli --bin sig-util -- validate --mode quick`
 
 The chaos audit emits machine-readable metrics:
 - `chaos_metrics.json`

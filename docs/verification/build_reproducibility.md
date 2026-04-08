@@ -35,7 +35,7 @@ make gate
 Normative underlying command:
 
 ```bash
-cargo run --release -p dpw4 --features cli --bin precision -- validate --mode quick
+cargo run --release -p dpw4 --features cli --bin sig-util -- validate --mode quick
 ```
 
 Supporting release-binary identity check:

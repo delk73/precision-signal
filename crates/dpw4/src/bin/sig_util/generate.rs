@@ -34,7 +34,7 @@ pub(crate) fn run_generate(args: GenerateArgs) -> Result<(), CliError> {
     }
 
     let gain = DpwGain::new(gain_f64 as u64, gain_exp, 0, 0);
-    let audit = common::audit_state("precision");
+    let audit = common::audit_state("sig-util");
     eprintln!(
         "AUDIT: capture_start commit={} toolchain={} features={}",
         common::short_commit(audit.commit),

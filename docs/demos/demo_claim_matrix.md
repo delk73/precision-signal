@@ -19,7 +19,7 @@ evidenced elsewhere.
 
 | Claim | Status | Validation Type | Evidence |
 | --- | --- | --- | --- |
-| deterministic signal generation | evidenced | semantic | `cargo run --release -p dpw4 --features cli --bin precision -- validate --mode quick` |
+| deterministic signal generation | evidenced | semantic | `cargo run --release -p dpw4 --features cli --bin sig-util -- validate --mode quick` |
 | artifact structural validation | evidenced | structural | `python3 scripts/artifact_tool.py verify <artifact> --signal-model <model>` |
 | replay artifact parsing correctness | evidenced | structural | parser tests + replay CI gates (`test_artifact_parser_*`, [docs/replay/CI_GATES.md](../replay/CI_GATES.md)) |
 | artifact comparison correctness | evidenced | structural | `python3 scripts/artifact_diff.py <artifact_a> <artifact_b>` |

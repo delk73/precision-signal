@@ -31,6 +31,9 @@ retained release evidence bundle. Historical retained evidence for `1.3.1`
 and hardware-backed `1.2.2` remains explicit under
 `docs/verification/releases/`.
 
+Pre-split historical evidence may still refer to `precision` as the validation
+binary; the current validation entrypoint is `sig-util -- validate`.
+
 The rest of the release-adjacent documentation is supporting only:
 
 - `README.md`: entry routing
@@ -246,7 +249,7 @@ Bit-identical execution across runs and platforms is a core requirement of the B
 make gate
 ```
 This is the canonical operator-facing release gate.
-It runs `cargo run --release -p dpw4 --features cli --bin precision -- validate --mode quick`.
+It runs `cargo run --release -p dpw4 --features cli --bin sig-util -- validate --mode quick`.
 Exit code is authoritative (`0` pass, `1` fail).
 `--mode full` is currently identical to `--mode quick` and reserved for future extension.
 If explicitly exercised, use:

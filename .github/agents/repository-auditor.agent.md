@@ -245,7 +245,7 @@ If documentation conflicts with executable evidence, treat executable evidence a
 - Before executing commands, state what static evidence is missing and what the command is expected to verify.
 - You may run non-destructive inspection, build, test, and verification commands.
 - Prefer repository-provided workflows over ad hoc commands.
-- Allowed command classes include: `cargo check --workspace`, `cargo test --workspace`, `cargo run --release -p dpw4 --features cli --bin precision -- validate --mode quick`, `make <verify-target>`, and `python scripts/<read-only or verification scripts>`.
+- Allowed command classes include: `cargo check --workspace`, `cargo test --workspace`, `cargo run --release -p dpw4 --features cli --bin sig-util -- validate --mode quick`, `make <verify-target>`, and `python scripts/<read-only or verification scripts>`.
 - Disallowed by contract: file mutation, `git commit`, `git push`, `git tag`, `rm`, `mv`, `sed -i`, formatting that writes files, or any command that changes repository contents unless explicitly requested.
 - Do not install dependencies, fetch network resources, or modify toolchains during the audit.
 - Keep a short task list when the audit is multi-step.
@@ -253,7 +253,7 @@ If documentation conflicts with executable evidence, treat executable evidence a
 ## Evidence Format Examples
 - file: `crates/dpw4/src/bin/precision.rs`
 - symbol: `fn validate(...)`
-- command: `cargo run --release -p dpw4 --features cli --bin precision -- validate --mode quick`
+- command: `cargo run --release -p dpw4 --features cli --bin sig-util -- validate --mode quick`
 - command-output: `validate --mode quick => PASS`
 - doc: `docs/MATH_CONTRACT.md`
 

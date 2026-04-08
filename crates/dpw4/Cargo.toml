@@ -44,8 +44,8 @@ path = "src/bin/precision.rs"
 required-features = ["cli"]
 
 [[bin]]
-name = "header_audit"
-path = "src/bin/header_audit.rs"
+name = "sig-util"
+path = "src/bin/sig_util.rs"
 required-features = ["cli"]
 
 [[bin]]

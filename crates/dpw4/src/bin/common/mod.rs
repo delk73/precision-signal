@@ -32,6 +32,7 @@ impl CliStatus {
     }
 }
 
+#[allow(dead_code)]
 #[derive(Debug)]
 pub enum CliError {
     Io(io::Error),
@@ -345,6 +346,7 @@ impl Write for OutHandle {
     }
 }
 
+#[allow(dead_code)]
 pub(crate) fn parse_args<T>() -> Result<T, CliError>
 where
     T: Parser,

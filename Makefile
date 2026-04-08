@@ -930,10 +930,10 @@ demo-divergence:
 	echo "baseline_invariant = true"
 
 gate:
-	cargo run --locked --release -p dpw4 --features cli --bin precision -- validate --mode quick
+	cargo run --locked --release -p dpw4 --features cli --bin sig-util -- validate --mode quick
 
 gate-full:
-	cargo run --locked --release -p dpw4 --features cli --bin precision -- validate --mode full
+	cargo run --locked --release -p dpw4 --features cli --bin sig-util -- validate --mode full
 
 ci-local:
 	cargo run --quiet -p xtask -- workflow ci-local

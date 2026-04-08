@@ -59,7 +59,7 @@ tail -c +65 test.dp32 | sha256sum
 Run the normative release gate with stepwise checks.
 
 ```bash
-cargo run --release -p dpw4 --features cli --bin precision -- validate --mode quick
+cargo run --release -p dpw4 --features cli --bin sig-util -- validate --mode quick
 ```
 
 ## 6. Generate Forensic Artifacts via CLI
