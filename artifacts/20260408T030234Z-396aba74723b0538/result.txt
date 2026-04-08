@@ -1,0 +1,7 @@
+RESULT: PASS
+COMMAND: substrate-probe
+TARGET: substrate://probe/default
+MODE: audit
+EQUIVALENCE: exact
+FIRST_DIVERGENCE: none
+ARTIFACT: artifacts/20260408T030234Z-396aba74723b0538

@@ -377,6 +377,7 @@ dependencies = [
  "clap",
  "geom-signal",
  "geom-spatial",
+ "getrandom 0.3.4",
  "hex",
  "libm",
  "rppal",

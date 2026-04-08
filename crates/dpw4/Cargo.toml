@@ -19,6 +19,7 @@ geom-signal = { path = "../geom-signal" }
 # Hashing dependencies for verification utilities.
 sha2 = { version = "0.10.9", optional = true, default-features = false }
 hex = { version = "0.4", optional = true }
+getrandom = { version = "0.3", optional = true }
 
 [dev-dependencies]
 sha2 = "0.10.9"
@@ -31,7 +32,7 @@ libm = "0.2"
 [features]
 default = []
 float-ingest = []
-cli = ["dep:clap", "dep:libm", "dep:sha2", "dep:hex", "verification-runtime"]
+cli = ["dep:clap", "dep:libm", "dep:sha2", "dep:hex", "dep:getrandom", "verification-runtime"]
 verification = []
 audit = []
 verification-runtime = []
@@ -45,6 +46,11 @@ required-features = ["cli"]
 [[bin]]
 name = "header_audit"
 path = "src/bin/header_audit.rs"
+required-features = ["cli"]
+
+[[bin]]
+name = "substrate_probe"
+path = "src/bin/substrate_probe.rs"
 required-features = ["cli"]
 
 [lints.rust]

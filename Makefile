@@ -23,6 +23,9 @@ REPLAY_BASELINE ?= artifacts/baseline.bin
 REPLAY_RUN ?= artifacts/run.bin
 REPLAY_REPEAT_RUNS ?= 5
 REPLAY_REPEAT_DIR ?= artifacts/replay_runs
+AUDIT_TARGET ?= substrate://probe/default
+AUDIT_BIN := ./target/debug/substrate_probe
+AUDIT_FIXED_RUN_ID := AUDIT_COLLISION
 DEMO_V2_DIR := artifacts/demo_persistent
 DEMO_V2_FIXTURE_A := $(DEMO_V2_DIR)/run_A.rpl
 DEMO_V2_FIXTURE_B := $(DEMO_V2_DIR)/run_B.rpl
@@ -84,7 +87,7 @@ space :=
 space +=
 comma := ,
 
-.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff replay-check replay-repeat-check replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local clean
+.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff replay-check replay-repeat-check replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
 
 help:
 	echo "Demo V2 lifecycle:"
@@ -888,6 +891,9 @@ tim2-smoke:
 check-workspace:
 	cargo check --workspace --locked
 
+$(AUDIT_BIN):
+	cargo build --locked -p dpw4 --features cli --bin substrate_probe
+
 doc-link-check:
 	cargo run --quiet -p xtask -- workflow doc-link-check
 
@@ -931,6 +937,45 @@ gate-full:
 
 ci-local:
 	cargo run --quiet -p xtask -- workflow ci-local
+
+conformance-audit: $(AUDIT_BIN)
+	echo "Audit: Verifying 1.6.0 Substrate Twin Invariant"
+	rm -f .audit_stdout
+	mkdir -p artifacts
+	$(AUDIT_BIN) --target "$(AUDIT_TARGET)" > .audit_stdout
+	test "$$(wc -c < .audit_stdout)" -gt 0
+	test "$$(sed -n '7p' .audit_stdout)" != ""
+	RUN_ID="$$(sed -n '7p' .audit_stdout | sed 's#^ARTIFACT: artifacts/##')"
+	test -n "$$RUN_ID"
+	test -f "artifacts/$$RUN_ID/result.txt"
+	cmp --silent .audit_stdout "artifacts/$$RUN_ID/result.txt"
+	grep -Fx "TARGET: $(AUDIT_TARGET)" .audit_stdout >/dev/null
+	echo "  [OK] stdout/result.txt twin"
+	echo "  [OK] target string preserved bit-for-bit"
+	$(MAKE) --no-print-directory stream-purity
+
+kill-switch-audit: $(AUDIT_BIN)
+	echo "Audit: Verifying 1.6.0 Silence-on-Failure Invariant"
+	rm -f .audit_stdout
+	rm -rf "artifacts/.tmp_$(AUDIT_FIXED_RUN_ID)" "artifacts/$(AUDIT_FIXED_RUN_ID)"
+	mkdir -p "artifacts/.tmp_$(AUDIT_FIXED_RUN_ID)"
+	set +e
+	$(AUDIT_BIN) --force-id "$(AUDIT_FIXED_RUN_ID)" > .audit_stdout
+	RET=$$?
+	set -e
+	test "$$RET" -eq 2
+	[ ! -s .audit_stdout ]
+	echo "  [OK] exit code 2 on collision"
+	echo "  [OK] stdout suppressed on failure"
+	rm -rf "artifacts/.tmp_$(AUDIT_FIXED_RUN_ID)"
+
+stream-purity:
+	echo "Audit: Verifying LF-only 7-line substrate stream"
+	test -f .audit_stdout
+	! od -An -t x1 .audit_stdout | grep -qi '0d'
+	test "$$(od -An -t x1 .audit_stdout | tr ' ' '\n' | grep -c '^0a$$')" -eq 7
+	echo "  [OK] no CR bytes"
+	echo "  [OK] exactly 7 LF bytes"
 
 clean:
 	cargo clean -p $(FW_PKG) -p dpw4
