@@ -6,7 +6,6 @@ use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-#[allow(dead_code)]
 mod generated {
     include!(concat!(env!("OUT_DIR"), "/build_info.rs"));
 }
@@ -14,6 +13,7 @@ mod generated {
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum CliStatus {
     Success,
+    #[allow(dead_code)]
     Fail,
     Info,
     UserError,
@@ -89,6 +89,7 @@ impl CliError {
     }
 }
 
+#[allow(dead_code)]
 pub enum OutHandle {
     File(File),
     Stdout(io::Stdout),
