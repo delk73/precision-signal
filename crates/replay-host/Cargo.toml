@@ -8,6 +8,7 @@ description = "Experimental replay host scaffolding outside the v1 release surfa
 [dependencies]
 replay-core = { path = "../replay-core" }
 sha2 = "0.10.9"
+serde = { version = "1.0", features = ["derive"] }
 
 [[bin]]
 name = "replay-host"

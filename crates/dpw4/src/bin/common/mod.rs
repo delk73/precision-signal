@@ -27,7 +27,7 @@ impl CliStatus {
             CliStatus::Fail => 1,
             CliStatus::Info => 0,
             CliStatus::UserError => 2,
-            CliStatus::SystemError => 1,
+            CliStatus::SystemError => 2,
         }
     }
 }
@@ -580,5 +580,16 @@ mod tests {
         );
 
         fs::remove_dir_all(root).expect("cleanup");
+    }
+
+    #[test]
+    fn user_and_integrity_errors_map_to_exit_2() {
+        let user = CliError::User("bad artifact".to_string());
+        let integrity = CliError::Integrity("serialization failed".to_string());
+
+        assert_eq!(user.status(), CliStatus::UserError);
+        assert_eq!(integrity.status(), CliStatus::UserError);
+        assert_eq!(user.status().code(), 2);
+        assert_eq!(integrity.status().code(), 2);
     }
 }

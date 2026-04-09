@@ -381,6 +381,8 @@ dependencies = [
  "hex",
  "libm",
  "rppal",
+ "serde",
+ "serde_json",
  "sha2",
 ]
 
@@ -919,6 +921,7 @@ name = "replay-host"
 version = "1.5.0"
 dependencies = [
  "replay-core",
+ "serde",
  "sha2",
 ]
 
