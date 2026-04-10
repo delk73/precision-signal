@@ -4,6 +4,7 @@ This directory is the GitHub Pages route for retained release-evidence bundles.
 
 Active retained release evidence:
 
+- [Release 1.6.0](1.6.0/): narrowed primary precision non-firmware release bundle
 - [Release 1.5.0](1.5.0/): bounded Rust replay release bundle
 
 Historical retained release evidence:

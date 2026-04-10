@@ -1,0 +1,3 @@
+cargo check --locked -p dpw4 --target thumbv7em-none-eabihf
+   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.20s

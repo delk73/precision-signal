@@ -1,0 +1,8 @@
+Release reproducibility summary for 1.6.0
+
+Source transcript:
+- verify_release_repro.txt
+
+Status:
+- regenerated from current repo state
+- see verify_release_repro.txt for full command output
