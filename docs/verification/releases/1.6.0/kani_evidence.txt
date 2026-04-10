@@ -1,51 +1,50 @@
-bash verify_kani.sh
 
-=== Pre-flight: Environment ===
-[PASSED] Toolchain locked to rustc 1.91.1
-[PASSED] cargo kani plugin available
-[PASSED] Required workspace packages present
+[1;34m=== Pre-flight: Environment ===[0m
+[0;32m[PASSED][0m Toolchain locked to rustc 1.91.1
+[0;32m[PASSED][0m cargo kani plugin available
+[0;32m[PASSED][0m Required workspace packages present
 
-=== Kani Formal Verification (Protocol Level -1) ===
+[1;34m=== Kani Formal Verification (Protocol Level -1) ===[0m
 Tier mode: Tier-1 (fast default)
 Shard jobs (atan2): 4
 KEEP_LOGS=0
 SLOW_SECS=360
 
-=== Harness: proof_compute_x2_safe ===
+[1;34m=== Harness: proof_compute_x2_safe ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.25s
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.26s
 Checking harness verification::proof_compute_x2_safe...
 
 VERIFICATION RESULT:
  ** 0 of 3 failed
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.25951287s
+Verification Time: 0.26152343s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_compute_x2_safe (1s)
+[0;32m[PASSED][0m proof_compute_x2_safe (1s)
 
-=== Harness: proof_saturate_safe ===
+[1;34m=== Harness: proof_saturate_safe ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.27s
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.25s
 Checking harness verification::proof_saturate_safe...
 
 VERIFICATION RESULT:
  ** 0 of 40 failed
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.03146053s
+Verification Time: 0.03131424s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_saturate_safe (1s)
+[0;32m[PASSED][0m proof_saturate_safe (1s)
 
-=== Harness: proof_phase_u32_no_overflow ===
+[1;34m=== Harness: proof_phase_u32_no_overflow ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
@@ -60,15 +59,15 @@ VERIFICATION RESULT:
  ** 0 of 125 failed (31 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 3.9188495s
+Verification Time: 3.5062368s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_phase_u32_no_overflow (7s)
+[0;32m[PASSED][0m proof_phase_u32_no_overflow (6s)
 
-=== Harness: proof_phase_u32_fixed_to_u32_conversion ===
+[1;34m=== Harness: proof_phase_u32_fixed_to_u32_conversion ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
@@ -76,22 +75,22 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.86s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.87s
 Checking harness verification::proof_phase_u32_fixed_to_u32_conversion...
 
 VERIFICATION RESULT:
  ** 0 of 126 failed (31 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 4.2943196s
+Verification Time: 4.283588s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_phase_u32_fixed_to_u32_conversion (7s)
+[0;32m[PASSED][0m proof_phase_u32_fixed_to_u32_conversion (7s)
 
-=== Harness: proof_sine_scale_no_overflow ===
+[1;34m=== Harness: proof_sine_scale_no_overflow ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.28s
 Checking harness verification::proof_sine_scale_no_overflow...
 
@@ -99,15 +98,15 @@ VERIFICATION RESULT:
  ** 0 of 67 failed (23 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.31414557s
+Verification Time: 0.31304982s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_sine_scale_no_overflow (1s)
+[0;32m[PASSED][0m proof_sine_scale_no_overflow (1s)
 
-=== Harness: proof_sine_to_i32_in_range ===
+[1;34m=== Harness: proof_sine_to_i32_in_range ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
@@ -115,22 +114,22 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.89s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.90s
 Checking harness verification::proof_sine_to_i32_in_range...
 
 VERIFICATION RESULT:
  ** 0 of 86 failed (26 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.8799644s
+Verification Time: 0.8718971s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_sine_to_i32_in_range (3s)
+[0;32m[PASSED][0m proof_sine_to_i32_in_range (4s)
 
-=== Harness: proof_sine_egress_bounded ===
+[1;34m=== Harness: proof_sine_egress_bounded ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
@@ -145,15 +144,15 @@ VERIFICATION RESULT:
  ** 0 of 122 failed (26 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.8736359s
+Verification Time: 0.870211s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_sine_egress_bounded (4s)
+[0;32m[PASSED][0m proof_sine_egress_bounded (3s)
 
-=== Harness: proof_triangle_delta_clamp_identity_when_in_range ===
+[1;34m=== Harness: proof_triangle_delta_clamp_identity_when_in_range ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.26s
 Checking harness verification::proof_triangle_delta_clamp_identity_when_in_range...
 
@@ -161,31 +160,31 @@ VERIFICATION RESULT:
  ** 0 of 3 failed
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.027841665s
+Verification Time: 0.028650632s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_triangle_delta_clamp_identity_when_in_range (1s)
+[0;32m[PASSED][0m proof_triangle_delta_clamp_identity_when_in_range (1s)
 
-=== Harness: proof_triangle_delta_clamp_saturates_when_out_of_range ===
+[1;34m=== Harness: proof_triangle_delta_clamp_saturates_when_out_of_range ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.25s
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.26s
 Checking harness verification::proof_triangle_delta_clamp_saturates_when_out_of_range...
 
 VERIFICATION RESULT:
  ** 0 of 4 failed
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.032114208s
+Verification Time: 0.02937352s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_triangle_delta_clamp_saturates_when_out_of_range (0s)
+[0;32m[PASSED][0m proof_triangle_delta_clamp_saturates_when_out_of_range (1s)
 
-=== Harness: proof_triangle_z_update_is_saturating ===
+[1;34m=== Harness: proof_triangle_z_update_is_saturating ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.25s
 Checking harness verification::proof_triangle_z_update_is_saturating...
 
@@ -193,15 +192,15 @@ VERIFICATION RESULT:
  ** 0 of 5 failed (1 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.14188522s
+Verification Time: 0.14166026s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_triangle_z_update_is_saturating (1s)
+[0;32m[PASSED][0m proof_triangle_z_update_is_saturating (0s)
 
-=== Harness: proof_i256_sub_matches_spec ===
+[1;34m=== Harness: proof_i256_sub_matches_spec ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
@@ -209,22 +208,22 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.62s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.59s
 Checking harness i256::kani_proofs::proof_i256_sub_matches_spec...
 
 VERIFICATION RESULT:
  ** 0 of 100 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 2.2255204s
+Verification Time: 2.2240708s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_i256_sub_matches_spec (4s)
+[0;32m[PASSED][0m proof_i256_sub_matches_spec (4s)
 
-=== Harness: proof_i256_sar_in_range_matches_spec ===
+[1;34m=== Harness: proof_i256_sar_in_range_matches_spec ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
@@ -232,22 +231,22 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.58s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.59s
 Checking harness i256::kani_proofs::proof_i256_sar_in_range_matches_spec...
 
 VERIFICATION RESULT:
  ** 0 of 140 failed (5 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 40.2782s
+Verification Time: 40.34788s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_i256_sar_in_range_matches_spec (42s)
+[0;32m[PASSED][0m proof_i256_sar_in_range_matches_spec (42s)
 
-=== Harness: proof_i256_sar_out_of_range_matches_spec ===
+[1;34m=== Harness: proof_i256_sar_out_of_range_matches_spec ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
@@ -262,15 +261,15 @@ VERIFICATION RESULT:
  ** 0 of 140 failed (18 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 4.25213s
+Verification Time: 4.254266s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_i256_sar_out_of_range_matches_spec (6s)
+[0;32m[PASSED][0m proof_i256_sar_out_of_range_matches_spec (6s)
 
-=== Harness: proof_i256_clamp_matches_spec ===
+[1;34m=== Harness: proof_i256_clamp_matches_spec ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
@@ -278,68 +277,22 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.58s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.57s
 Checking harness i256::kani_proofs::proof_i256_clamp_matches_spec...
 
 VERIFICATION RESULT:
  ** 0 of 70 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.4590668s
+Verification Time: 0.4436528s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_i256_clamp_matches_spec (2s)
+[0;32m[PASSED][0m proof_i256_clamp_matches_spec (3s)
 
-=== Harness: proof_spec_clamp_in_range_contract ===
+[1;34m=== Harness: proof_spec_clamp_in_range_contract ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
-warning: Found the following unsupported constructs:
-             - caller_location (1)
-             - foreign function (1)
-         
-         Verification will fail if one or more of these constructs is reachable.
-         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
-
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.26s
-Checking harness i256::kani_proofs::proof_spec_clamp_in_range_contract...
-
-VERIFICATION RESULT:
- ** 0 of 53 failed (2 unreachable)
-
-VERIFICATION:- SUCCESSFUL
-Verification Time: 0.65560395s
-
-Manual Harness Summary:
-Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_spec_clamp_in_range_contract (1s)
-
-=== Harness: proof_spec_clamp_out_of_range_contract ===
-Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
-warning: Found the following unsupported constructs:
-             - caller_location (1)
-             - foreign function (1)
-         
-         Verification will fail if one or more of these constructs is reachable.
-         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
-
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.26s
-Checking harness i256::kani_proofs::proof_spec_clamp_out_of_range_contract...
-
-VERIFICATION RESULT:
- ** 0 of 51 failed (4 unreachable)
-
-VERIFICATION:- SUCCESSFUL
-Verification Time: 0.51377374s
-
-Manual Harness Summary:
-Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_spec_clamp_out_of_range_contract (1s)
-
-=== Harness: proof_spec_sar_sanity ===
-Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
@@ -348,37 +301,44 @@ warning: Found the following unsupported constructs:
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.27s
-Checking harness i256::kani_proofs::proof_spec_sar_sanity...
+Checking harness i256::kani_proofs::proof_spec_clamp_in_range_contract...
 
 VERIFICATION RESULT:
- ** 0 of 98 failed (1 unreachable)
+ ** 0 of 53 failed (2 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 15.719704s
+Verification Time: 0.6496187s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_spec_sar_sanity (17s)
+[0;32m[PASSED][0m proof_spec_clamp_in_range_contract (1s)
 
-=== Harness: proof_triangle_freeze_invariant ===
+[1;34m=== Harness: proof_spec_clamp_out_of_range_contract ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.26s
-Checking harness verification::proof_triangle_freeze_invariant...
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (1)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.27s
+Checking harness i256::kani_proofs::proof_spec_clamp_out_of_range_contract...
 
 VERIFICATION RESULT:
- ** 0 of 16 failed (4 unreachable)
+ ** 0 of 51 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.049855288s
+Verification Time: 0.51708627s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_triangle_freeze_invariant (0s)
+[0;32m[PASSED][0m proof_spec_clamp_out_of_range_contract (1s)
 
-=== Harness: proof_triangle_freeze_egress_invariant ===
+[1;34m=== Harness: proof_spec_sar_sanity ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-   Compiling dpw4 v1.5.0 (/home/dce/src/precision-signal/crates/dpw4)
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
@@ -387,35 +347,76 @@ warning: Found the following unsupported constructs:
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
     Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.28s
+Checking harness i256::kani_proofs::proof_spec_sar_sanity...
+
+VERIFICATION RESULT:
+ ** 0 of 98 failed (1 unreachable)
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 15.745993s
+
+Manual Harness Summary:
+Complete - 1 successfully verified harnesses, 0 failures, 1 total.
+[0;32m[PASSED][0m proof_spec_sar_sanity (16s)
+
+[1;34m=== Harness: proof_triangle_freeze_invariant ===[0m
+Kani Rust Verifier 0.67.0 (cargo plugin)
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.28s
+Checking harness verification::proof_triangle_freeze_invariant...
+
+VERIFICATION RESULT:
+ ** 0 of 16 failed (4 unreachable)
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.052019417s
+
+Manual Harness Summary:
+Complete - 1 successfully verified harnesses, 0 failures, 1 total.
+[0;32m[PASSED][0m proof_triangle_freeze_invariant (1s)
+
+[1;34m=== Harness: proof_triangle_freeze_egress_invariant ===[0m
+Kani Rust Verifier 0.67.0 (cargo plugin)
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
+warning: Found the following unsupported constructs:
+             - caller_location (1)
+             - foreign function (1)
+         
+         Verification will fail if one or more of these constructs is reachable.
+         See https://model-checking.github.io/kani/rust-feature-support.html for more details.
+
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.27s
 Checking harness verification::proof_triangle_freeze_egress_invariant...
 
 VERIFICATION RESULT:
  ** 0 of 69 failed (6 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.2237075s
+Verification Time: 0.2749476s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_triangle_freeze_egress_invariant (1s)
+[0;32m[PASSED][0m proof_triangle_freeze_egress_invariant (1s)
 
-=== Harness: proof_sqrt_no_panic ===
+[1;34m=== Harness: proof_sqrt_no_panic ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+   Compiling geom-signal v1.6.0 (/home/dce/src/precision-signal/crates/geom-signal)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.14s
 Checking harness verification::tests::proof_sqrt_no_panic...
 
 VERIFICATION RESULT:
  ** 0 of 53 failed (8 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 77.871666s
+Verification Time: 78.11465s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_sqrt_no_panic (78s)
+[0;32m[PASSED][0m proof_sqrt_no_panic (79s)
 
-=== Harness: proof_sin_cos_no_panic ===
+[1;34m=== Harness: proof_sin_cos_no_panic ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
+   Compiling geom-signal v1.6.0 (/home/dce/src/precision-signal/crates/geom-signal)
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
@@ -423,21 +424,22 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.18s
 Checking harness verification::tests::proof_sin_cos_no_panic...
 
 VERIFICATION RESULT:
  ** 0 of 159 failed (32 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 174.54163s
+Verification Time: 254.02472s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_sin_cos_no_panic (175s)
+[0;32m[PASSED][0m proof_sin_cos_no_panic (254s)
 
-=== Harness: proof_v0_wire_size_constants ===
+[1;34m=== Harness: proof_v0_wire_size_constants ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
+   Compiling replay-core v1.6.0 (/home/dce/src/precision-signal/crates/replay-core)
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
@@ -445,21 +447,22 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.52s
 Checking harness artifact::verification::proof_v0_wire_size_constants_use_artifact0_size...
 
 VERIFICATION RESULT:
  ** 0 of 134 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.37301987s
+Verification Time: 0.37455916s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_v0_wire_size_constants (1s)
+[0;32m[PASSED][0m proof_v0_wire_size_constants (2s)
 
-=== Harness: proof_encode_header0_wire_layout_and_le ===
+[1;34m=== Harness: proof_encode_header0_wire_layout_and_le ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
+   Compiling replay-core v1.6.0 (/home/dce/src/precision-signal/crates/replay-core)
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
@@ -467,21 +470,22 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.53s
 Checking harness artifact::verification::proof_encode_header0_wire_layout_and_le...
 
 VERIFICATION RESULT:
  ** 0 of 208 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 1.256356s
+Verification Time: 1.2469592s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_encode_header0_wire_layout_and_le (3s)
+[0;32m[PASSED][0m proof_encode_header0_wire_layout_and_le (3s)
 
-=== Harness: proof_encode_event_frame0_wire_layout_and_le ===
+[1;34m=== Harness: proof_encode_event_frame0_wire_layout_and_le ===[0m
 Kani Rust Verifier 0.67.0 (cargo plugin)
+   Compiling replay-core v1.6.0 (/home/dce/src/precision-signal/crates/replay-core)
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
@@ -489,23 +493,23 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.57s
 Checking harness artifact::verification::proof_encode_event_frame0_wire_layout_and_le...
 
 VERIFICATION RESULT:
  ** 0 of 208 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 1.1384335s
+Verification Time: 1.1399467s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_encode_event_frame0_wire_layout_and_le (2s)
-[WARN] Skipping heavy harness proof_i256_mul_u32_matches_spec (set RUN_HEAVY=1 to enable)
-[WARN] Skipping heavy harness proof_atan2_q1 (set RUN_HEAVY=1 to enable)
-[WARN] Skipping heavy harness proof_atan2_q2 (set RUN_HEAVY=1 to enable)
-[WARN] Skipping heavy harness proof_atan2_q3 (set RUN_HEAVY=1 to enable)
-[WARN] Skipping heavy harness proof_atan2_q4 (set RUN_HEAVY=1 to enable)
+[0;32m[PASSED][0m proof_encode_event_frame0_wire_layout_and_le (4s)
+[0;33m[WARN][0m Skipping heavy harness proof_i256_mul_u32_matches_spec (set RUN_HEAVY=1 to enable)
+[0;33m[WARN][0m Skipping heavy harness proof_atan2_q1 (set RUN_HEAVY=1 to enable)
+[0;33m[WARN][0m Skipping heavy harness proof_atan2_q2 (set RUN_HEAVY=1 to enable)
+[0;33m[WARN][0m Skipping heavy harness proof_atan2_q3 (set RUN_HEAVY=1 to enable)
+[0;33m[WARN][0m Skipping heavy harness proof_atan2_q4 (set RUN_HEAVY=1 to enable)
 
-=== Summary ===
-[PASSED] Kani verification complete (360s total)
+[1;34m=== Summary ===[0m
+[0;32m[PASSED][0m Kani verification complete (442s total)

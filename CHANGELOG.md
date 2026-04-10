@@ -16,6 +16,19 @@
 
 - no behavior or artifact changes
 
+## [1.6.0] - 2026-04-10
+
+### Changed
+
+- modularized the released precision CLI entrypoint (`precision.rs`) to separate authoritative command dispatch from shared utility harness
+- split utility surface into separate `sig_util` entrypoint to maintain clear authority boundary
+
+### Notes
+
+- Maintenance release; no behavior changes to released precision commands (record, replay, diff, envelope)
+- Narrowed non-firmware retained release bundle for the primary precision CLI scope
+- No replay-host or firmware scope expansion
+
 ## [1.5.0] - 2026-04-04
 
 ### Added
