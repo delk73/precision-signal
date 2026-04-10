@@ -1,0 +1,8 @@
+build_reproducibility_status=PASS
+toolchain=rustc 1.91.1 (ed61e7d7e 2025-11-07)
+cargo=cargo 1.91.1 (ea2d97820 2025-10-10)
+binary=precision
+build_a_sha256=db129625699f08a3c7e9e1e838f14db0f37ff19be1ad522ec439abfbb5fa7fe9
+build_b_sha256=db129625699f08a3c7e9e1e838f14db0f37ff19be1ad522ec439abfbb5fa7fe9
+comparison=bit-identical
+script=verify_release_repro.sh

@@ -54,11 +54,19 @@ else
     KEEP_LOGS="$KEEP_LOGS"
 fi
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[0;33m'
-BLUE='\033[1;34m'
-RESET='\033[0m'
+if [ -n "${NO_COLOR:-}" ]; then
+    RED=''
+    GREEN=''
+    YELLOW=''
+    BLUE=''
+    RESET=''
+else
+    RED='\033[0;31m'
+    GREEN='\033[0;32m'
+    YELLOW='\033[0;33m'
+    BLUE='\033[1;34m'
+    RESET='\033[0m'
+fi
 
 print_header() {
     printf "\n${BLUE}=== %s ===${RESET}\n" "$1"

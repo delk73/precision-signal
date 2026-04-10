@@ -87,7 +87,7 @@ space :=
 space +=
 comma := ,
 
-.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff replay-check replay-repeat-check replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
+.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff replay-check replay-repeat-check replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
 
 help:
 	echo "Demo V2 lifecycle:"
@@ -146,6 +146,7 @@ help:
 	echo "  make check-workspace"
 	echo "  make test"
 	echo "  make gate"
+	echo "  make release-bundle VERSION=1.6.0"
 	echo "  make ci-local"
 	echo
 	echo "Captured divergence release workflow:"
@@ -378,6 +379,47 @@ fw-release-archive:
 	echo "## explicit hash check" >> "$$REL_DIR/firmware_release_evidence.md"; \
 	cat "$$REL_DIR/hash_check.txt" >> "$$REL_DIR/firmware_release_evidence.md"
 	python3 scripts/check_release_bundle.py --version "$(VERSION)"
+
+release-bundle:
+	@test -n "$(VERSION)" || { echo "VERSION is required"; exit 1; }
+	@REL_DIR="docs/verification/releases/$(VERSION)"; \
+	WS_VERSION="$$(awk -F'"' '/^version = "/ {print $$2; exit}' Cargo.toml)"; \
+	if [[ "$$WS_VERSION" != "$(VERSION)" ]]; then \
+	  echo "[release-bundle] FAIL metadata: workspace version=$$WS_VERSION, requested VERSION=$(VERSION)"; \
+	  exit 1; \
+	fi; \
+	mkdir -p "$$REL_DIR"; \
+	echo "[release-bundle] 1/6 cargo_check_dpw4_thumb_locked.txt"; \
+	if ! cargo check --locked -p dpw4 --target thumbv7em-none-eabihf > "$$REL_DIR/cargo_check_dpw4_thumb_locked.txt" 2>&1; then \
+	  echo "[release-bundle] FAIL phase=1 file=$$REL_DIR/cargo_check_dpw4_thumb_locked.txt"; \
+	  exit 1; \
+	fi; \
+	echo "[release-bundle] 2/6 kani_evidence.txt"; \
+	if ! NO_COLOR=1 bash verify_kani.sh > "$$REL_DIR/kani_evidence.txt" 2>&1; then \
+	  echo "[release-bundle] FAIL phase=2 file=$$REL_DIR/kani_evidence.txt"; \
+	  exit 1; \
+	fi; \
+	echo "[release-bundle] 3/6 make_gate.txt"; \
+	if ! $(MAKE) --no-print-directory gate > "$$REL_DIR/make_gate.txt" 2>&1; then \
+	  echo "[release-bundle] FAIL phase=3 file=$$REL_DIR/make_gate.txt"; \
+	  exit 1; \
+	fi; \
+	echo "[release-bundle] 4/6 verify_release_repro.txt + contract summary"; \
+	if ! RELEASE_EVIDENCE_DIR="$$REL_DIR" bash verify_release_repro.sh > "$$REL_DIR/verify_release_repro.txt" 2>&1; then \
+	  echo "[release-bundle] FAIL phase=4 file=$$REL_DIR/verify_release_repro.txt"; \
+	  exit 1; \
+	fi; \
+	echo "[release-bundle] 5/6 stale prior-release guard"; \
+	if ! python3 scripts/release_bundle_guard_stale.py --dir "$$REL_DIR" --version "$(VERSION)"; then \
+	  echo "[release-bundle] FAIL phase=5 stale prior-release workspace evidence"; \
+	  exit 1; \
+	fi; \
+	echo "[release-bundle] 6/6 control-byte guard (non-lossy)"; \
+	if ! python3 scripts/release_bundle_guard_control_bytes.py --dir "$$REL_DIR"; then \
+	  echo "[release-bundle] FAIL phase=6 control bytes detected"; \
+	  exit 1; \
+	fi; \
+	echo "[release-bundle] OK bundle generated: $$REL_DIR"
 
 release-bundle-check:
 	@test -n "$(VERSION)" || { echo "VERSION is required"; exit 1; }

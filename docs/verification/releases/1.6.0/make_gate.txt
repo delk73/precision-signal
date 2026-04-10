@@ -1,2 +1,1 @@
 cargo run --locked --release -p dpw4 --features cli --bin sig-util -- validate --mode quick
-VERIFICATION PASSED
