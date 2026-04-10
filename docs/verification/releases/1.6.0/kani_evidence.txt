@@ -13,34 +13,34 @@ SLOW_SECS=360
 === Harness: proof_compute_x2_safe ===
 Kani Rust Verifier 0.67.0 (cargo plugin)
    Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.25s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.26s
 Checking harness verification::proof_compute_x2_safe...
 
 VERIFICATION RESULT:
  ** 0 of 3 failed
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.26097718s
+Verification Time: 0.26392096s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_compute_x2_safe (0s)
+[PASSED] proof_compute_x2_safe (1s)
 
 === Harness: proof_saturate_safe ===
 Kani Rust Verifier 0.67.0 (cargo plugin)
    Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.25s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.27s
 Checking harness verification::proof_saturate_safe...
 
 VERIFICATION RESULT:
  ** 0 of 40 failed
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.031072147s
+Verification Time: 0.044444233s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_saturate_safe (1s)
+[PASSED] proof_saturate_safe (0s)
 
 === Harness: proof_phase_u32_no_overflow ===
 Kani Rust Verifier 0.67.0 (cargo plugin)
@@ -52,18 +52,18 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.87s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.91s
 Checking harness verification::proof_phase_u32_no_overflow...
 
 VERIFICATION RESULT:
  ** 0 of 125 failed (31 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 3.5369506s
+Verification Time: 3.5165434s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_phase_u32_no_overflow (6s)
+[PASSED] proof_phase_u32_no_overflow (7s)
 
 === Harness: proof_phase_u32_fixed_to_u32_conversion ===
 Kani Rust Verifier 0.67.0 (cargo plugin)
@@ -75,18 +75,18 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.89s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.92s
 Checking harness verification::proof_phase_u32_fixed_to_u32_conversion...
 
 VERIFICATION RESULT:
  ** 0 of 126 failed (31 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 4.2736917s
+Verification Time: 4.338617s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_phase_u32_fixed_to_u32_conversion (8s)
+[PASSED] proof_phase_u32_fixed_to_u32_conversion (7s)
 
 === Harness: proof_sine_scale_no_overflow ===
 Kani Rust Verifier 0.67.0 (cargo plugin)
@@ -98,7 +98,7 @@ VERIFICATION RESULT:
  ** 0 of 67 failed (23 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.31677085s
+Verification Time: 0.31765693s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
@@ -114,18 +114,18 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.90s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.87s
 Checking harness verification::proof_sine_to_i32_in_range...
 
 VERIFICATION RESULT:
  ** 0 of 86 failed (26 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.87399995s
+Verification Time: 0.8897542s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_sine_to_i32_in_range (3s)
+[PASSED] proof_sine_to_i32_in_range (4s)
 
 === Harness: proof_sine_egress_bounded ===
 Kani Rust Verifier 0.67.0 (cargo plugin)
@@ -137,18 +137,18 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.93s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.87s
 Checking harness verification::proof_sine_egress_bounded...
 
 VERIFICATION RESULT:
  ** 0 of 122 failed (26 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.8756944s
+Verification Time: 0.86230135s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_sine_egress_bounded (4s)
+[PASSED] proof_sine_egress_bounded (3s)
 
 === Harness: proof_triangle_delta_clamp_identity_when_in_range ===
 Kani Rust Verifier 0.67.0 (cargo plugin)
@@ -160,7 +160,7 @@ VERIFICATION RESULT:
  ** 0 of 3 failed
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.029136583s
+Verification Time: 0.028206963s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
@@ -169,18 +169,18 @@ Complete - 1 successfully verified harnesses, 0 failures, 1 total.
 === Harness: proof_triangle_delta_clamp_saturates_when_out_of_range ===
 Kani Rust Verifier 0.67.0 (cargo plugin)
    Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.25s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.26s
 Checking harness verification::proof_triangle_delta_clamp_saturates_when_out_of_range...
 
 VERIFICATION RESULT:
  ** 0 of 4 failed
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.029524025s
+Verification Time: 0.031051956s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_triangle_delta_clamp_saturates_when_out_of_range (0s)
+[PASSED] proof_triangle_delta_clamp_saturates_when_out_of_range (1s)
 
 === Harness: proof_triangle_z_update_is_saturating ===
 Kani Rust Verifier 0.67.0 (cargo plugin)
@@ -192,11 +192,11 @@ VERIFICATION RESULT:
  ** 0 of 5 failed (1 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.1408959s
+Verification Time: 0.14163242s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_triangle_z_update_is_saturating (1s)
+[PASSED] proof_triangle_z_update_is_saturating (0s)
 
 === Harness: proof_i256_sub_matches_spec ===
 Kani Rust Verifier 0.67.0 (cargo plugin)
@@ -208,14 +208,14 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.60s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.58s
 Checking harness i256::kani_proofs::proof_i256_sub_matches_spec...
 
 VERIFICATION RESULT:
  ** 0 of 100 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 2.1909523s
+Verification Time: 2.2087574s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
@@ -238,7 +238,7 @@ VERIFICATION RESULT:
  ** 0 of 140 failed (5 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 40.046803s
+Verification Time: 40.15842s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
@@ -254,14 +254,14 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.58s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.59s
 Checking harness i256::kani_proofs::proof_i256_sar_out_of_range_matches_spec...
 
 VERIFICATION RESULT:
  ** 0 of 140 failed (18 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 4.2587776s
+Verification Time: 4.3046007s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
@@ -277,14 +277,14 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.60s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.58s
 Checking harness i256::kani_proofs::proof_i256_clamp_matches_spec...
 
 VERIFICATION RESULT:
  ** 0 of 70 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.47306088s
+Verification Time: 0.47468573s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
@@ -300,18 +300,18 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.26s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.27s
 Checking harness i256::kani_proofs::proof_spec_clamp_in_range_contract...
 
 VERIFICATION RESULT:
  ** 0 of 53 failed (2 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.6538381s
+Verification Time: 0.6608115s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_spec_clamp_in_range_contract (1s)
+[PASSED] proof_spec_clamp_in_range_contract (2s)
 
 === Harness: proof_spec_clamp_out_of_range_contract ===
 Kani Rust Verifier 0.67.0 (cargo plugin)
@@ -323,14 +323,14 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.26s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.27s
 Checking harness i256::kani_proofs::proof_spec_clamp_out_of_range_contract...
 
 VERIFICATION RESULT:
  ** 0 of 51 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.51713836s
+Verification Time: 0.50042605s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
@@ -353,11 +353,11 @@ VERIFICATION RESULT:
  ** 0 of 98 failed (1 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 15.78254s
+Verification Time: 15.874816s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_spec_sar_sanity (17s)
+[PASSED] proof_spec_sar_sanity (16s)
 
 === Harness: proof_triangle_freeze_invariant ===
 Kani Rust Verifier 0.67.0 (cargo plugin)
@@ -369,11 +369,11 @@ VERIFICATION RESULT:
  ** 0 of 16 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.055800457s
+Verification Time: 0.055404566s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_triangle_freeze_invariant (0s)
+[PASSED] proof_triangle_freeze_invariant (1s)
 
 === Harness: proof_triangle_freeze_egress_invariant ===
 Kani Rust Verifier 0.67.0 (cargo plugin)
@@ -385,14 +385,14 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.27s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.28s
 Checking harness verification::proof_triangle_freeze_egress_invariant...
 
 VERIFICATION RESULT:
  ** 0 of 69 failed (6 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.27922282s
+Verification Time: 0.2768345s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
@@ -407,11 +407,11 @@ VERIFICATION RESULT:
  ** 0 of 53 failed (8 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 78.59264s
+Verification Time: 79.11057s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_sqrt_no_panic (79s)
+[PASSED] proof_sqrt_no_panic (80s)
 
 === Harness: proof_sin_cos_no_panic ===
 Kani Rust Verifier 0.67.0 (cargo plugin)
@@ -429,11 +429,11 @@ VERIFICATION RESULT:
  ** 0 of 159 failed (32 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 256.8666s
+Verification Time: 257.02142s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_sin_cos_no_panic (258s)
+[PASSED] proof_sin_cos_no_panic (257s)
 
 === Harness: proof_v0_wire_size_constants ===
 Kani Rust Verifier 0.67.0 (cargo plugin)
@@ -451,14 +451,15 @@ VERIFICATION RESULT:
  ** 0 of 134 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.37392747s
+Verification Time: 0.37251815s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_v0_wire_size_constants (1s)
+[PASSED] proof_v0_wire_size_constants (2s)
 
 === Harness: proof_encode_header0_wire_layout_and_le ===
 Kani Rust Verifier 0.67.0 (cargo plugin)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
@@ -466,22 +467,20 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
 Checking harness artifact::verification::proof_encode_header0_wire_layout_and_le...
 
 VERIFICATION RESULT:
  ** 0 of 208 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 1.2669803s
+Verification Time: 1.264286s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_encode_header0_wire_layout_and_le (3s)
+[PASSED] proof_encode_header0_wire_layout_and_le (2s)
 
 === Harness: proof_encode_event_frame0_wire_layout_and_le ===
 Kani Rust Verifier 0.67.0 (cargo plugin)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
@@ -489,17 +488,18 @@ warning: Found the following unsupported constructs:
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
 Checking harness artifact::verification::proof_encode_event_frame0_wire_layout_and_le...
 
 VERIFICATION RESULT:
  ** 0 of 208 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 1.1396143s
+Verification Time: 1.1419466s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] proof_encode_event_frame0_wire_layout_and_le (2s)
+[PASSED] proof_encode_event_frame0_wire_layout_and_le (3s)
 [WARN] Skipping heavy harness proof_i256_mul_u32_matches_spec (set RUN_HEAVY=1 to enable)
 [WARN] Skipping heavy harness proof_atan2_q1 (set RUN_HEAVY=1 to enable)
 [WARN] Skipping heavy harness proof_atan2_q2 (set RUN_HEAVY=1 to enable)
@@ -507,4 +507,4 @@ Complete - 1 successfully verified harnesses, 0 failures, 1 total.
 [WARN] Skipping heavy harness proof_atan2_q4 (set RUN_HEAVY=1 to enable)
 
 === Summary ===
-[PASSED] Kani verification complete (442s total)
+[PASSED] Kani verification complete (444s total)
