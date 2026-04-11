@@ -28,14 +28,14 @@ The demo name was corrected in documentation only.
 # A) Baseline capture
 make FW_FEATURES= flash-ur
 SERIAL=/dev/ttyACM0 python3 scripts/repeat_capture.py \
-  --runs 1 --signal-model phase8 --reset-mode stlink \
+  --contract rpl0 --runs 1 --signal-model phase8 --reset-mode stlink \
   --artifacts-dir artifacts/demo_natural/a_capture
 cp artifacts/demo_natural/a_capture/run_01.bin artifacts/demo_natural/run_A.rpl
 
 # B) Perturbed capture (capture-time perturbation)
 make FW_FEATURES=demo-divergence flash-ur
 SERIAL=/dev/ttyACM0 python3 scripts/repeat_capture.py \
-  --runs 1 --signal-model phase8 --reset-mode stlink \
+  --contract rpl0 --runs 1 --signal-model phase8 --reset-mode stlink \
   --artifacts-dir artifacts/demo_natural/b_capture
 cp artifacts/demo_natural/b_capture/run_01.bin artifacts/demo_natural/run_B.rpl
 

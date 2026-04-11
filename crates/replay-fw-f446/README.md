@@ -26,6 +26,19 @@ transport line.
   then writes the canonical `index,interval_us` CSV body over USART2 TX using
   polling.
 
+## Physical loopback
+
+This STM32 self-stimulus path is not an internal timer-to-timer route. It
+requires a physical loopback from the configured stimulus output pin to the
+configured capture input pin:
+
+- stimulus source: `TIM3_CH1` on `PA6`
+- capture input: `TIM2_CH1` on `PA0`
+
+If the `PA6 -> PA0` loopback is missing or landed on the wrong pin, the
+firmware can boot, UART can work, and the stimulus square wave can be visible
+on scope while capture still ends with `STATE,CAPTURE_INCOMPLETE,0`.
+
 ## Host capture
 
 Validated manual-reset operator path for the self-stimulus CSV flow is documented in

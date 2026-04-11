@@ -54,13 +54,13 @@ python3 scripts/artifact_tool.py verify artifacts/demo_persistent/run_B.rpl --si
 # Optional: capture provenance for execution-state divergence (hardware path)
 make FW_FEATURES= flash-ur
 SERIAL=/dev/ttyACM0 python3 scripts/repeat_capture.py \
-  --runs 1 --signal-model phase8 --reset-mode stlink \
+  --contract rpl0 --runs 1 --signal-model phase8 --reset-mode stlink \
   --artifacts-dir artifacts/demo_persistent/a_capture
 cp artifacts/demo_persistent/a_capture/run_01.bin artifacts/demo_persistent/run_A_captured.rpl
 
 make FW_FEATURES=demo-persistent-divergence flash-ur
 SERIAL=/dev/ttyACM0 python3 scripts/repeat_capture.py \
-  --runs 1 --signal-model phase8 --reset-mode stlink \
+  --contract rpl0 --runs 1 --signal-model phase8 --reset-mode stlink \
   --artifacts-dir artifacts/demo_persistent/b_capture
 cp artifacts/demo_persistent/b_capture/run_01.bin artifacts/demo_persistent/run_B_captured.rpl
 ```

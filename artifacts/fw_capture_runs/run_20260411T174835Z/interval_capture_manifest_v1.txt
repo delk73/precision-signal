@@ -1,0 +1,16 @@
+contract_version=interval_capture_v1
+transport_contract=state_then_interval_csv
+csv_header=index,interval_us
+expected_rows=138
+reset_mode=manual
+imported_artifacts=true
+requested_runs=1
+completed_runs=1
+final_status=FAIL
+failure_class=uart_emission_timeout
+csv_hash_stable=false
+imported_hash_stable=false
+timestamp_utc=2026-04-11T17:48:35Z
+run_dir=artifacts/fw_capture_runs/run_20260411T174835Z
+
+# fields: run csv rows csv_sha256 imported imported_sha256 status

@@ -1,6 +1,6 @@
 cargo run --locked --release -p dpw4 --features cli --bin sig-util -- validate --mode quick
    Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
-    Finished `release` profile [optimized] target(s) in 4.14s
+    Finished `release` profile [optimized] target(s) in 3.97s
      Running `target/release/sig-util validate --mode quick`
 PASS version_consistency: workspace=1.6.0 lock=1.6.0
 PASS toolchain_pin: channel=1.91.1

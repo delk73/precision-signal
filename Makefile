@@ -18,6 +18,10 @@ SIGNAL_OBSERVED_CSV ?= observed.csv
 SIGNAL_FRAMES ?= 128
 SIGNAL_PERTURB_FRAME ?= 50
 SIGNAL_REPEAT_SECONDS ?=
+FW_GATE_RESET_MODE ?= manual
+FW_CAPTURE_TIMEOUT ?= 10
+FW_CAPTURE_DIR ?= artifacts/fw_capture_runs
+FW_REPEAT_DIR ?= artifacts/fw_repeat_runs
 REPLAY_SIGNAL_MODEL ?= phase8
 REPLAY_BASELINE ?= artifacts/baseline.bin
 REPLAY_RUN ?= artifacts/run.bin
@@ -87,7 +91,7 @@ space :=
 space +=
 comma := ,
 
-.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff replay-check replay-repeat-check replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
+.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
 
 help:
 	echo "Demo V2 lifecycle:"
@@ -303,32 +307,56 @@ demo-signal-pi-perturb:
 demo-signal-diff:
 	python3 scripts/interval_diff.py "$(SIGNAL_BASELINE_CSV)" "$(SIGNAL_OBSERVED_CSV)"
 
-# Human-in-the-loop contract:
+# Active firmware hardware path:
+# capture waits for STATE,CAPTURE_DONE,138 and validates index,interval_us CSV via replay-host.
+fw-capture-check:
+	test -n "$(SERIAL)" || { echo "SERIAL not set"; exit 1; }
+	rm -rf "$(FW_CAPTURE_DIR)"
+	SERIAL="$(SERIAL)" python3 scripts/replay_repeat_check.py \
+	  --runs 1 \
+	  --reset-mode "$(FW_GATE_RESET_MODE)" \
+	  --timeout "$(FW_CAPTURE_TIMEOUT)" \
+	  --artifacts-dir "$(FW_CAPTURE_DIR)"
+
+fw-repeat-check:
+	test -n "$(SERIAL)" || { echo "SERIAL not set"; exit 1; }
+	rm -rf "$(FW_REPEAT_DIR)"
+	SERIAL="$(SERIAL)" python3 scripts/replay_repeat_check.py \
+	  --runs "$(REPLAY_REPEAT_RUNS)" \
+	  --reset-mode "$(FW_GATE_RESET_MODE)" \
+	  --timeout "$(FW_CAPTURE_TIMEOUT)" \
+	  --artifacts-dir "$(FW_REPEAT_DIR)"
+
+# Retained historical RPL0 operator path:
 # capture waits for replay header; operator presses reset once after listener starts.
-replay-check:
+rpl0-replay-check:
+	export PYTHONPATH="$(CURDIR)$${PYTHONPATH:+:$${PYTHONPATH}}"
 	$(MAKE) flash-ur
 	SERIAL="$(SERIAL)" python3 scripts/artifact_tool.py capture --quick --out "$(REPLAY_RUN)"
 	python3 scripts/artifact_tool.py verify "$(REPLAY_RUN)" --signal-model "$(REPLAY_SIGNAL_MODEL)"
 	python3 scripts/artifact_tool.py compare "$(REPLAY_BASELINE)" "$(REPLAY_RUN)"
 
-replay-repeat-check:
-	SERIAL="$(SERIAL)" python3 scripts/replay_repeat_check.py \
+rpl0-replay-repeat-check:
+	export PYTHONPATH="$(CURDIR)$${PYTHONPATH:+:$${PYTHONPATH}}"
+	SERIAL="$(SERIAL)" python3 scripts/repeat_capture.py \
+	  --contract rpl0 \
 	  --runs "$(REPLAY_REPEAT_RUNS)" \
 	  --signal-model "$(REPLAY_SIGNAL_MODEL)" \
-	  --baseline "$(REPLAY_BASELINE)" \
 	  --artifacts-dir "$(REPLAY_REPEAT_DIR)"
 
-replay-repeat-auto: stflash-check
-	SERIAL="$(SERIAL)" python3 scripts/replay_repeat_check.py \
+rpl0-replay-repeat-auto: stflash-check
+	export PYTHONPATH="$(CURDIR)$${PYTHONPATH:+:$${PYTHONPATH}}"
+	SERIAL="$(SERIAL)" python3 scripts/repeat_capture.py \
+	  --contract rpl0 \
 	  --runs "$(REPLAY_REPEAT_RUNS)" \
 	  --signal-model "$(REPLAY_SIGNAL_MODEL)" \
 	  --reset-mode stlink \
 	  --stflash "$(STFLASH)" \
-	  --baseline "$(REPLAY_BASELINE)" \
 	  --artifacts-dir "$(REPLAY_REPEAT_DIR)"
 
 fw-gate:
 	@test -n "$(SERIAL)" || { echo "SERIAL is required"; exit 1; }
+	@test "$(FW_GATE_RESET_MODE)" = "manual" || { echo "FW_GATE_RESET_MODE must be manual for firmware gate"; exit 1; }
 	$(MAKE) check-workspace
 	$(MAKE) test
 	bash verify_kani.sh
@@ -338,46 +366,68 @@ fw-gate:
 	$(MAKE) flash-ur SERIAL="$(SERIAL)"
 	$(MAKE) flash-verify-ur
 	$(MAKE) flash-compare-ur
-	$(MAKE) replay-check SERIAL="$(SERIAL)"
-	$(MAKE) replay-repeat-auto SERIAL="$(SERIAL)" REPLAY_REPEAT_RUNS=3
+	$(MAKE) fw-capture-check SERIAL="$(SERIAL)"
+	$(MAKE) fw-repeat-check SERIAL="$(SERIAL)" REPLAY_REPEAT_RUNS=3
 
 firmware-release-check: fw-gate
-	@RUN_DIR="$$(ls -dt artifacts/replay_runs/run_* | head -n1)"; \
-	echo "RUN_DIR=$$RUN_DIR"; \
+	@CAPTURE_DIR="$$(ls -dt "$(FW_CAPTURE_DIR)"/run_* | head -n1)"; \
+	REPEAT_DIR="$$(ls -dt "$(FW_REPEAT_DIR)"/run_* | head -n1)"; \
+	echo "CAPTURE_DIR=$$CAPTURE_DIR"; \
+	echo "REPEAT_DIR=$$REPEAT_DIR"; \
 	echo; \
-	ls -lah "$$RUN_DIR"; \
+	echo "== capture files =="; \
+	ls -lah "$$CAPTURE_DIR"; \
 	echo; \
-	echo "== sha256 summary =="; \
-	cat "$$RUN_DIR/sha256_summary.txt"; \
+	echo "== capture manifest =="; \
+	cat "$$CAPTURE_DIR/interval_capture_manifest_v1.txt"; \
 	echo; \
-	echo "== manifest =="; \
-	cat "$$RUN_DIR/replay_manifest_v1.txt"; \
+	echo "== repeat files =="; \
+	ls -lah "$$REPEAT_DIR"; \
 	echo; \
-	echo "== explicit hash check =="; \
-	sha256sum artifacts/baseline.bin artifacts/run.bin "$$RUN_DIR"/run_*.bin
+	echo "== repeat csv sha256 summary =="; \
+	cat "$$REPEAT_DIR/csv_sha256_summary.txt"; \
+	echo; \
+	echo "== repeat imported sha256 summary =="; \
+	cat "$$REPEAT_DIR/imported_artifact_sha256_summary.txt"; \
+	echo; \
+	echo "== repeat manifest =="; \
+	cat "$$REPEAT_DIR/interval_capture_manifest_v1.txt"
 
 fw-release-archive:
 	@test -n "$(SERIAL)" || { echo "SERIAL is required"; exit 1; }
 	@test -n "$(VERSION)" || { echo "VERSION is required"; exit 1; }
 	$(MAKE) firmware-release-check SERIAL="$(SERIAL)"
-	@RUN_DIR="$$(ls -dt artifacts/replay_runs/run_* | head -n1)"; \
+	@CAPTURE_DIR="$$(ls -dt "$(FW_CAPTURE_DIR)"/run_* | head -n1)"; \
+	REPEAT_DIR="$$(ls -dt "$(FW_REPEAT_DIR)"/run_* | head -n1)"; \
 	REL_DIR="docs/verification/releases/$(VERSION)"; \
 	mkdir -p "$$REL_DIR"; \
-	cp "$$RUN_DIR/sha256_summary.txt" "$$REL_DIR/"; \
-	cp "$$RUN_DIR/replay_manifest_v1.txt" "$$REL_DIR/"; \
-	sha256sum artifacts/baseline.bin artifacts/run.bin "$$RUN_DIR"/run_*.bin > "$$REL_DIR/hash_check.txt"; \
+	rm -rf "$$REL_DIR/fw_capture" "$$REL_DIR/fw_repeat"; \
+	cp -R "$$CAPTURE_DIR" "$$REL_DIR/fw_capture"; \
+	cp -R "$$REPEAT_DIR" "$$REL_DIR/fw_repeat"; \
+	sha256sum "$$CAPTURE_DIR"/run_*.csv "$$CAPTURE_DIR"/run_*.imported.rpl > "$$REL_DIR/fw_capture_hash_check.txt"; \
+	sha256sum "$$REPEAT_DIR"/run_*.csv "$$REPEAT_DIR"/run_*.imported.rpl > "$$REL_DIR/fw_repeat_hash_check.txt"; \
 	echo "# Firmware Release Evidence ($(VERSION))" > "$$REL_DIR/firmware_release_evidence.md"; \
 	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	echo "RUN_DIR=$$RUN_DIR" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "CAPTURE_DIR=$$CAPTURE_DIR" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "REPEAT_DIR=$$REPEAT_DIR" >> "$$REL_DIR/firmware_release_evidence.md"; \
 	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	echo "## sha256 summary" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	cat "$$REL_DIR/sha256_summary.txt" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "## capture manifest" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	cat "$$REL_DIR/fw_capture/interval_capture_manifest_v1.txt" >> "$$REL_DIR/firmware_release_evidence.md"; \
 	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	echo "## manifest" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	cat "$$REL_DIR/replay_manifest_v1.txt" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "## repeat csv sha256 summary" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	cat "$$REL_DIR/fw_repeat/csv_sha256_summary.txt" >> "$$REL_DIR/firmware_release_evidence.md"; \
 	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	echo "## explicit hash check" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	cat "$$REL_DIR/hash_check.txt" >> "$$REL_DIR/firmware_release_evidence.md"
+	echo "## repeat imported sha256 summary" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	cat "$$REL_DIR/fw_repeat/imported_artifact_sha256_summary.txt" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "## repeat manifest" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	cat "$$REL_DIR/fw_repeat/interval_capture_manifest_v1.txt" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "## capture hash check" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	cat "$$REL_DIR/fw_capture_hash_check.txt" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "## repeat hash check" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	cat "$$REL_DIR/fw_repeat_hash_check.txt" >> "$$REL_DIR/firmware_release_evidence.md"
 	python3 scripts/check_release_bundle.py --version "$(VERSION)"
 
 release-bundle:
@@ -431,6 +481,7 @@ capture-demo-A: shell-check stflash-check
 	test -n "$(SERIAL)" || { echo "SERIAL not set"; exit 1; }
 	$(MAKE) FW_FEATURES= flash-ur
 	SERIAL="$(SERIAL)" python3 scripts/repeat_capture.py \
+	  --contract rpl0 \
 	  --runs 1 \
 	  --signal-model "$(REPLAY_SIGNAL_MODEL)" \
 	  --reset-mode stlink \
@@ -446,6 +497,7 @@ capture-demo-B: shell-check stflash-check
 	test -n "$(SERIAL)" || { echo "SERIAL not set"; exit 1; }
 	$(MAKE) FW_FEATURES=demo-divergence flash-ur
 	SERIAL="$(SERIAL)" python3 scripts/repeat_capture.py \
+	  --contract rpl0 \
 	  --runs 1 \
 	  --signal-model "$(REPLAY_SIGNAL_MODEL)" \
 	  --reset-mode stlink \
@@ -472,6 +524,7 @@ demo-v2-capture: shell-check stflash-check
 	mkdir -p "$(DEMO_V2_CAPTURE_A_DIR)" "$(DEMO_V2_CAPTURE_B_DIR)"
 	$(MAKE) FW_FEATURES= flash-ur
 	SERIAL="$(SERIAL)" python3 scripts/repeat_capture.py \
+	  --contract rpl0 \
 	  --runs 1 \
 	  --signal-model "$(REPLAY_SIGNAL_MODEL)" \
 	  --reset-mode stlink \
@@ -483,6 +536,7 @@ demo-v2-capture: shell-check stflash-check
 	echo "== Demo V2 Capture: Perturbed (demo-persistent-divergence) =="
 	$(MAKE) FW_FEATURES=demo-persistent-divergence flash-ur
 	SERIAL="$(SERIAL)" python3 scripts/repeat_capture.py \
+	  --contract rpl0 \
 	  --runs 1 \
 	  --signal-model "$(REPLAY_SIGNAL_MODEL)" \
 	  --reset-mode stlink \

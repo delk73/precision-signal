@@ -61,9 +61,25 @@ Operational notes:
 - one reset press per capture run
 - do not keep active debug server attached during UART capture
 - manual reset is canonical for UART capture on this flow
+- this self-stimulus lane requires a physical loopback from `PA6` (`TIM3_CH1`
+  stimulus) to `PA0` (`TIM2_CH1` capture); it is not an internal-only route
 - success is indicated first by `STATE,CAPTURE_DONE,138`, followed by CSV with header `index,interval_us` and 138 rows
 - `STATE,CAPTURE_INCOMPLETE,<N>` is an explicit failure diagnostic; treat it as capture not fully completed
 - In this characterization, `--reset-mode stlink` did not produce a `STATE,...` line; treat it as not validated for UART capture on this flow.
+
+Validated gate path:
+
+```bash
+make fw-capture-check SERIAL=/dev/ttyACM0
+make fw-repeat-check SERIAL=/dev/ttyACM0 REPLAY_REPEAT_RUNS=3
+make firmware-release-check SERIAL=/dev/ttyACM0
+```
+
+Gate notes:
+- gate/reset authority is manual reset only
+- current validated `1.6.0` firmware release gate is manual-reset, human-in-the-loop
+- gate capture must fail fast if no UART emission arrives within the configured timeout
+- no default gate path may wait for `RPL0`
 
 ### C. GDB debug session
 Operator sequence:
@@ -118,7 +134,7 @@ Symptoms:
 - first line is `STATE,CAPTURE_INCOMPLETE,<N>` where `0 < N < 138`
 
 Meaning:
-- `0`: A0 capture did not start
+- `0`: no capture edge reached `PA0` / `TIM2_CH1` after arming; check the `PA6 -> PA0` loopback first
 - `0 < N < 138`: capture started but did not complete
 
 ### G. ST-LINK reset mode produces no `STATE,...` line
@@ -197,6 +213,12 @@ make flash-compare-ur
 python3 scripts/csv_capture.py --serial /dev/ttyACM0 --out observed.csv --reset-mode manual
 ```
 Then press reset once.
+
+### Gate wrappers
+```bash
+make fw-capture-check SERIAL=/dev/ttyACM0
+make fw-repeat-check SERIAL=/dev/ttyACM0 REPLAY_REPEAT_RUNS=3
+```
 
 Expected first line:
 - `STATE,CAPTURE_DONE,138` on success

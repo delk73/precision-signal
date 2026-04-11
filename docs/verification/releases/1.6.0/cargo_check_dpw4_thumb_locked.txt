@@ -1,2 +1,2 @@
    Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.14s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.20s
