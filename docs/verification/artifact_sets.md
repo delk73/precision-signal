@@ -14,7 +14,7 @@ The pinned quick validation set is:
 - `long_run_0_1hz.det.csv`
 - `master_sweep_20_20k.det.csv`
 
-Canonical generation and checking are performed by `precision validate` and
+Canonical generation and checking are performed by `sig-util validate` and
 `precision artifacts`.
 
 ## Forensic Hashing

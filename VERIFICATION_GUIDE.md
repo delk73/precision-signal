@@ -282,7 +282,7 @@ normative table.
 
 ### 6.3 Supported Entry Surface
 Use `make gate` for routine operator execution of the quick validation gate.
-The underlying normative command remains `precision validate --mode quick`.
+The underlying normative command is `sig-util validate --mode quick`.
 No other command is an equally authoritative release-admissibility gate.
 
 ### 6.4 Release Evidence Location
@@ -384,7 +384,7 @@ Providing bit-level transparency into the internal state of the oscillator.
 cargo run -p dpw4 --features cli --bin precision -- artifacts --out docs/verification
 ```
 **Traces Produced** (in `docs/verification/`):
-- **Normative for `precision validate` determinism gate**:
+- **Normative for `sig-util validate` determinism gate**:
   - `saw_20_headroom.det.csv`
   - `pulse_relational_8k.det.csv`
   - `triangle_linearity_1k.det.csv`
@@ -482,7 +482,7 @@ Role:
 
 - use `make gate` as the canonical release gate
 - use `bash verify_release_repro.sh` when the release record must retain a
-  same-machine dual-build identity check for the `precision` release binary
+  same-machine dual-build identity check for the `sig-util` release binary
 - for `1.2.0`, treat the retained result as supporting-only evidence, not a
   required release-admissibility artifact
 - if retained, archive its result under `docs/verification/releases/<version>/`

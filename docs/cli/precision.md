@@ -88,7 +88,7 @@ Runs the canonical deterministic release gate.
 | `--json` | Emit single JSON report to `stdout` | `false` |
 | `--keep` | Keep `run1`/`run2` on PASS | `false` |
 
-*   **Operator Routing**: `make gate` is the canonical operator-facing entrypoint. `precision validate --mode quick` is the normative underlying command.
+*   **Operator Routing**: `make gate` is the canonical operator-facing entrypoint. The normative underlying command is `sig-util validate --mode quick`.
 *   **Checks**:
     *   `version_consistency`
     *   `toolchain_pin`

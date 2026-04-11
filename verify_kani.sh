@@ -228,7 +228,9 @@ run_harness() {
     local elapsed
     start=$(now_epoch)
 
-    "${cmd[@]}" 2>&1 | tee "$log"
+    # cargo-kani occasionally injects NUL bytes into terse output; strip them so
+    # retained transcripts remain text-stable and pass control-byte guards.
+    "${cmd[@]}" 2>&1 | perl -pe 's/\x00//g' | tee "$log"
     local cargo_exit="${PIPESTATUS[0]}"
 
     if [ "$cargo_exit" = "0" ] && validate_success_token "$log"; then

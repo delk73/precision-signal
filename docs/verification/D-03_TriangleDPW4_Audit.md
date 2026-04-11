@@ -43,7 +43,7 @@ Algebraic derivation for `(raw >> 32) * dphi`:
 
 Artifact Impact (Yes/No)
 No impact observed in normative drift run: `did_clamp_delta=false` and `did_saturate_z=false` over N=10,000,000 (see `test_normative_no_clamp_no_saturate` test output).
-Operationally, the replacement of `wrapping_add` with `saturating_add` and the addition of `clamp_to_i128` constitutes a runtime semantic change if bounds are hit. However, `precision validate --mode quick` passes unchanged, validating that `TriangleDPW4` (which participates in the hashed validation artifacts) remains oracle-equivalent safely within its normative bounds.
+Operationally, the replacement of `wrapping_add` with `saturating_add` and the addition of `clamp_to_i128` constitutes a runtime semantic change if bounds are hit. However, `sig-util validate --mode quick` passes unchanged, validating that `TriangleDPW4` (which participates in the hashed validation artifacts) remains oracle-equivalent safely within its normative bounds.
 
 Closure Status (PASS / FAIL)
 PASS (normative drift passes; pump vulnerability characterized; arithmetic safety PASS).

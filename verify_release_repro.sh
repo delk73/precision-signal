@@ -10,23 +10,30 @@
 
 set -euo pipefail
 
-BINARY="release/precision"
+BINARY="${REPRO_BINARY:-release/sig-util}"
 RELEASE_EVIDENCE_DIR="${RELEASE_EVIDENCE_DIR:-}"
+SOURCE_DATE_EPOCH_VALUE="${SOURCE_DATE_EPOCH:-$(git show -s --format=%ct HEAD)}"
 
 echo "=== Δ-04 Release Reproducibility Check ==="
 echo "Toolchain: $(rustc -Vv | head -1)"
 echo "Cargo:     $(cargo -V)"
+echo "Binary:    ${BINARY}"
+echo "SOURCE_DATE_EPOCH: ${SOURCE_DATE_EPOCH_VALUE}"
 echo ""
 
 # Clean slate — never reuse prior artifacts
 rm -rf target_a target_b
 
 echo "[1/2] First build → target_a/"
-CARGO_TARGET_DIR=target_a cargo build --release -p dpw4 --features cli --locked
+SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH_VALUE}" \
+CARGO_TARGET_DIR=target_a \
+cargo build --release -p dpw4 --features cli --locked
 
 echo ""
 echo "[2/2] Second build → target_b/"
-CARGO_TARGET_DIR=target_b cargo build --release -p dpw4 --features cli --locked
+SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH_VALUE}" \
+CARGO_TARGET_DIR=target_b \
+cargo build --release -p dpw4 --features cli --locked
 
 echo ""
 echo "=== Hashing artifacts ==="
@@ -48,7 +55,8 @@ if cmp -s "target_a/${BINARY}" "target_b/${BINARY}"; then
 build_reproducibility_status=PASS
 toolchain=$(rustc -Vv | head -1)
 cargo=$(cargo -V)
-binary=precision
+binary=${BINARY#release/}
+source_date_epoch=${SOURCE_DATE_EPOCH_VALUE}
 build_a_sha256=${hash_a}
 build_b_sha256=${hash_b}
 comparison=bit-identical
@@ -66,7 +74,8 @@ else
 build_reproducibility_status=FAIL
 toolchain=$(rustc -Vv | head -1)
 cargo=$(cargo -V)
-binary=precision
+binary=${BINARY#release/}
+source_date_epoch=${SOURCE_DATE_EPOCH_VALUE}
 build_a_sha256=${hash_a}
 build_b_sha256=${hash_b}
 comparison=diverged

@@ -22,6 +22,9 @@
 
 - modularized the released precision CLI entrypoint (`precision.rs`) to separate authoritative command dispatch from shared utility harness
 - split utility surface into separate `sig_util` entrypoint to maintain clear authority boundary
+- routed the validation gate through `sig-util -- validate` while keeping `make gate` as the canonical operator-facing release command
+- added the substrate audit/probe proof path (`make conformance-audit`, `make kill-switch-audit`) to the retained 1.6.0 release evidence workflow
+- updated the release-bundle machinery to retain the 1.6.0 non-firmware evidence set and reproducibility record on the final branch state
 
 ### Notes
 

@@ -17,9 +17,9 @@ For release decisions, use:
   [docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md)
 - retained packaged proof bundle for that path: `artifacts/demo_evidence/retained/`
 - retained release records: [docs/verification/releases/](verification/releases/)
-- active workspace/package version: `1.5.0`
+- active workspace/package version: `1.6.0`
 - latest retained release record currently present in-tree:
-  [docs/verification/releases/1.5.0/](verification/releases/1.5.0/)
+  [docs/verification/releases/1.6.0/](verification/releases/1.6.0/)
 
 If a descriptive document conflicts with a normative document, the normative
 document wins.
@@ -31,7 +31,7 @@ surface.
 
 Release
 
-- `precision validate` (canonical validation gate)
+- `sig-util validate` (canonical validation gate)
 - `artifact_tool.py` (artifact verification / hashing / inspection)
 - `artifact_diff.py` (deterministic divergence analysis)
 - `replay-host diff` (bounded Rust replay diff for the retained `artifacts/rpl0/` proof corpus only; exact observed command behavior and scope note retained under [docs/verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md](verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md))
@@ -65,13 +65,14 @@ not part of the current release surface
 ## Release Routing
 
 - Canonical operator entrypoint: `make gate`
-- Normative underlying command: `precision validate --mode quick`
+- Normative underlying command: `sig-util validate --mode quick`
 - Canonical proof route for the completed replay pipeline:
   `make demo-evidence-package` via [docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md)
 - Canonical retained proof bundle for that route: `artifacts/demo_evidence/retained/`
 - Canonical retained release-evidence location for release records:
   [docs/verification/releases/](verification/releases/)
-- Retained verification scope for this release surface includes the `1.5.0`
-  release-checklist outputs and the bounded Rust replay scope note under [docs/verification/releases/1.5.0/](verification/releases/1.5.0/). Historical `1.4.0`, `1.3.1`, and hardware-backed `1.2.2` retained evidence remains explicit under [docs/verification/releases/](verification/releases/).
+- Retained verification scope for this release surface includes the `1.6.0`
+  release-checklist outputs. Historical `1.5.0`, `1.4.0`, `1.3.1`, and
+  hardware-backed `1.2.2` retained evidence remains explicit under [docs/verification/releases/](verification/releases/).
 - This document classifies surfaced tools and routes proof bundles; it does not
   define release admissibility

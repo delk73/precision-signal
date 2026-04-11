@@ -621,7 +621,7 @@ Evidence:
                                     │                                     │
                                     │  Verification                       │
                                     │  ┌─────────────────────────────┐   │
-                                    │  │ precision validate           │   │
+                                    │  │ sig-util validate            │   │
                                     │  │ verify_kani.sh               │   │
                                     │  │ verify_release_repro.sh      │   │
                                     │  └─────────────────────────────┘   │
@@ -729,10 +729,10 @@ Evidence:
 - `verify_release_repro.sh`: dual-build comparison script
 - `rust-toolchain.toml`: pinned channel `1.91.1`
 
-### 9.4 Multi-Tier Validation Gate (`precision validate`)
+### 9.4 Multi-Tier Validation Gate (`sig-util validate`)
 
 `make gate` is the canonical operator-facing release gate.
-Its normative underlying command, `precision validate --mode quick`, executes
+Its normative underlying command, `sig-util validate --mode quick`, executes
 the following verification pipeline:
 
 | Tier | Check | Description |
@@ -821,8 +821,8 @@ promoted by [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
 | Kani harness inventory (34+ in source) | Implemented; normative evidence is limited to the runner manifest and logs | `crates/*/src/verification.rs`, `crates/dpw4/src/i256.rs`, `verify_kani.sh` |
 | Hash-locked reference outputs (6 scenarios) | Stable | `crates/dpw4/src/bin/precision.rs` |
 | Deterministic build verification | Stable | `verify_release_repro.sh` |
-| Multi-tier validation gate | Stable | `precision validate` CLI |
-| Bare-metal capture firmware (STM32F446RE) | Implemented; current release-surface classification for `replay-fw-f446` is routed to [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md). The active workspace/package version is `1.4.0`, while the latest retained patch-release evidence lives under [docs/verification/releases/1.4.0/](../verification/releases/1.4.0/) and the latest retained hardware-backed release evidence remains under [docs/verification/releases/1.2.2/](../verification/releases/1.2.2/). | `crates/replay-fw-f446/` |
+| Multi-tier validation gate | Stable | `sig-util validate` CLI |
+| Bare-metal capture firmware (STM32F446RE) | Implemented; current release-surface classification for `replay-fw-f446` is routed to [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md). The active workspace/package version is `1.6.0`, while the latest retained patch-release evidence lives under [docs/verification/releases/1.6.0/](../verification/releases/1.6.0/) and the latest retained hardware-backed release evidence remains under docs/verification/releases/1.2.2/. | `crates/replay-fw-f446/` |
 | Artifact parsing and comparison tools | Stable | `scripts/` Python tooling |
 | Demo divergence ladder (Demo V1-Demo V5) | Stable | `scripts/generate_demo_v*_fixtures.py` |
 | Normative divergence semantics | Stable | [docs/replay/DIVERGENCE_SEMANTICS.md](../replay/DIVERGENCE_SEMANTICS.md) |
@@ -1024,7 +1024,7 @@ that produced valid artifacts.
 | 27 | Hash regeneration requires semantic version bump | [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md) governance policy | supported |
 | 28 | Deterministic build verified by dual-build SHA-256 comparison | `verify_release_repro.sh` | supported |
 | 29 | Toolchain pinned to rustc 1.91.1 | `rust-toolchain.toml` | supported |
-| 30 | precision validate runs multi-tier verification pipeline | `crates/dpw4/src/bin/precision.rs` `run_validate()` line 303+ | supported |
+| 30 | sig-util validate runs multi-tier verification pipeline | `crates/dpw4/src/bin/sig_util/validate.rs` `run_validate()` | supported |
 | 31 | Fletcher-32 checksum used for DP32 header integrity | `crates/dpw4/src/checksum.rs` `fletcher32_checked()` line 28 | supported |
 | 32 | v1 header includes schema_hash validated as SHA-256 of schema block | `scripts/inspect_artifact.py` v1 parsing at lines 170–210 | supported |
 | 33 | Artifact identity hash covers canonical region only (excludes trailing bytes) | `scripts/artifact_tool.py` `cmd_hash()` line 102 | supported |

@@ -47,10 +47,10 @@ See `crates/dpw4/src/verification.rs`; enforced in `verify_kani.sh`.
 **Divergences**: [docs/spec/reference_invariants.md](spec/reference_invariants.md) §POST: "Fixed −3 dBFS default"; code sets −3 dBFS only for `generate` subcommand; forensic artifacts use per-scenario exponents.
 
 **Gain Invariance**: Quick-mode mantissa invariance is mechanically enforced in the validate artifact path.
-`precision validate --mode quick` dispatches `run_validate -> run_determinism_check -> generate_forensic_artifacts -> generate_artifact` (`crates/dpw4/src/bin/precision.rs:304->467`, `724->738`, `1195->1202`, `1201->1253`).
-In that path, `quick_validate_gain_for_scenario` constructs gain with `DpwGain::new(GAIN_M4_Q63_QUICK, scenario.gain_exponent + 15, 0, 0)` (`crates/dpw4/src/bin/precision.rs:1201-1203`), and `generate_artifact` consumes that helper (`crates/dpw4/src/bin/precision.rs:1311`), so arg1 mantissa is fixed singleton `{GAIN_M4_Q63_QUICK}` while only arg2 exponent varies by scenario.
-Unit test `quick_validate_gain_mantissa_is_singleton` locks this invariant by reusing the same helper (`crates/dpw4/src/bin/precision.rs:1989-1992`).
-Non-validate paths remain unconstrained (e.g., `run_generate` caller-derived mantissa at `crates/dpw4/src/bin/precision.rs:1580`).
+`sig-util validate --mode quick` dispatches `run_validate -> run_determinism_check -> generate_forensic_artifacts -> generate_artifact` (`crates/dpw4/src/bin/sig_util/validate.rs:39,481,495`; `crates/dpw4/src/bin/sig_util/artifacts.rs:183,238`).
+In that path, `quick_validate_gain_for_scenario` constructs gain with `DpwGain::new(GAIN_M4_Q63_QUICK, scenario.gain_exponent + 15, 0, 0)` (`crates/dpw4/src/bin/sig_util/artifacts.rs:13,179-180`), and `generate_artifact` consumes that helper (`crates/dpw4/src/bin/sig_util/artifacts.rs:285`), so arg1 mantissa is fixed singleton `{GAIN_M4_Q63_QUICK}` while only arg2 exponent varies by scenario.
+Unit test `quick_validate_gain_mantissa_is_singleton` locks this invariant by reusing the same helper (`crates/dpw4/src/bin/sig_util/mod.rs:316,318,321`).
+Non-validate paths remain unconstrained (for example the caller-derived mantissa in the `generate` command path).
 
 ---
 
