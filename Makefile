@@ -91,7 +91,7 @@ space :=
 space +=
 comma := ,
 
-.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
+.PHONY: help fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-1.6.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
 
 help:
 	echo "Demo V2 lifecycle:"
@@ -150,6 +150,7 @@ help:
 	echo "  make check-workspace"
 	echo "  make test"
 	echo "  make gate"
+	echo "  make release-1.6.0"
 	echo "  make release-bundle VERSION=1.6.0"
 	echo "  make ci-local"
 	echo
@@ -164,6 +165,24 @@ fixture-drift-check:
 
 demo-evidence-package:
 	cargo run --quiet -p xtask -- workflow demo-evidence-package
+
+release-1.6.0:
+	@REL_DIR="docs/verification/releases/1.6.0"; \
+	test -f "$$REL_DIR/kani_evidence.txt" && test -s "$$REL_DIR/kani_evidence.txt" || { \
+	  echo "[release-1.6.0] FAIL missing or empty $$REL_DIR/kani_evidence.txt"; \
+	  exit 1; \
+	}
+	@REL_DIR="docs/verification/releases/1.6.0"; \
+	echo "--- [GATE 1/4] Functional Validation ---" && \
+	$(MAKE) --no-print-directory gate > "$$REL_DIR/make_gate.txt" 2>&1 && \
+	echo "--- [GATE 2/4] Evidence Packaging ---" && \
+	$(MAKE) --no-print-directory demo-evidence-package > "$$REL_DIR/make_demo_evidence_package.txt" 2>&1 && \
+	echo "--- [GATE 3/4] Documentation Integrity ---" && \
+	$(MAKE) --no-print-directory doc-link-check > "$$REL_DIR/make_doc_link_check.txt" 2>&1 && \
+	echo "--- [GATE 4/4] Reproducibility Record ---" && \
+	RELEASE_EVIDENCE_DIR="$$REL_DIR" bash verify_release_repro.sh > "$$REL_DIR/release_reproducibility.txt" 2>&1 && \
+	echo "--- [AUDIT] Bundle Coherence Check ---" && \
+	$(MAKE) --no-print-directory release-bundle-check VERSION=1.6.0
 
 shell-check:
 	test -x "$(SHELL)"
@@ -454,9 +473,9 @@ release-bundle:
 	  echo "[release-bundle] FAIL phase=3 file=$$REL_DIR/make_gate.txt"; \
 	  exit 1; \
 	fi; \
-	echo "[release-bundle] 4/6 verify_release_repro.txt + contract summary"; \
-	if ! RELEASE_EVIDENCE_DIR="$$REL_DIR" bash verify_release_repro.sh > "$$REL_DIR/verify_release_repro.txt" 2>&1; then \
-	  echo "[release-bundle] FAIL phase=4 file=$$REL_DIR/verify_release_repro.txt"; \
+	echo "[release-bundle] 4/6 release_reproducibility.txt"; \
+	if ! RELEASE_EVIDENCE_DIR="$$REL_DIR" bash verify_release_repro.sh > "$$REL_DIR/release_reproducibility.txt" 2>&1; then \
+	  echo "[release-bundle] FAIL phase=4 file=$$REL_DIR/release_reproducibility.txt"; \
 	  exit 1; \
 	fi; \
 	echo "[release-bundle] 5/6 stale prior-release guard"; \

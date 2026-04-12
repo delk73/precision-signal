@@ -1,0 +1,4 @@
+# imported_artifact_sha256
+a8c12fde1403b0f2f3edeb0de724f9f2fc0804aacffdf5388286512b228074d7 run_01.imported.rpl
+a8c12fde1403b0f2f3edeb0de724f9f2fc0804aacffdf5388286512b228074d7 run_02.imported.rpl
+a8c12fde1403b0f2f3edeb0de724f9f2fc0804aacffdf5388286512b228074d7 run_03.imported.rpl

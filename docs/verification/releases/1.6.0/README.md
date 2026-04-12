@@ -44,7 +44,6 @@ This release makes a narrowed Tier-1 claim with the following documented limits:
 - make_gate.txt
 - make_replay_tests.txt
 - release_reproducibility.txt
-- verify_release_repro.txt
 
 ## Release decision record
 

@@ -16,4 +16,3 @@ Retained command outputs:
 - [make_gate.txt](make_gate.txt)
 - [make_replay_tests.txt](make_replay_tests.txt)
 - [release_reproducibility.txt](release_reproducibility.txt)
-- [verify_release_repro.txt](verify_release_repro.txt)

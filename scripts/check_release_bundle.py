@@ -23,7 +23,6 @@ NON_FIRMWARE_REQUIRED_FILES = (
     "make_gate.txt",
     "make_replay_tests.txt",
     "release_reproducibility.txt",
-    "verify_release_repro.txt",
 )
 
 FIRMWARE_REQUIRED_FILE_SETS = {

@@ -5,8 +5,8 @@
 # Exits 1 if hashes differ (non-deterministic build detected).
 # Optional:
 #   RELEASE_EVIDENCE_DIR=docs/verification/releases/<version>/ bash verify_release_repro.sh
-#   Writes a retained supporting evidence record into the canonical release
-#   evidence directory.
+#   Ensures the canonical release evidence directory exists before the caller
+#   captures the retained transcript there.
 
 set -euo pipefail
 
@@ -50,37 +50,11 @@ fi
 if cmp -s "target_a/${BINARY}" "target_b/${BINARY}"; then
     echo ""
     echo "✅ PASS — builds are bit-for-bit identical: ${hash_a}"
-    if [[ -n "${RELEASE_EVIDENCE_DIR}" ]]; then
-        cat > "${RELEASE_EVIDENCE_DIR}/release_reproducibility.txt" <<EOF
-build_reproducibility_status=PASS
-toolchain=$(rustc -Vv | head -1)
-cargo=$(cargo -V)
-binary=${BINARY#release/}
-source_date_epoch=${SOURCE_DATE_EPOCH_VALUE}
-build_a_sha256=${hash_a}
-build_b_sha256=${hash_b}
-comparison=bit-identical
-script=verify_release_repro.sh
-EOF
-    fi
     exit 0
 else
     echo ""
     echo "❌ FAIL — build outputs differ:"
     echo "A: ${hash_a}"
     echo "B: ${hash_b}"
-    if [[ -n "${RELEASE_EVIDENCE_DIR}" ]]; then
-        cat > "${RELEASE_EVIDENCE_DIR}/release_reproducibility.txt" <<EOF
-build_reproducibility_status=FAIL
-toolchain=$(rustc -Vv | head -1)
-cargo=$(cargo -V)
-binary=${BINARY#release/}
-source_date_epoch=${SOURCE_DATE_EPOCH_VALUE}
-build_a_sha256=${hash_a}
-build_b_sha256=${hash_b}
-comparison=diverged
-script=verify_release_repro.sh
-EOF
-    fi
     exit 1
 fi

@@ -88,6 +88,21 @@ skip_msg() {
     printf "${YELLOW}[SKIPPED]${RESET} %s\n" "$1"
 }
 
+handle_failure() {
+    local harness="$1"
+    local elapsed="$2"
+    local log="$3"
+
+    fail_msg "$harness (${elapsed}s)"
+    printf "Failure log: %s\n" "$log" >&2
+    if [ -f "$log" ]; then
+        printf "%s\n" "--- log tail ---" >&2
+        tail -n 20 "$log" >&2 || true
+        printf "%s\n" "--- end log tail ---" >&2
+    fi
+    exit 1
+}
+
 run_cmd() {
     if [ "$DRY_RUN" = "1" ]; then
         printf "DRY_RUN=1 -> "
@@ -230,8 +245,10 @@ run_harness() {
 
     # cargo-kani occasionally injects NUL bytes into terse output; strip them so
     # retained transcripts remain text-stable and pass control-byte guards.
-    "${cmd[@]}" 2>&1 | perl -pe 's/\x00//g' | tee "$log"
+    set +e
+    "${cmd[@]}" 2>&1 | perl -pe 's/\x00//g' | tee "$log" || true
     local cargo_exit="${PIPESTATUS[0]}"
+    set -e
 
     if [ "$cargo_exit" = "0" ] && validate_success_token "$log"; then
             end=$(now_epoch)
@@ -250,14 +267,7 @@ run_harness() {
 
     end=$(now_epoch)
     elapsed=$((end - start))
-    fail_msg "$harness (${elapsed}s)"
-    printf "Failure log: %s\n" "$log" >&2
-    if [ -f "$log" ]; then
-        printf "%s\n" "--- log tail ---" >&2
-        tail -n 20 "$log" >&2 || true
-        printf "%s\n" "--- end log tail ---" >&2
-    fi
-    exit 1
+    handle_failure "$harness" "$elapsed" "$log"
 }
 
 print_header "Pre-flight: Environment"

@@ -10,7 +10,6 @@ TRANSCRIPTS = (
     "cargo_check_dpw4_thumb_locked.txt",
     "kani_evidence.txt",
     "make_gate.txt",
-    "verify_release_repro.txt",
     "release_reproducibility.txt",
 )
 

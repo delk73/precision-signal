@@ -34,9 +34,7 @@ Expected success markers:
 - repeated imported artifact hashes are identical
 
 Retained evidence written by the archive step:
-- `docs/verification/releases/1.6.0/fw_capture/`
-- `docs/verification/releases/1.6.0/fw_repeat/`
-- `docs/verification/releases/1.6.0/firmware_release_evidence.md`
+- retained under [docs/verification/releases/1.6.0/](releases/1.6.0/) when the hardware archive workflow is executed
 
 ## Active Single-Run Capture
 

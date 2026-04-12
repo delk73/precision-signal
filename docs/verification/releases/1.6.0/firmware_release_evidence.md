@@ -1,0 +1,68 @@
+# Firmware Release Evidence (1.6.0)
+
+CAPTURE_DIR=artifacts/fw_capture_runs/run_20260412T232657Z
+REPEAT_DIR=artifacts/fw_repeat_runs/run_20260412T232700Z
+
+## capture manifest
+contract_version=interval_capture_v1
+transport_contract=state_then_interval_csv
+csv_header=index,interval_us
+expected_rows=138
+reset_mode=manual
+imported_artifacts=true
+requested_runs=1
+completed_runs=1
+final_status=PASS
+failure_class=-
+csv_hash_stable=true
+imported_hash_stable=true
+timestamp_utc=2026-04-12T23:26:57Z
+run_dir=artifacts/fw_capture_runs/run_20260412T232657Z
+
+# fields: run csv rows csv_sha256 imported imported_sha256 status
+run=1 csv=run_01.csv rows=138 csv_sha256=b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1 imported=run_01.imported.rpl imported_sha256=a8c12fde1403b0f2f3edeb0de724f9f2fc0804aacffdf5388286512b228074d7 status=PASS
+
+## repeat csv sha256 summary
+# csv_sha256
+b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1 run_01.csv
+b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1 run_02.csv
+b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1 run_03.csv
+
+## repeat imported sha256 summary
+# imported_artifact_sha256
+a8c12fde1403b0f2f3edeb0de724f9f2fc0804aacffdf5388286512b228074d7 run_01.imported.rpl
+a8c12fde1403b0f2f3edeb0de724f9f2fc0804aacffdf5388286512b228074d7 run_02.imported.rpl
+a8c12fde1403b0f2f3edeb0de724f9f2fc0804aacffdf5388286512b228074d7 run_03.imported.rpl
+
+## repeat manifest
+contract_version=interval_capture_v1
+transport_contract=state_then_interval_csv
+csv_header=index,interval_us
+expected_rows=138
+reset_mode=manual
+imported_artifacts=true
+requested_runs=3
+completed_runs=3
+final_status=PASS
+failure_class=-
+csv_hash_stable=true
+imported_hash_stable=true
+timestamp_utc=2026-04-12T23:27:00Z
+run_dir=artifacts/fw_repeat_runs/run_20260412T232700Z
+
+# fields: run csv rows csv_sha256 imported imported_sha256 status
+run=1 csv=run_01.csv rows=138 csv_sha256=b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1 imported=run_01.imported.rpl imported_sha256=a8c12fde1403b0f2f3edeb0de724f9f2fc0804aacffdf5388286512b228074d7 status=PASS
+run=2 csv=run_02.csv rows=138 csv_sha256=b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1 imported=run_02.imported.rpl imported_sha256=a8c12fde1403b0f2f3edeb0de724f9f2fc0804aacffdf5388286512b228074d7 status=PASS
+run=3 csv=run_03.csv rows=138 csv_sha256=b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1 imported=run_03.imported.rpl imported_sha256=a8c12fde1403b0f2f3edeb0de724f9f2fc0804aacffdf5388286512b228074d7 status=PASS
+
+## capture hash check
+b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1  artifacts/fw_capture_runs/run_20260412T232657Z/run_01.csv
+a8c12fde1403b0f2f3edeb0de724f9f2fc0804aacffdf5388286512b228074d7  artifacts/fw_capture_runs/run_20260412T232657Z/run_01.imported.rpl
+
+## repeat hash check
+b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1  artifacts/fw_repeat_runs/run_20260412T232700Z/run_01.csv
+b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1  artifacts/fw_repeat_runs/run_20260412T232700Z/run_02.csv
+b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1  artifacts/fw_repeat_runs/run_20260412T232700Z/run_03.csv
+a8c12fde1403b0f2f3edeb0de724f9f2fc0804aacffdf5388286512b228074d7  artifacts/fw_repeat_runs/run_20260412T232700Z/run_01.imported.rpl
+a8c12fde1403b0f2f3edeb0de724f9f2fc0804aacffdf5388286512b228074d7  artifacts/fw_repeat_runs/run_20260412T232700Z/run_02.imported.rpl
+a8c12fde1403b0f2f3edeb0de724f9f2fc0804aacffdf5388286512b228074d7  artifacts/fw_repeat_runs/run_20260412T232700Z/run_03.imported.rpl

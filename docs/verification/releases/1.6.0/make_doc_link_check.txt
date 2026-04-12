@@ -1,3 +1,2 @@
-make doc-link-check
 cargo run --quiet -p xtask -- workflow doc-link-check
 PASS: documentation link integrity

@@ -13,6 +13,7 @@ contexts.
 | Path / Command | Role |
 | --- | --- |
 | `make gate` | canonical first verification path and canonical release gate |
+| `make release-1.6.0` | canonical 1.6.0 retained-release orchestration after manual Kani preflight |
 | [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md) | release authority and verification contract |
 | [docs/RELEASE_SURFACE.md](docs/RELEASE_SURFACE.md) | stable release-surface classification and routing |
 | [docs/verification/releases/index.md](docs/verification/releases/index.md) | retained release evidence index |
@@ -76,6 +77,7 @@ If this fails, see [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md) → Failure Mo
 Workflow authority
 
 - `make gate`: canonical release verification
+- `make release-1.6.0`: canonical 1.6.0 release-record orchestration after `bash verify_kani.sh`
 - `make ci-local`: aggregate developer pre-merge check
 
 These serve different purposes and are not interchangeable.
@@ -93,20 +95,21 @@ path: `make demo-evidence-package`, with the retained proof bundle under
 
 Operator-facing released tooling remains the broader Python replay toolchain
 plus the `precision` validation CLI surface classified in
-[docs/RELEASE_SURFACE.md](docs/RELEASE_SURFACE.md). Release `1.5.0` adds one
+[docs/RELEASE_SURFACE.md](docs/RELEASE_SURFACE.md). Release `1.6.0` retains one
 bounded Rust replay exception: `replay-host diff` for the retained
-`artifacts/rpl0/` proof corpus only, with scope and retained transcripts under
-[docs/verification/releases/1.5.0/](docs/verification/releases/1.5.0/).
+`artifacts/rpl0/` proof corpus only, with retained transcripts under
+[docs/verification/releases/1.6.0/](docs/verification/releases/1.6.0/).
 Broader Rust replay, including the remaining `replay-host` commands and the
 STM32 replay firmware path, remains experimental and is not promoted by that
 proof bundle.
 
-## Manual Release Checklist
+## Release 1.6.0 Procedure
 
-- `make gate`
-- `make demo-evidence-package`
-- `make doc-link-check`
-- `make release-bundle-check VERSION=<version>`
+- `cargo clean`
+- `bash verify_kani.sh`
+- `make release-1.6.0`
+- inspect [docs/verification/releases/1.6.0/](docs/verification/releases/1.6.0/)
+- `git add . && git commit -m "release(1.6.0): Frozen verification record"`
 - final claim/evidence sweep: [README.md](README.md), [docs/RELEASE_SURFACE.md](docs/RELEASE_SURFACE.md), [CHANGELOG.md](CHANGELOG.md), [docs/demos/demo_evidence_packaging.md](docs/demos/demo_evidence_packaging.md)
 
 ## License
