@@ -12,7 +12,7 @@ DEFAULT_STFLASH = "st-flash"
 DEFAULT_SETTLE_DELAY = 0.25
 PREAMBLE_READ_SLICE = 0.25
 CSV_HEADER = b"index,interval_us\n"
-STATE_PATTERN = re.compile(r"STATE,(CAPTURE_DONE|CAPTURE_INCOMPLETE),(\d+)")
+STATE_PATTERN = re.compile(br"STATE,(CAPTURE_DONE|CAPTURE_INCOMPLETE),(\d+)")
 
 
 def parse_args() -> argparse.Namespace:
@@ -30,6 +30,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--stflash", default=DEFAULT_STFLASH)
     parser.add_argument("--reset-delay", type=float, default=0.25)
     parser.add_argument("--settle-delay", type=float, default=DEFAULT_SETTLE_DELAY)
+    parser.add_argument("--debug-prefix", action="store_true")
     return parser.parse_args()
 
 
@@ -51,10 +52,11 @@ def decode_line(raw: bytes) -> str:
     return raw.decode("utf-8", errors="replace").rstrip("\r\n")
 
 
-def read_valid_state_line(ser: serial.Serial, timeout: float) -> str:
+def read_valid_state_line(ser: serial.Serial, timeout: float) -> tuple[str, bytes, bytes]:
     deadline = time.monotonic() + timeout
     original_timeout = ser.timeout
     ser.timeout = min(timeout, PREAMBLE_READ_SLICE)
+    prefix = bytearray()
 
     try:
         while time.monotonic() < deadline:
@@ -62,16 +64,26 @@ def read_valid_state_line(ser: serial.Serial, timeout: float) -> str:
             if not line:
                 continue
 
-            decoded = decode_line(line)
-            match = STATE_PATTERN.search(decoded)
+            match = STATE_PATTERN.search(line)
             if match is None:
+                prefix.extend(line)
                 continue
 
-            return f"STATE,{match.group(1)},{match.group(2)}"
+            prefix.extend(line[: match.start()])
+            return decode_line(match.group(0)), bytes(prefix), match.group(0)
     finally:
         ser.timeout = original_timeout
 
     raise SystemExit("no STATE preamble observed within timeout")
+
+
+def emit_prefix_debug(prefix: bytes, state_line: str, state_line_raw: bytes) -> None:
+    print(f"PREFIX_LEN {len(prefix)}", file=sys.stderr, flush=True)
+    print(f"PREFIX_HEX {prefix.hex()}", file=sys.stderr, flush=True)
+    print(f"PREFIX_REPR {prefix!r}", file=sys.stderr, flush=True)
+    print(f"STATE_LINE_HEX {state_line_raw.hex()}", file=sys.stderr, flush=True)
+    print(f"STATE_LINE_REPR {state_line_raw!r}", file=sys.stderr, flush=True)
+    print(f"STATE_LINE {state_line!r}", file=sys.stderr, flush=True)
 
 
 def read_csv_header(ser: serial.Serial, timeout: float) -> bytes:
@@ -106,7 +118,9 @@ def main() -> int:
         else:
             print("Listener active; press reset now", flush=True)
 
-        state_line = read_valid_state_line(ser, args.timeout)
+        state_line, prefix, state_line_raw = read_valid_state_line(ser, args.timeout)
+        if args.debug_prefix:
+            emit_prefix_debug(prefix, state_line, state_line_raw)
         print(state_line, flush=True)
         if state_line != f"STATE,CAPTURE_DONE,{args.rows}":
             raise SystemExit(f"capture did not complete: {state_line}")
