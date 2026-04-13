@@ -24,12 +24,12 @@
 - split utility surface into separate `sig_util` entrypoint to maintain clear authority boundary
 - routed the validation gate through `sig-util -- validate` while keeping `make gate` as the canonical operator-facing release command
 - added the substrate audit/probe proof path (`make conformance-audit`, `make kill-switch-audit`) to the retained 1.6.0 release evidence workflow
-- updated the release-bundle machinery to retain the 1.6.0 non-firmware evidence set and reproducibility record on the final branch state
+- updated the release-bundle machinery to retain the 1.6.0 CLI-primary retained evidence set with bounded supporting firmware capture/import evidence and reproducibility record on the final branch state
 
 ### Notes
 
 - Maintenance release; no behavior changes to released precision commands (record, replay, diff, envelope)
-- Narrowed non-firmware retained release bundle for the primary precision CLI scope
+- Narrowed retained release for the primary precision CLI surface with bounded supporting firmware capture/import evidence retained
 - No replay-host or firmware scope expansion
 
 ## [1.5.0] - 2026-04-04
