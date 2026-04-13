@@ -31,7 +31,7 @@ surface.
 
 Release
 
-- `sig-util validate` (canonical validation gate)
+- `sig-util validate` (underlying implementation of the canonical operator gate)
 - `artifact_tool.py` (artifact verification / hashing / inspection)
 - `artifact_diff.py` (deterministic divergence analysis)
 - `replay-host diff` (bounded Rust replay diff for the retained `artifacts/rpl0/` proof corpus only; exact observed command behavior and scope note retained under [docs/verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md](verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md))

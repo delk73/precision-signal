@@ -32,7 +32,7 @@ for the retained release evidence bundle. Historical retained evidence remains e
 `docs/verification/releases/`.
 
 Pre-split historical evidence may still refer to `precision` as the validation
-binary; the current validation entrypoint is `sig-util -- validate`.
+binary; the current validation entrypoint is `sig-util -- validate`, which implements `make gate`.
 
 The rest of the release-adjacent documentation is supporting only:
 
