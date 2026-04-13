@@ -35,6 +35,8 @@ This release makes a narrowed Tier-1 claim with the following documented limits:
 
 ## Retained files in this bundle
 
+### Release-claim evidence (in scope)
+
 - README.md
 - index.md
 - cargo_check_dpw4_thumb_locked.txt
@@ -44,6 +46,14 @@ This release makes a narrowed Tier-1 claim with the following documented limits:
 - make_gate.txt
 - make_replay_tests.txt
 - release_reproducibility.txt
+
+### Supporting / supplemental (out of scope for claim)
+
+- fw_capture/
+- fw_repeat/
+- fw_capture_hash_check.txt
+- fw_repeat_hash_check.txt
+- firmware_release_evidence.md
 
 ## Release decision record
 
