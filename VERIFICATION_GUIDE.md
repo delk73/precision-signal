@@ -180,8 +180,8 @@ KEEP_LOGS=1 bash verify_kani.sh
 
 ### 3.6 Release-Scoped Correctness and Limits
 - The active release (`1.6.0`) retains its release-scoped correctness claims and limits under `docs/verification/releases/1.6.0/`.
-- That `1.6.0` retained bundle is a carry-forward narrowed release record for the released sine and replay boundaries documented in the `1.6.0` release directory.
-- That claim is empirical, not global. It is retained as release evidence and does not upgrade the repository claim to full waveform equivalence outside the stated domain.
+- That retained `1.6.0` bundle is a narrowed, non-firmware release record for the primary precision CLI surface only, scoped to `crates/dpw4/src/bin/common/mod.rs`, `crates/dpw4/src/bin/precision/mod.rs`, and `crates/dpw4/tests/precision_authoritative_surface.rs`, within the explicit limits documented in the `1.6.0` release directory.
+- That claim is exercised-path and release-scoped, not global.
 - Heavy Tier-2 proofs remain optional unless the active release bundle explicitly retains a heavy proof run. If omitted, the retained release bundle must state the exclusion and the remaining release-claim boundary explicitly.
 
 ---
