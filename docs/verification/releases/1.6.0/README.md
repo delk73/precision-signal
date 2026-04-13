@@ -4,13 +4,13 @@ This directory is the retained release record for minor release `1.6.0`.
 
 ## Release Summary
 
-Release `1.6.0` is a narrowed non-firmware retained bundle covering the primary precision command-line surface verification under Tier-1 claim boundaries.
+Release `1.6.0` is a narrowed retained release record for the primary precision command-line surface, with bounded supporting firmware capture/import evidence retained under `fw_capture/`, `fw_repeat/`, and `firmware_release_evidence.md`.
 
 ## Scope of this cut
 
 - narrowed primary precision release claim: `common/mod.rs`, `precision/mod.rs`, and `crates/dpw4/tests/precision_authoritative_surface.rs`
 - no replay-host scope expansion
-- non-firmware verification path only
+- primary CLI verification path, with bounded supporting firmware capture/import evidence retained
 - formal release-bundle coherence checkpoint
 
 ## Claim boundaries
@@ -48,7 +48,7 @@ This release makes a narrowed Tier-1 claim with the following documented limits:
 - precision_authoritative_surface_test_evidence.txt
 - release_reproducibility.txt
 
-### Supporting / supplemental (out of scope for claim)
+### Supporting / supplemental (retained, bounded)
 
 - fw_capture/
 - fw_repeat/
