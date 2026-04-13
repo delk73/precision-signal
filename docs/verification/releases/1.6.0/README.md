@@ -8,7 +8,7 @@ Release `1.6.0` is a narrowed non-firmware retained bundle covering the primary 
 
 ## Scope of this cut
 
-- narrowed primary precision release claim: `common/mod.rs`, `precision/mod.rs`, and `precision_authoritative_surface.rs`
+- narrowed primary precision release claim: `common/mod.rs`, `precision/mod.rs`, and `crates/dpw4/tests/precision_authoritative_surface.rs`
 - no replay-host scope expansion
 - non-firmware verification path only
 - formal release-bundle coherence checkpoint
