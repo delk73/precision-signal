@@ -20,9 +20,20 @@ No hidden commands are valid.
 No deprecated synonyms are valid.
 
 ## 3. Invocation Grammar
-The invocation grammar is defined exactly as `precision <command> <target> --mode <mode>`.
+The authoritative invocation grammar is command-specific and fixed as follows:
+
+```text
+precision record <target> --mode <mode>
+precision replay <target> --mode <mode>
+precision envelope <target> --mode <mode>
+precision diff <target_a> <target_b> --mode <mode>
+```
+
 The command position is fixed.
-The target position is fixed.
+For `record`, `replay`, and `envelope`, the target position is fixed to one
+positional target.
+For `diff`, the target positions are fixed to two positional targets in the
+order `<target_a> <target_b>`.
 The spelling `--mode` is fixed.
 The mode domain is fixed to `runtime_mode|mock|none`.
 No aliases are valid.
