@@ -1,0 +1,47 @@
+   Compiling utf8parse v0.2.2
+   Compiling is_terminal_polyfill v1.70.2
+   Compiling anstyle-query v1.1.5
+   Compiling colorchoice v1.0.5
+   Compiling strsim v0.11.1
+   Compiling getrandom v0.3.4
+   Compiling heck v0.5.0
+   Compiling num-traits v0.2.19
+   Compiling dpw4 v1.6.0 (/home/dce/src/precision-signal/crates/dpw4)
+   Compiling zerocopy v0.8.48
+   Compiling serde v1.0.228
+   Compiling anstyle-parse v1.0.0
+   Compiling clap_derive v4.6.0
+   Compiling anstream v1.0.0
+   Compiling clap_builder v4.6.0
+   Compiling clap v4.6.0
+   Compiling half v2.7.1
+   Compiling fixed v1.30.0
+   Compiling geom-signal v1.6.0 (/home/dce/src/precision-signal/crates/geom-signal)
+   Compiling geom-spatial v1.6.0 (/home/dce/src/precision-signal/crates/geom-spatial)
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 7.85s
+     Running tests/precision_authoritative_surface.rs (target/debug/deps/precision_authoritative_surface-a77dcb4bdf1e3809)
+
+running 20 tests
+test precision_help_only_lists_authoritative_commands ... ok
+test precision_record_helper_failure_returns_exit_2_without_stdout ... ok
+test precision_unknown_command_exits_2_with_minimal_usage ... ok
+test precision_version_writes_to_stdout ... ok
+test precision_without_args_exits_2_and_keeps_stdout_empty ... ok
+test sig_util_without_args_exits_2_with_usage_on_stderr ... ok
+test sig_util_help_starts_with_non_authoritative_warning ... ok
+test precision_record_publishes_real_artifact_and_stdout_matches_result_file ... ok
+test precision_replay_rejects_invalid_meta_schema_with_exit_2 ... ok
+test precision_replay_rejects_invalid_trace_schema_with_exit_2 ... ok
+test precision_envelope_rejects_malformed_source_nodes_with_exit_2 ... ok
+test precision_replay_passes_for_known_good_capture ... ok
+test precision_envelope_passes_for_known_good_capture ... ok
+test precision_replay_rejects_malformed_comparison_payload_with_exit_2 ... ok
+test precision_replay_rejects_incompatible_diff_artifact_with_exit_2 ... ok
+test precision_diff_reports_semantic_divergence_for_perturbed_capture ... ok
+test precision_replay_rejects_invalid_divergence_cause_with_exit_2 ... ok
+test precision_diff_target_encoding_is_stable_across_runs ... ok
+test precision_diff_artifact_is_comparison_only_and_reloads_for_diff_only ... ok
+test precision_record_serial_failure_returns_exit_2_without_stdout ... ok
+
+test result: ok. 20 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.07s
+

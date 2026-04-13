@@ -45,6 +45,7 @@ This release makes a narrowed Tier-1 claim with the following documented limits:
 - make_doc_link_check.txt
 - make_gate.txt
 - make_replay_tests.txt
+- precision_authoritative_surface_test_evidence.txt
 - release_reproducibility.txt
 
 ### Supporting / supplemental (out of scope for claim)

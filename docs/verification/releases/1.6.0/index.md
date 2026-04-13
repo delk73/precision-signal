@@ -15,4 +15,5 @@ Retained command outputs:
 - [make_doc_link_check.txt](make_doc_link_check.txt)
 - [make_gate.txt](make_gate.txt)
 - [make_replay_tests.txt](make_replay_tests.txt)
+- [precision_authoritative_surface_test_evidence.txt](precision_authoritative_surface_test_evidence.txt)
 - [release_reproducibility.txt](release_reproducibility.txt)
