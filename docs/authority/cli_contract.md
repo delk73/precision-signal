@@ -74,7 +74,10 @@ Any result block that violates any invariant is invalid.
 Mock mode is a contract-valid failure state.
 
 ## 6. Field Definitions
-`TARGET` is the user-supplied path or identifier and must be emitted verbatim.
+For `record`, `replay`, and `envelope`, `TARGET` is the single user-supplied
+path or identifier and must be emitted verbatim.
+For `diff`, `TARGET` is the JSON string-array encoding of the ordered pair
+`[<target_a>, <target_b>]`.
 `MODE` permits exactly `runtime_mode`, `mock`, and `none`.
 `mock` denotes zero-logic stub behavior.
 `none` denotes that no mode applies.
