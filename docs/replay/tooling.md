@@ -1,13 +1,10 @@
 # Replay Tooling
 
 This document defines the replay-tooling boundary.
-Release status is classified in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
-Verification authority is defined in [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md).
-The normative artifact contract is [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md).
 Released replay-facing operator tooling is the Python toolchain.
-Rust replay remains mostly experimental. Release `1.5.0` classifies one bounded
-Rust replay command slice as released, with the exact scope and retained
-transcripts documented under
+Replay artifact format is defined in [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md).
+Rust replay remains mostly experimental, with one bounded released
+`replay-host diff` slice and retained transcripts documented under
 [docs/verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md](../verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md).
 
 ## Released Python Tooling

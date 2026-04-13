@@ -6,16 +6,13 @@ documents for `precision-signal`.
 `precision-signal` is a multi-crate workspace. Its system category is
 deterministic execution analysis infrastructure.
 
-This index is descriptive only. Use [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md)
-for release classification, [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md) for
-verification authority, and [docs/replay/tooling.md](replay/tooling.md)
-for replay-tooling boundaries. Use
-[docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md) for
+This index is descriptive only. Use [docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md) for
 the canonical packaged proof route covering the completed Phase 1 through Phase
 5 replay pipeline.
 Experimental notes live under [docs/wip/README.md](wip/README.md) and are non-normative.
+For release and verification routing, see [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md) and [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md).
 
-Normative behavior is defined outside this index:
+Normative behavior is covered by the contract and spec documents listed below:
 
 - [docs/MATH_CONTRACT.md](MATH_CONTRACT.md): arithmetic, signal-path, narrowing, and saturation contract
 - [docs/spec/rpl0_artifact_contract.md](spec/rpl0_artifact_contract.md): normative replay artifact format
@@ -24,15 +21,10 @@ Normative behavior is defined outside this index:
 - [docs/spec/reference_invariants.md](spec/reference_invariants.md): mathematical reference invariants
 - [docs/spec/pulse_implementation_spec.md](spec/pulse_implementation_spec.md): pulse and square waveform spec
 - [docs/spec/header_layout_addendum.md](spec/header_layout_addendum.md): header layout addendum
-- [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md): conformance governance and verification protocol
-
-If a descriptive document disagrees with a normative one, the normative document
-wins.
 
 ## Start Here
 
 - [docs/architecture/workspace.md](architecture/workspace.md): workspace framing and routing
-- [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md): release-surface routing and classification
 - [docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md): canonical packaged proof route and retained bundle for the completed replay pipeline
 - [docs/architecture/architecture_whitepaper.md](architecture/architecture_whitepaper.md): replay architecture whitepaper
 - [docs/architecture/signal_path.md](architecture/signal_path.md): non-normative signal-path overview
