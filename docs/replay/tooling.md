@@ -2,7 +2,7 @@
 
 This document defines the replay-tooling boundary.
 Released replay-facing operator tooling is the Python toolchain.
-Replay artifact format is defined in [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md).
+Replay uses a two-stage model: Stage 1 is the interval CSV capture contract for firmware, defined in [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md). Stage 2 is the RPL0 replay artifact format for replay/diff, defined in [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md); these are separate contracts, not one unified artifact format.
 Rust replay remains mostly experimental, with one bounded released
 `replay-host diff` slice and retained transcripts documented under
 [docs/verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md](../verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md).
