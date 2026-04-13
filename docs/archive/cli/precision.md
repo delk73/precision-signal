@@ -15,8 +15,8 @@ The `precision` binary is the reference Rust CLI for generation, inspection,
 verification, artifact production, and validation of DP32 Reference Standard
 signals. It is gated behind the `cli` feature in the `dpw4` crate.
 
-For release-surface classification, use [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
-For verification governance, use [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md).
+For release-surface classification, use [docs/RELEASE_SURFACE.md](../../RELEASE_SURFACE.md).
+For verification governance, use [VERIFICATION_GUIDE.md](../../../VERIFICATION_GUIDE.md).
 
 ## Command Surface
 

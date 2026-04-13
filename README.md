@@ -18,6 +18,8 @@ contexts.
 | [docs/RELEASE_SURFACE.md](docs/RELEASE_SURFACE.md) | stable release-surface classification and routing |
 | [docs/verification/releases/index.md](docs/verification/releases/index.md) | retained release evidence index |
 
+Historical CLI reference material is retained under [docs/archive/cli/](docs/archive/cli/) for archival context only and is not part of the active CLI reading path.
+
 ### Experimental / Reference Surface
 
 | Path | Role |
