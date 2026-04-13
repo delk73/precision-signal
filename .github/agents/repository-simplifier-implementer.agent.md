@@ -98,15 +98,18 @@ If the packet involves conflicting docs:
 
 ---
 
-### 4. Prefer demotion over deletion
+### 4. Prefer relocation to archive over deletion
 
 Default approach:
 
-```text
-active → routed away → archived
-```
+active → routed away → moved to archive
 
-Only delete if the packet explicitly says to delete.
+Only leave a document in place with an archival marker if:
+
+* relocation would break important traceability or tooling, or
+* the approved packet explicitly requires in-place demotion.
+
+Delete only if the packet explicitly says to delete.
 
 ---
 
@@ -115,7 +118,8 @@ Only delete if the packet explicitly says to delete.
 If a document is removed from the active surface:
 
 * ensure it still exists (unless deletion explicitly approved)
-* mark it clearly as historical or archived (e.g. add a top-level marker such as "ARCHIVED / HISTORICAL")
+* move it to an archive location when the packet allows relocation
+* if it remains in place, mark it clearly as historical or archived (e.g. add a top-level marker such as "ARCHIVED / HISTORICAL")
 * avoid breaking references silently
 
 ---
@@ -143,6 +147,16 @@ If at any point the packet cannot be executed exactly as written:
 * STOP immediately
 * do not partially apply changes
 * return FAIL with a blocker explanation
+
+### 9. Relocation requires explicit scope
+
+If a packet requires moving a document to an archive location, the destination path must be explicitly in scope or explicitly allowed.
+
+If relocation would require creating, editing, or moving files outside the approved scope:
+
+* STOP immediately
+* do not partially apply changes
+* REPORT BLOCKER
 
 ---
 
