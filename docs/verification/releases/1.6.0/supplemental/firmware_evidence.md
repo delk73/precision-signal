@@ -1,4 +1,9 @@
-# Firmware Release Evidence (1.6.0)
+# Supplemental Firmware Evidence (1.6.0)
+
+This retained file is bounded supporting firmware capture/import evidence for
+the narrowed `1.6.0` release record.
+It is supplemental only.
+It does not promote a firmware release for `1.6.0`.
 
 CAPTURE_DIR=artifacts/fw_capture_runs/run_20260412T232657Z
 REPEAT_DIR=artifacts/fw_repeat_runs/run_20260412T232700Z

@@ -62,6 +62,7 @@ Normative behavior is covered by the contract and spec documents listed below:
 ## CLI
 
 - [docs/authority/cli_contract.md](authority/cli_contract.md): authoritative CLI invocation, stream, and exit contract
+- [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md): historical operator-path evidence for older CLI surface promotions; not the active `1.6.0` release contract
 - [docs/archive/cli/precision.md](archive/cli/precision.md): `precision` CLI reference
 - [docs/archive/cli/examples.md](archive/cli/examples.md): CLI usage examples
 

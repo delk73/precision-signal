@@ -4,7 +4,7 @@ This directory is the retained release record for minor release `1.6.0`.
 
 ## Release Summary
 
-Release `1.6.0` is a narrowed retained release record for the primary precision command-line surface, with bounded supporting firmware capture/import evidence retained under `fw_capture/`, `fw_repeat/`, and `firmware_release_evidence.md`.
+Release `1.6.0` is a narrowed retained release record for the primary precision command-line surface, with bounded supporting firmware capture/import evidence retained under `fw_capture/`, `fw_repeat/`, and `supplemental/firmware_evidence.md`.
 
 ## Scope of this cut
 
@@ -54,7 +54,7 @@ This release makes a narrowed Tier-1 claim with the following documented limits:
 - fw_repeat/
 - fw_capture_hash_check.txt
 - fw_repeat_hash_check.txt
-- firmware_release_evidence.md
+- supplemental/firmware_evidence.md
 
 ## Release decision record
 

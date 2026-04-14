@@ -17,3 +17,7 @@ Retained command outputs:
 - [make_replay_tests.txt](make_replay_tests.txt)
 - [precision_authoritative_surface_test_evidence.txt](precision_authoritative_surface_test_evidence.txt)
 - [release_reproducibility.txt](release_reproducibility.txt)
+
+Supplemental retained material:
+
+- [supplemental/firmware_evidence.md](supplemental/firmware_evidence.md): bounded supporting firmware capture/import evidence only; not a firmware release claim
