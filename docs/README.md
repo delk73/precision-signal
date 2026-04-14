@@ -84,6 +84,7 @@ Normative behavior is covered by the contract and spec documents listed below:
 ## Governance
 
 - [docs/governance/DESIGN_AXIOMS.md](governance/DESIGN_AXIOMS.md): normative design principles
+- [docs/governance/ARTIFACT_POLICY.md](governance/ARTIFACT_POLICY.md): artifact retention policy and bounded support classification
 - [docs/governance/DEBT.md](governance/DEBT.md): tracked design debt
 
 ## Hardware
