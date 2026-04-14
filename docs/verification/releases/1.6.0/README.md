@@ -23,6 +23,8 @@ This release makes a narrowed Tier-1 claim with the following documented limits:
 - Error/exit mapping: exercised invalid invocations and schema failures map correctly; not exhaustive coverage
 - Schema/class rejection: invalid meta, trace, comparison, divergence, incompatibility cases exercised
 
+Tier-2 Kani proofs are excluded from this retained bundle and remain optional unless separately retained under `VERIFICATION_GUIDE.md`.
+
 ## What is NOT claimed
 
 - Full contract closure for all paths
@@ -47,6 +49,8 @@ This release makes a narrowed Tier-1 claim with the following documented limits:
 - make_replay_tests.txt
 - precision_authoritative_surface_test_evidence.txt
 - release_reproducibility.txt
+
+Reviewers rerunning `precision_authoritative_surface.rs` must enable the `cli` feature; the retained command is `cargo test -p dpw4 --test precision_authoritative_surface --features cli --locked`.
 
 ### Supporting / supplemental (retained, bounded)
 
