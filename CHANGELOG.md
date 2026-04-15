@@ -7,9 +7,11 @@
 
 ## [Unreleased]
 
+## [1.6.0] - 2026-04-15
+
 ### Added
 
-- authoritative CLI contract for the intended `1.6.0` primary precision surface in `docs/authority/cli_contract.md`
+- authoritative CLI contract for the primary precision surface in `docs/authority/cli_contract.md`
 - artifact retention and classification policy in `docs/governance/ARTIFACT_POLICY.md`
 - contributor guidance for release-boundary and evidence discipline in `CONTRIBUTING.md`
 - retained `1.6.0` release evidence bundle under `docs/verification/releases/1.6.0/`, including authoritative-surface test evidence and supporting reproducibility records
@@ -19,14 +21,13 @@
 - split the primary precision CLI surface from supporting utility workflows by keeping `precision` authoritative and routing non-authoritative utility commands through `sig-util`
 - routed the validation gate through `sig-util validate --mode quick` while keeping `make gate` as the canonical operator-facing release command
 - hardened the authoritative CLI contract around command routing, result-block behavior, exit and publication semantics, and retained evidence boundaries for the primary precision surface
-- narrowed the intended `1.6.0` release surface to the primary precision CLI only, with bounded supporting firmware capture/import evidence retained as supplemental material
+- narrowed the released `1.6.0` surface to the primary precision CLI only, with bounded supporting firmware capture/import evidence retained as supplemental material
 
 ### Notes
 
-- pending `1.6.0` release cut
-- no replay-host promotion
-- no firmware release promotion
-- intended `1.6.0` claim remains bounded to the primary precision CLI surface and exercised-path retained evidence
+- Maintenance/narrowing release; no replay-host promotion
+- No firmware release promotion
+- Released `1.6.0` claim remains bounded to the primary precision CLI surface and exercised-path retained evidence
 
 ## [1.5.0] - 2026-04-04
 
