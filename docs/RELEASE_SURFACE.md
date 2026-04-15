@@ -15,9 +15,10 @@ For release decisions, use:
 - canonical operator path: `make gate`
 - retained release records: [docs/verification/releases/](verification/releases/)
 - active workspace/package version: `1.6.0`
+- active retained release record: `1.6.0`
 - latest retained release record currently present in-tree:
   [docs/verification/releases/1.6.0/](verification/releases/1.6.0/)
-- active retained release summary: narrowed, non-firmware release record for the
+- active retained release summary: narrowed non-firmware release record for the
   primary precision CLI surface only
 - replay demo packaging material under
   [docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md) and
@@ -77,9 +78,14 @@ not part of the current release surface
 - Underlying support command: `sig-util validate --mode quick`
 - Canonical retained release-evidence location for release records:
   [docs/verification/releases/](verification/releases/)
+- Active retained release record: `1.6.0`
 - Active retained release route:
   [docs/verification/releases/1.6.0/](verification/releases/1.6.0/) for the
   narrowed primary precision non-firmware release record
+- Active retained release summary routes:
+  [docs/verification/releases/1.6.0/README.md](verification/releases/1.6.0/README.md)
+  and
+  [docs/verification/releases/1.6.0/index.md](verification/releases/1.6.0/index.md)
 - Supporting firmware evidence retained under the `1.6.0` bundle is bounded
   supporting evidence only and does not widen the released operator surface
 - Replay demo packaging material and the historical `1.5.0`
