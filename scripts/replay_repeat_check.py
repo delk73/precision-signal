@@ -7,17 +7,16 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-import inspect_artifact
-
-DEFAULT_RUNS = 5
-DEFAULT_BASELINE = Path("artifacts/baseline.bin")
-DEFAULT_RUNS_PARENT = Path("artifacts/replay_runs")
+DEFAULT_RUNS = 3
+DEFAULT_RUNS_PARENT = Path("artifacts/fw_repeat_runs")
 DEFAULT_RESET_MODE = "manual"
 DEFAULT_STFLASH = "st-flash"
-INTERNAL_CAPTURE_MANIFEST = "repeat_capture_internal.txt"
-MANIFEST_NAME = "replay_manifest_v1.txt"
-SHA_SUMMARY_NAME = "sha256_summary.txt"
-CONTRACT_VERSION = "rpl0_capture_v1"
+DEFAULT_TIMEOUT = 10.0
+INTERNAL_CAPTURE_MANIFEST = "repeat_capture_transport.txt"
+MANIFEST_NAME = "interval_capture_manifest_v1.txt"
+CSV_SHA_SUMMARY_NAME = "csv_sha256_summary.txt"
+IMPORTED_SHA_SUMMARY_NAME = "imported_artifact_sha256_summary.txt"
+CONTRACT_VERSION = "interval_capture_v1"
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
@@ -27,10 +26,9 @@ class InterruptedCommand(RuntimeError):
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Run repeat replay capture acceptance checks against pinned baseline."
+        description="Run repeat STM32 interval CSV capture acceptance checks."
     )
     parser.add_argument("--runs", type=int, default=DEFAULT_RUNS)
-    parser.add_argument("--signal-model", required=True)
     parser.add_argument(
         "--reset-mode",
         choices=("manual", "stlink"),
@@ -42,7 +40,6 @@ def parse_args() -> argparse.Namespace:
         default=DEFAULT_STFLASH,
         help="st-flash executable path/name for --reset-mode stlink (default: st-flash).",
     )
-    parser.add_argument("--baseline", type=Path, default=DEFAULT_BASELINE)
     parser.add_argument(
         "--artifacts-dir",
         type=Path,
@@ -54,6 +51,12 @@ def parse_args() -> argparse.Namespace:
         type=str,
         default=None,
         help="Serial port override (otherwise SERIAL env/defaults apply).",
+    )
+    parser.add_argument(
+        "--timeout",
+        type=float,
+        default=DEFAULT_TIMEOUT,
+        help="UART emission/read timeout in seconds per run (default: 10.0).",
     )
     return parser.parse_args()
 
@@ -85,13 +88,10 @@ def sha256_file(path: Path) -> str:
     return h.hexdigest()
 
 
-def load_baseline_metadata(path: Path) -> tuple[str, str]:
-    artifact = inspect_artifact.parse_artifact(path, allow_trailing=False)
-    version = str(artifact["version"])
-    schema_hash = "-"
-    if artifact["version"] == 1 and artifact["schema_hash"] is not None:
-        schema_hash = artifact["schema_hash"].hex()
-    return version, schema_hash
+def csv_row_count(path: Path) -> int:
+    with path.open("r", encoding="utf-8", newline="") as handle:
+        line_count = sum(1 for _ in handle)
+    return max(0, line_count - 1)
 
 
 def run_cmd(
@@ -144,11 +144,15 @@ def run_cmd(
 
 def classify_capture_failure(output: str) -> str:
     text = output.lower()
-    if "magic not found" in text or "serial open/read error" in text or "short read" in text:
-        return "uart_sync_timeout"
-    if "hash mismatch" in text:
-        return "repeat_hash_mismatch"
-    return "verify_failed"
+    if "no uart emission within timeout" in text or "serial read timed out before capture completed" in text:
+        return "uart_emission_timeout"
+    if "no state preamble observed" in text or "capture produced no state line" in text:
+        return "missing_state_preamble"
+    if "explicit incomplete or malformed state preamble" in text or "capture did not complete:" in text:
+        return "malformed_state_preamble"
+    if "serial open/read error" in text or "could not open port" in text:
+        return "serial_open_read_error"
+    return "transport_failed"
 
 
 def repo_relative_path(path: Path) -> Path:
@@ -159,50 +163,53 @@ def repo_relative_path(path: Path) -> Path:
         return resolved
 
 
+def write_sha_summary(path: Path, label: str, hashes: list[tuple[str, Path]]) -> None:
+    lines = [f"# {label}"]
+    for digest, file_path in hashes:
+        lines.append(f"{digest} {file_path.name}")
+    lines.append("")
+    path.write_text("\n".join(lines), encoding="utf-8")
+
+
 def write_manifest(
     path: Path,
     *,
-    contract_version: str,
-    artifact_version: str,
-    schema_hash: str,
-    signal_model: str,
-    baseline_path: Path,
-    baseline_sha: str,
+    reset_mode: str,
     requested_runs: int,
     completed_runs: int,
     final_status: str,
     failure_class: str,
-    baseline_hash_match: bool,
+    csv_hash_stable: bool,
+    imported_hash_stable: bool,
     timestamp_utc: str,
     run_dir: Path,
+    run_records: list[dict[str, str | int]],
 ) -> None:
-    path.write_text(
-        "\n".join(
-            [
-                f"contract_version={contract_version}",
-                f"artifact_version={artifact_version}",
-                f"schema_hash={schema_hash}",
-                f"signal_model={signal_model}",
-                f"baseline_path={repo_relative_path(baseline_path)}",
-                f"baseline_sha256={baseline_sha}",
-                f"requested_runs={requested_runs}",
-                f"completed_runs={completed_runs}",
-                f"final_status={final_status}",
-                f"failure_class={failure_class if failure_class else '-'}",
-                f"baseline_hash_match={'true' if baseline_hash_match else 'false'}",
-                f"timestamp_utc={timestamp_utc}",
-                f"run_dir={repo_relative_path(run_dir)}",
-                "",
-            ]
-        ),
-        encoding="utf-8",
-    )
-
-
-def write_sha_summary(path: Path, baseline_sha: str, run_hashes: list[tuple[str, Path]]) -> None:
-    lines = [f"baseline_sha256 {baseline_sha} baseline"]
-    for digest, run_path in run_hashes:
-        lines.append(f"{digest} {run_path.name}")
+    lines = [
+        f"contract_version={CONTRACT_VERSION}",
+        "transport_contract=state_then_interval_csv",
+        "csv_header=index,interval_us",
+        "expected_rows=138",
+        f"reset_mode={reset_mode}",
+        "imported_artifacts=true",
+        f"requested_runs={requested_runs}",
+        f"completed_runs={completed_runs}",
+        f"final_status={final_status}",
+        f"failure_class={failure_class if failure_class else '-'}",
+        f"csv_hash_stable={'true' if csv_hash_stable else 'false'}",
+        f"imported_hash_stable={'true' if imported_hash_stable else 'false'}",
+        f"timestamp_utc={timestamp_utc}",
+        f"run_dir={repo_relative_path(run_dir)}",
+        "",
+        "# fields: run csv rows csv_sha256 imported imported_sha256 status",
+    ]
+    for record in run_records:
+        lines.append(
+            "run={run} csv={csv} rows={rows} csv_sha256={csv_sha256} "
+            "imported={imported} imported_sha256={imported_sha256} status={status}".format(
+                **record
+            )
+        )
     lines.append("")
     path.write_text("\n".join(lines), encoding="utf-8")
 
@@ -217,58 +224,9 @@ def main() -> int:
     run_dir = allocate_run_dir(parent_dir)
 
     manifest_path = run_dir / MANIFEST_NAME
-    sha_summary_path = run_dir / SHA_SUMMARY_NAME
+    csv_sha_summary_path = run_dir / CSV_SHA_SUMMARY_NAME
+    imported_sha_summary_path = run_dir / IMPORTED_SHA_SUMMARY_NAME
     timestamp_utc = utc_iso8601_now()
-
-    baseline_path = args.baseline
-    artifact_version = "-"
-    schema_hash = "-"
-    if not baseline_path.is_file():
-        print(f"FAIL: baseline artifact not found: {baseline_path}")
-        write_manifest(
-            manifest_path,
-            contract_version=CONTRACT_VERSION,
-            artifact_version=artifact_version,
-            schema_hash=schema_hash,
-            signal_model=args.signal_model,
-            baseline_path=baseline_path,
-            baseline_sha="-",
-            requested_runs=args.runs,
-            completed_runs=0,
-            final_status="FAIL",
-            failure_class="verify_failed",
-            baseline_hash_match=False,
-            timestamp_utc=timestamp_utc,
-            run_dir=run_dir.resolve(),
-        )
-        return 1
-
-    try:
-        artifact_version, schema_hash = load_baseline_metadata(baseline_path)
-    except ValueError as exc:
-        print(f"FAIL: invalid baseline artifact ({exc})")
-        write_manifest(
-            manifest_path,
-            contract_version=CONTRACT_VERSION,
-            artifact_version=artifact_version,
-            schema_hash=schema_hash,
-            signal_model=args.signal_model,
-            baseline_path=baseline_path,
-            baseline_sha="-",
-            requested_runs=args.runs,
-            completed_runs=0,
-            final_status="FAIL",
-            failure_class="verify_failed",
-            baseline_hash_match=False,
-            timestamp_utc=timestamp_utc,
-            run_dir=run_dir.resolve(),
-        )
-        return 1
-
-    baseline_sha = sha256_file(baseline_path)
-    completed_runs = 0
-    failure_class = ""
-    baseline_hash_match = False
 
     env = os.environ.copy()
     env["PYTHONUNBUFFERED"] = "1"
@@ -279,14 +237,16 @@ def main() -> int:
         sys.executable,
         "-u",
         "scripts/repeat_capture.py",
+        "--contract",
+        "csv",
         "--runs",
         str(args.runs),
-        "--signal-model",
-        args.signal_model,
         "--reset-mode",
         args.reset_mode,
         "--stflash",
         args.stflash,
+        "--timeout",
+        str(args.timeout),
         "--artifacts-dir",
         str(run_dir),
         "--manifest-name",
@@ -294,215 +254,165 @@ def main() -> int:
     ]
 
     print(
-        f"Repeat capture: runs={args.runs}, signal_model={args.signal_model}, "
-        f"reset_mode={args.reset_mode}"
+        f"Interval capture: runs={args.runs}, reset_mode={args.reset_mode}, "
+        f"timeout={args.timeout}s"
     )
     if args.reset_mode == "manual":
-        print("Press reset once per run after listener readiness line.")
+        print("Canonical gate reset mode: manual hardware reset, once per run.")
     else:
-        print("Using stlink auto-reset per run.")
+        print("Non-canonical reset mode selected: stlink auto-reset.")
+
+    run_records: list[dict[str, str | int]] = []
     try:
         capture_rc, capture_output = run_cmd(capture_cmd, env=env, stream_output=True)
     except InterruptedCommand:
-        failure_class = "verify_failed"
-        run_files = sorted(run_dir.glob("run_*.bin"))
-        completed_runs = len(run_files)
         write_manifest(
             manifest_path,
-            contract_version=CONTRACT_VERSION,
-            artifact_version=artifact_version,
-            schema_hash=schema_hash,
-            signal_model=args.signal_model,
-            baseline_path=baseline_path,
-            baseline_sha=baseline_sha,
+            reset_mode=args.reset_mode,
             requested_runs=args.runs,
-            completed_runs=completed_runs,
+            completed_runs=0,
             final_status="FAIL",
-            failure_class=failure_class,
-            baseline_hash_match=False,
+            failure_class="interrupted",
+            csv_hash_stable=False,
+            imported_hash_stable=False,
             timestamp_utc=timestamp_utc,
             run_dir=run_dir.resolve(),
+            run_records=run_records,
         )
         print("FAIL: interrupted by operator (KeyboardInterrupt)")
         return 1
 
+    csv_files = sorted(run_dir.glob("run_*.csv"))
+    completed_runs = len(csv_files)
+
     if capture_rc != 0:
-        failure_class = classify_capture_failure(capture_output)
-        run_files = sorted(run_dir.glob("run_*.bin"))
-        completed_runs = len(run_files)
-        run_hashes = [(sha256_file(path), path) for path in run_files]
-        write_sha_summary(sha_summary_path, baseline_sha, run_hashes)
         write_manifest(
             manifest_path,
-            contract_version=CONTRACT_VERSION,
-            artifact_version=artifact_version,
-            schema_hash=schema_hash,
-            signal_model=args.signal_model,
-            baseline_path=baseline_path,
-            baseline_sha=baseline_sha,
+            reset_mode=args.reset_mode,
             requested_runs=args.runs,
             completed_runs=completed_runs,
             final_status="FAIL",
-            failure_class=failure_class,
-            baseline_hash_match=False,
+            failure_class=classify_capture_failure(capture_output),
+            csv_hash_stable=False,
+            imported_hash_stable=False,
             timestamp_utc=timestamp_utc,
             run_dir=run_dir.resolve(),
+            run_records=run_records,
         )
-        sys.stdout.write(capture_output)
-        print(f"FAIL: {failure_class}")
+        print(f"FAIL: {classify_capture_failure(capture_output)}")
         return 1
 
-    run_files = sorted(run_dir.glob("run_*.bin"))
-    completed_runs = len(run_files)
-    print(f"INFO: capture phase complete, validating {completed_runs} artifacts")
     if completed_runs == 0:
-        failure_class = "verify_failed"
         write_manifest(
             manifest_path,
-            contract_version=CONTRACT_VERSION,
-            artifact_version=artifact_version,
-            schema_hash=schema_hash,
-            signal_model=args.signal_model,
-            baseline_path=baseline_path,
-            baseline_sha=baseline_sha,
+            reset_mode=args.reset_mode,
             requested_runs=args.runs,
-            completed_runs=completed_runs,
+            completed_runs=0,
             final_status="FAIL",
-            failure_class=failure_class,
-            baseline_hash_match=False,
+            failure_class="transport_failed",
+            csv_hash_stable=False,
+            imported_hash_stable=False,
             timestamp_utc=timestamp_utc,
             run_dir=run_dir.resolve(),
+            run_records=run_records,
         )
-        print("FAIL: verify_failed (no run artifacts produced)")
+        print("FAIL: transport_failed (no CSV artifacts produced)")
         return 1
 
-    run_hashes: list[tuple[str, Path]] = []
-    for run_path in run_files:
-        verify_cmd = [
-            sys.executable,
-            "scripts/artifact_tool.py",
-            "verify",
-            str(run_path),
-            "--signal-model",
-            args.signal_model,
+    csv_hashes: list[tuple[str, Path]] = []
+    imported_hashes: list[tuple[str, Path]] = []
+    failure_class = ""
+
+    for csv_path in csv_files:
+        validate_cmd = [
+            "cargo",
+            "run",
+            "-q",
+            "-p",
+            "replay-host",
+            "--",
+            "validate-interval-csv",
+            str(csv_path),
         ]
         try:
-            verify_rc, verify_out = run_cmd(verify_cmd, env=env)
+            validate_rc, validate_out = run_cmd(validate_cmd, env=env)
         except InterruptedCommand:
-            failure_class = "verify_failed"
+            failure_class = "interrupted"
             break
-        if verify_rc != 0:
-            failure_class = "verify_failed"
-            sys.stdout.write(verify_out)
+        if validate_rc != 0:
+            failure_class = "validator_failed"
+            sys.stdout.write(validate_out)
             break
 
-        compare_cmd = [
-            sys.executable,
-            "scripts/artifact_tool.py",
-            "compare",
-            str(baseline_path),
-            str(run_path),
+        imported_path = csv_path.with_suffix(".imported.rpl")
+        import_cmd = [
+            "cargo",
+            "run",
+            "-q",
+            "-p",
+            "replay-host",
+            "--",
+            "import-interval-csv",
+            str(csv_path),
+            str(imported_path),
         ]
         try:
-            compare_rc, compare_out = run_cmd(compare_cmd, env=env)
+            import_rc, import_out = run_cmd(import_cmd, env=env)
         except InterruptedCommand:
-            failure_class = "baseline_compare_failed"
+            failure_class = "interrupted"
             break
-        if compare_rc != 0:
-            failure_class = "baseline_compare_failed"
-            sys.stdout.write(compare_out)
+        if import_rc != 0:
+            failure_class = "import_failed"
+            sys.stdout.write(import_out)
             break
 
-        run_hashes.append((sha256_file(run_path), run_path))
-
-    if not run_hashes:
-        if not failure_class:
-            failure_class = "verify_failed"
-        write_manifest(
-            manifest_path,
-            contract_version=CONTRACT_VERSION,
-            artifact_version=artifact_version,
-            schema_hash=schema_hash,
-            signal_model=args.signal_model,
-            baseline_path=baseline_path,
-            baseline_sha=baseline_sha,
-            requested_runs=args.runs,
-            completed_runs=completed_runs,
-            final_status="FAIL",
-            failure_class=failure_class,
-            baseline_hash_match=False,
-            timestamp_utc=timestamp_utc,
-            run_dir=run_dir.resolve(),
+        csv_digest = sha256_file(csv_path)
+        imported_digest = sha256_file(imported_path)
+        csv_hashes.append((csv_digest, csv_path))
+        imported_hashes.append((imported_digest, imported_path))
+        run_records.append(
+            {
+                "run": len(run_records) + 1,
+                "csv": csv_path.name,
+                "rows": csv_row_count(csv_path),
+                "csv_sha256": csv_digest,
+                "imported": imported_path.name,
+                "imported_sha256": imported_digest,
+                "status": "PASS",
+            }
         )
-        print(f"FAIL: {failure_class}")
-        return 1
 
-    write_sha_summary(sha_summary_path, baseline_sha, run_hashes)
+    csv_hash_stable = bool(csv_hashes) and len({digest for digest, _ in csv_hashes}) == 1
+    imported_hash_stable = bool(imported_hashes) and len({digest for digest, _ in imported_hashes}) == 1
 
-    if failure_class:
-        write_manifest(
-            manifest_path,
-            contract_version=CONTRACT_VERSION,
-            artifact_version=artifact_version,
-            schema_hash=schema_hash,
-            signal_model=args.signal_model,
-            baseline_path=baseline_path,
-            baseline_sha=baseline_sha,
-            requested_runs=args.runs,
-            completed_runs=completed_runs,
-            final_status="FAIL",
-            failure_class=failure_class,
-            baseline_hash_match=False,
-            timestamp_utc=timestamp_utc,
-            run_dir=run_dir.resolve(),
-        )
-        print(f"FAIL: {failure_class}")
-        return 1
+    if not failure_class and not csv_hash_stable:
+        failure_class = "repeat_csv_hash_mismatch"
+    if not failure_class and not imported_hash_stable:
+        failure_class = "repeat_import_hash_mismatch"
 
-    unique_hashes = {digest for digest, _ in run_hashes}
-    baseline_hash_match = all(digest == baseline_sha for digest, _ in run_hashes)
-    if len(unique_hashes) != 1 or not baseline_hash_match:
-        failure_class = "repeat_hash_mismatch"
-        write_manifest(
-            manifest_path,
-            contract_version=CONTRACT_VERSION,
-            artifact_version=artifact_version,
-            schema_hash=schema_hash,
-            signal_model=args.signal_model,
-            baseline_path=baseline_path,
-            baseline_sha=baseline_sha,
-            requested_runs=args.runs,
-            completed_runs=completed_runs,
-            final_status="FAIL",
-            failure_class=failure_class,
-            baseline_hash_match=baseline_hash_match,
-            timestamp_utc=timestamp_utc,
-            run_dir=run_dir.resolve(),
-        )
-        print("FAIL: repeat_hash_mismatch")
-        return 1
+    write_sha_summary(csv_sha_summary_path, "csv_sha256", csv_hashes)
+    write_sha_summary(imported_sha_summary_path, "imported_artifact_sha256", imported_hashes)
 
+    final_status = "PASS" if not failure_class else "FAIL"
     write_manifest(
         manifest_path,
-        contract_version=CONTRACT_VERSION,
-        artifact_version=artifact_version,
-        schema_hash=schema_hash,
-        signal_model=args.signal_model,
-        baseline_path=baseline_path,
-        baseline_sha=baseline_sha,
+        reset_mode=args.reset_mode,
         requested_runs=args.runs,
-        completed_runs=completed_runs,
-        final_status="PASS",
-        failure_class="",
-        baseline_hash_match=True,
+        completed_runs=len(run_records),
+        final_status=final_status,
+        failure_class=failure_class,
+        csv_hash_stable=csv_hash_stable,
+        imported_hash_stable=imported_hash_stable,
         timestamp_utc=timestamp_utc,
         run_dir=run_dir.resolve(),
+        run_records=run_records,
     )
 
-    print(f"PASS: replay repeat check ({completed_runs} runs)")
-    print(f"run_dir: {run_dir}")
-    print(f"manifest: {manifest_path}")
-    print(f"sha_summary: {sha_summary_path}")
+    if failure_class:
+        print(f"FAIL: {failure_class}")
+        return 1
+
+    print(f"PASS: validated {len(run_records)} captures; CSV and imported artifact hashes are stable")
     return 0
 
 

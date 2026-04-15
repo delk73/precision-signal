@@ -126,9 +126,8 @@ RPL0 v1 artifacts. No nondeterministic fields were permitted in that retained ca
 Historical operator path:
 
 ```bash
-make replay-check
-make replay-repeat-auto REPLAY_REPEAT_RUNS=3
-make firmware-release-check
+make rpl0-replay-check
+make rpl0-replay-repeat-auto REPLAY_REPEAT_RUNS=3
 ```
 
 Host tooling expectations for the retained historical path:
@@ -138,4 +137,6 @@ Host tooling expectations for the retained historical path:
 - `scripts/artifact_tool.py compare` requires byte-identical match against `artifacts/baseline.bin`
 - repeat-capture manifests are written as `replay_manifest_v1.txt` with `contract_version=rpl0_capture_v1`
 
-v0 artifacts remain supported for historical inspection only; they are not the active capture/release path.
+The active firmware gate no longer routes through this retained contract. v0/v1
+RPL0 UART capture remains supported for historical inspection only under
+explicit `rpl0-*` targets; it is not the active capture/release path.

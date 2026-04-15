@@ -1,0 +1,39 @@
+make replay-tests
+cargo run --quiet -p xtask -- workflow replay-tests
+PASS: magic_exact_rpl0_accepts
+PASS: valid_v0
+PASS: valid_v1_empty_schema
+PASS: valid_v1_nonempty_schema
+PASS: exact_schema_frame_boundary_valid
+PASS: bad_magic
+PASS: truncated_header
+PASS: nonzero_u32_invalid_v1_u16_version
+PASS: v0_nonzero_reserved
+PASS: v1_nonzero_flags
+PASS: v1_nonzero_reserved
+PASS: ambiguous_header_v1_like_but_invalid_header_len
+PASS: header_len_too_small
+PASS: oversized_header_len
+PASS: invalid_frame_size
+PASS: schema_hash_mismatch
+PASS: schema_byte_mutated_without_hash_update
+PASS: corrupted_schema_len
+PASS: empty_schema_with_corrupted_empty_hash
+PASS: schema_len_consumes_frame_region
+PASS: frame_count_mismatch
+PASS: partial_frame_region
+PASS: truncate_one_byte_at_schema_frame_boundary
+PASS: truncated_schema_region
+PASS: trailing_bytes_rejected_strict_mode
+PASS: trailing_bytes_ignored_for_hash_mode
+PASS: adversarial parser suite
+PASS: v1 valid artifact corpus (explicit=3, stratified=4, random=200, total=207)
+PASS: mutation corpus (bases=8, reject_mutations=11, accept_mutations=5, total=128)
+PASS: artifact_tool verify CLI regression suite
+PASS: artifact_tool hash CLI regression suite
+PASS: documentation link integrity regression suite
+PASS: artifact_diff CLI regression suite
+PASS: Demo V3 fixture hashes match expected values
+PASS: Demo V4 region attribution regression suite
+PASS: Demo V5 evolution regression suite
+PASS: compare_artifact CLI regression suite

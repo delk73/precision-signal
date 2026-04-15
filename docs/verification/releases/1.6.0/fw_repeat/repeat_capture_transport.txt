@@ -1,0 +1,9 @@
+# csv repeat_capture manifest
+contract=csv
+serial=/dev/ttyACM0 runs=3
+reset_mode=manual
+timeout_seconds=10.0
+# fields: contract run file bytes sha256 rows status
+contract=csv run=01 file=run_01.csv bytes=1426 sha256=b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1 rows=138 status=PASS
+contract=csv run=02 file=run_02.csv bytes=1426 sha256=b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1 rows=138 status=PASS
+contract=csv run=03 file=run_03.csv bytes=1426 sha256=b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1 rows=138 status=PASS

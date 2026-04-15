@@ -5,23 +5,8 @@ use std::fs;
 use std::path::Path;
 use std::process::ExitCode;
 
-use replay_core::artifact::{
-    encode_event_frame0_le, encode_header1_le, EventFrame0, Header1, FRAME_COUNT, FRAME_SIZE,
-    HEADER1_SIZE, MAGIC, VERSION1,
-};
-use replay_host::diff_artifacts0;
-use sha2::{Digest, Sha256};
-
-const IMPORT_IRQ_ID: u8 = 0x02;
-const IMPORT_TIMER_DELTA: u32 = 1000;
-const IMPORT_CAPTURE_BOUNDARY_ISR: u16 = 0;
-const EMPTY_SCHEMA: &[u8] = b"";
-const BUILD_HASH_INPUT: &[u8] = b"replay-host:import-interval-csv:v1";
-const CONFIG_HASH_INPUT: &[u8] = b"source=index,interval_us;pad=zero;timer_delta=1000;irq=0x02";
-const BOARD_ID: [u8; 16] = *b"interval-csv-run";
-const CLOCK_PROFILE: [u8; 16] = *b"offline-fixed-v1";
-const INTERVAL_CSV_HEADER: &str = "index,interval_us";
-const INTERVAL_CSV_ROW_COUNT: usize = 138;
+use replay_core::artifact::FRAME_COUNT;
+use replay_host::{diff_artifacts0, import_interval_capture_bytes, load_interval_csv};
 
 fn usage(program: &str) {
     eprintln!(
@@ -33,134 +18,23 @@ fn read_file(path: &Path) -> Result<Vec<u8>, String> {
     fs::read(path).map_err(|err| format!("read error for {}: {err}", path.display()))
 }
 
-fn load_interval_csv(path: &Path) -> Result<Vec<u32>, String> {
-    let text = fs::read_to_string(path)
-        .map_err(|err| format!("read error for {}: {err}", path.display()))?;
-
-    let mut lines = text.lines();
-    let Some(header) = lines.next() else {
-        return Err(format!("{}: empty csv", path.display()));
-    };
-    if header != INTERVAL_CSV_HEADER {
-        return Err(format!(
-            "{}: invalid header, expected {INTERVAL_CSV_HEADER}",
-            path.display()
-        ));
-    }
-
-    let mut intervals = Vec::new();
-    for (expected_index, line) in lines.enumerate() {
-        if line.is_empty() {
-            return Err(format!("{}: invalid empty row", path.display()));
-        }
-        let mut parts = line.split(',');
-        let Some(index_str) = parts.next() else {
-            return Err(format!("{}: invalid row", path.display()));
-        };
-        let Some(interval_str) = parts.next() else {
-            return Err(format!("{}: invalid row", path.display()));
-        };
-        if parts.next().is_some() {
-            return Err(format!("{}: invalid row", path.display()));
-        }
-
-        let index = index_str.parse::<usize>().map_err(|err| {
-            format!(
-                "{}: invalid index at row {} ({err})",
-                path.display(),
-                expected_index + 1
-            )
-        })?;
-        if index != expected_index {
-            return Err(format!("{}: non-contiguous index", path.display()));
-        }
-
-        let interval = interval_str.parse::<u32>().map_err(|err| {
-            format!(
-                "{}: invalid interval at row {} ({err})",
-                path.display(),
-                expected_index + 1
-            )
-        })?;
-        if interval == 0 {
-            return Err(format!(
-                "{}: interval must be > 0 at row {}",
-                path.display(),
-                expected_index + 1
-            ));
-        }
-        intervals.push(interval);
-    }
-
-    if intervals.is_empty() {
-        return Err(format!("{}: no interval rows", path.display()));
-    }
-    if intervals.len() != INTERVAL_CSV_ROW_COUNT {
-        return Err(format!(
-            "{}: expected {INTERVAL_CSV_ROW_COUNT} interval rows, found {}",
-            path.display(),
-            intervals.len()
-        ));
-    }
-
-    Ok(intervals)
-}
-
-fn validate_interval_csv_quiet(csv_path: &Path) -> Result<Vec<u32>, String> {
+fn validate_interval_csv_quiet(csv_path: &Path) -> Result<replay_host::IntervalCapture, String> {
     load_interval_csv(csv_path)
 }
 
 fn validate_interval_csv(csv_path: &Path) -> Result<(), String> {
-    let intervals = validate_interval_csv_quiet(csv_path)?;
+    let capture = validate_interval_csv_quiet(csv_path)?;
     println!("validated: {}", csv_path.display());
-    println!("header: {INTERVAL_CSV_HEADER}");
-    println!("rows: {}", intervals.len());
+    println!("header: index,interval_us");
+    println!("rows: {}", capture.intervals.len());
     println!("first_index: 0");
-    println!("last_index: {}", intervals.len() - 1);
+    println!("last_index: {}", capture.intervals.len() - 1);
     Ok(())
 }
 
 fn import_interval_csv(csv_path: &Path, out_path: &Path) -> Result<(), String> {
-    let intervals = validate_interval_csv_quiet(csv_path)?;
-
-    let header = Header1 {
-        magic: MAGIC,
-        version: VERSION1,
-        header_len: HEADER1_SIZE as u16,
-        frame_count: FRAME_COUNT as u32,
-        frame_size: FRAME_SIZE as u16,
-        flags: 0,
-        schema_len: EMPTY_SCHEMA.len() as u32,
-        schema_hash: Sha256::digest(EMPTY_SCHEMA).into(),
-        build_hash: Sha256::digest(BUILD_HASH_INPUT).into(),
-        config_hash: Sha256::digest(CONFIG_HASH_INPUT).into(),
-        board_id: BOARD_ID,
-        clock_profile: CLOCK_PROFILE,
-        capture_boundary: IMPORT_CAPTURE_BOUNDARY_ISR,
-        reserved: 0,
-    };
-
-    let mut out =
-        Vec::with_capacity(HEADER1_SIZE + EMPTY_SCHEMA.len() + (FRAME_COUNT * FRAME_SIZE));
-    out.extend_from_slice(&encode_header1_le(&header));
-    out.extend_from_slice(EMPTY_SCHEMA);
-
-    for frame_idx in 0..FRAME_COUNT {
-        let input_sample = if frame_idx < intervals.len() {
-            intervals[frame_idx] as i32
-        } else {
-            0
-        };
-        let frame = EventFrame0 {
-            frame_idx: frame_idx as u32,
-            irq_id: IMPORT_IRQ_ID,
-            flags: 0,
-            rsv: 0,
-            timer_delta: IMPORT_TIMER_DELTA,
-            input_sample,
-        };
-        out.extend_from_slice(&encode_event_frame0_le(&frame));
-    }
+    let capture = validate_interval_csv_quiet(csv_path)?;
+    let out = import_interval_capture_bytes(&capture);
 
     if let Some(parent) = out_path.parent() {
         fs::create_dir_all(parent)
@@ -171,7 +45,7 @@ fn import_interval_csv(csv_path: &Path, out_path: &Path) -> Result<(), String> {
 
     println!("imported: {}", csv_path.display());
     println!("wrote: {}", out_path.display());
-    println!("source_rows: {}", intervals.len());
+    println!("source_rows: {}", capture.intervals.len());
     println!("frame_count: {}", FRAME_COUNT);
     Ok(())
 }

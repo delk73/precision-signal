@@ -1,5 +1,5 @@
 # precision-signal: Canonical Verification Protocol
-**Version: 1.5.0 (Active Release Baseline)**
+**Version: 1.6.0 (Active Release Baseline)**
 **Status: Frozen Definition**
 
 ## Purpose
@@ -12,9 +12,9 @@ This document is the canonical release contract for `precision-signal`.
 
 Release readiness for a retained repository release record requires:
 
+- retained Kani evidence from the manual preflight `bash verify_kani.sh` to exist under `docs/verification/releases/1.6.0/`
 - the canonical operator-facing release gate `make gate` to pass
-- the retained evidence-packaging route `make demo-evidence-package` to pass
-- the documentation integrity check `make doc-link-check` to pass
+- the canonical `1.6.0` release-record orchestration `make release-1.6.0` to pass
 - the retained release evidence bundle to live under `docs/verification/releases/<version>/`
 - `make release-bundle-check VERSION=<version>` to pass against that retained bundle
 
@@ -24,12 +24,15 @@ For release-surface questions, use this guide as the source of truth for:
 - what command is canonical
 - where retained release evidence lives
 
-For release `1.5.0`, reviewers should traverse this path: `make gate` for the
-canonical gate, [docs/replay/tooling.md](docs/replay/tooling.md) for released
-replay-tooling boundaries, and `docs/verification/releases/1.5.0/` for the
-retained release evidence bundle. Historical retained evidence for `1.3.1`
-and hardware-backed `1.2.2` remains explicit under
+For release `1.6.0`, reviewers should traverse this path: `bash verify_kani.sh`
+for the manual once-per-release preflight, `make release-1.6.0` for the
+canonical retained-record orchestration, [docs/replay/tooling.md](docs/replay/tooling.md)
+for released replay-tooling boundaries, and `docs/verification/releases/1.6.0/`
+for the retained release evidence bundle. Historical retained evidence remains explicit under
 `docs/verification/releases/`.
+
+Pre-split historical evidence may still refer to `precision` as the validation
+binary; the current validation entrypoint is `sig-util -- validate`, which implements `make gate`.
 
 The rest of the release-adjacent documentation is supporting only:
 
@@ -130,7 +133,7 @@ KEEP_LOGS=1 bash verify_kani.sh
   for Tier-1, with additional manifest-defined Tier-2 harnesses when
   `RUN_HEAVY=1`.
 - **Status**: Each per-harness log must contain `VERIFICATION:- SUCCESSFUL` and must not contain `** N of M failed` where `N > 0`.
-- **Implication**: Provides panic-safety and invariant evidence for the kernels covered by these harnesses and their assumptions. The active release-scoped proof boundary and exclusions must be read from `docs/verification/releases/1.5.0/`.
+- **Implication**: Provides panic-safety and invariant evidence for the kernels covered by these harnesses and their assumptions. The active release-scoped proof boundary and exclusions must be read from `docs/verification/releases/1.6.0/`.
 
 ### 3.4 Harness-to-Crate Mapping
 | Harness | Crate | Tier |
@@ -176,9 +179,9 @@ KEEP_LOGS=1 bash verify_kani.sh
 - **"dereference failure ... Status: SUCCESS" lines**: These indicate Kani proved the failing path unreachable under harness constraints; they are successful checks, not proof failures.
 
 ### 3.6 Release-Scoped Correctness and Limits
-- The active release (1.5.0) retains one explicit bounded correctness claim for the released sine path over the finite domain documented in `docs/verification/releases/1.5.0/VERIFICATION_SCOPE.md`.
-- That `1.5.0` scope note is a carry-forward release record and explicitly inherits the unchanged bounded sine claim from `docs/verification/releases/1.4.0/VERIFICATION_SCOPE.md`.
-- That claim is empirical, not global. It is retained as release evidence and does not upgrade the repository claim to full waveform equivalence outside the stated domain.
+- The active release (`1.6.0`) retains its release-scoped correctness claims and limits under `docs/verification/releases/1.6.0/`.
+- That retained `1.6.0` bundle is a narrowed, non-firmware release record for the primary precision CLI surface only, scoped to `crates/dpw4/src/bin/common/mod.rs`, `crates/dpw4/src/bin/precision/mod.rs`, and `crates/dpw4/tests/precision_authoritative_surface.rs`, within the explicit limits documented in the `1.6.0` release directory.
+- That claim is exercised-path and release-scoped, not global.
 - Heavy Tier-2 proofs remain optional unless the active release bundle explicitly retains a heavy proof run. If omitted, the retained release bundle must state the exclusion and the remaining release-claim boundary explicitly.
 
 ---
@@ -246,7 +249,7 @@ Bit-identical execution across runs and platforms is a core requirement of the B
 make gate
 ```
 This is the canonical operator-facing release gate.
-It runs `cargo run --release -p dpw4 --features cli --bin precision -- validate --mode quick`.
+It runs `cargo run --release -p dpw4 --features cli --bin sig-util -- validate --mode quick`.
 Exit code is authoritative (`0` pass, `1` fail).
 `--mode full` is currently identical to `--mode quick` and reserved for future extension.
 If explicitly exercised, use:
@@ -279,7 +282,7 @@ normative table.
 
 ### 6.3 Supported Entry Surface
 Use `make gate` for routine operator execution of the quick validation gate.
-The underlying normative command remains `precision validate --mode quick`.
+The underlying normative command is `sig-util validate --mode quick`.
 No other command is an equally authoritative release-admissibility gate.
 
 ### 6.4 Release Evidence Location
@@ -310,7 +313,6 @@ For a retained repository release record under
   - `make_gate.txt`
   - `make_replay_tests.txt`
   - `release_reproducibility.txt`
-  - `verify_release_repro.txt`
 - Firmware-including retained release bundle:
   - `firmware_release_evidence.md`
   - `sha256_summary.txt`
@@ -381,7 +383,7 @@ Providing bit-level transparency into the internal state of the oscillator.
 cargo run -p dpw4 --features cli --bin precision -- artifacts --out docs/verification
 ```
 **Traces Produced** (in `docs/verification/`):
-- **Normative for `precision validate` determinism gate**:
+- **Normative for `sig-util validate` determinism gate**:
   - `saw_20_headroom.det.csv`
   - `pulse_relational_8k.det.csv`
   - `triangle_linearity_1k.det.csv`
@@ -479,7 +481,7 @@ Role:
 
 - use `make gate` as the canonical release gate
 - use `bash verify_release_repro.sh` when the release record must retain a
-  same-machine dual-build identity check for the `precision` release binary
+  same-machine dual-build identity check for the `sig-util` release binary
 - for `1.2.0`, treat the retained result as supporting-only evidence, not a
   required release-admissibility artifact
 - if retained, archive its result under `docs/verification/releases/<version>/`
@@ -491,8 +493,8 @@ RELEASE_EVIDENCE_DIR=docs/verification/releases/<version>/ bash verify_release_r
 ```
 
 That archived result is supporting release evidence in the canonical retained
-evidence directory; it does not replace `make gate` as the canonical release
-execution path.
+evidence directory and is retained as `release_reproducibility.txt`; it does
+not replace `make gate` as the canonical release execution path.
 
 ---
 **Conclusion**: This protocol provides independent, reproducible verification evidence for assessing a `precision-signal` implementation under the pinned environment and repository-defined gates. For technical support or certification audits, consult the Normative Governance section of this guide.

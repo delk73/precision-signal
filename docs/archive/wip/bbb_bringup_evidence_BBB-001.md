@@ -326,7 +326,7 @@ Evidence Notes
 
   - **Software Verification (`make gate`)**:
     - Build duration: 29m 42s (Release profile, optimized)
-    - Command: `cargo run --locked --release -p dpw4 --features cli --bin precision -- validate --mode quick`
+    - Command: `cargo run --locked --release -p dpw4 --features cli --bin sig-util -- validate --mode quick`
     - Result: **VERIFICATION PASSED**
     - Key checks validated on-target:
       - `version_consistency`: PASS (1.2.2)

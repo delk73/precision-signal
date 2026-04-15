@@ -1,4 +1,5 @@
 /target*
+.audit_stdout
 
 **/*.rs.bk
 *.swp
@@ -20,6 +21,8 @@ docs/audits/runlogs/*
 *.bin
 
 # replay canonical artifacts (tracked)
+artifacts/.tmp_*/
+artifacts/[0-9]*/
 !artifacts/baseline.bin
 !artifacts/baseline.sha256
 !artifacts/baseline.json

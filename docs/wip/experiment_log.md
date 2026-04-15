@@ -470,7 +470,7 @@ Planned Artifacts
 - retained command logs or observations linked from future WIP entries
 
 Evidence Produced
-- `docs/wip/bbb_bringup_evidence_BBB-001.md` (retained evidence record)
+- [docs/archive/wip/bbb_bringup_evidence_BBB-001.md](../archive/wip/bbb_bringup_evidence_BBB-001.md) (retained evidence record)
 - `make gate`: VERIFICATION PASSED (on-target bit-exact validation)
 - `make replay-tests`: PASS (after `python3-serial` dependency correction)
 

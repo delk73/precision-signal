@@ -2,9 +2,6 @@
 
 This folder documents the replay subsystem within the broader deterministic
 execution analysis infrastructure implemented by `precision-signal`.
-
-Release status is classified in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
-Verification authority is defined in [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md).
 Replay-tooling boundary routing lives in [docs/replay/tooling.md](tooling.md).
 The canonical packaged proof route for the completed replay pipeline is
 [docs/demos/demo_evidence_packaging.md](../demos/demo_evidence_packaging.md).
@@ -17,8 +14,7 @@ The canonical packaged proof route for the completed replay pipeline is
 - Deterministic host-side hash-stream and first-divergence logic used by the
   experimental Rust replay host
 - F446 firmware capture->halt->dump path for the current operator workflow over
-  USART2 (ST-LINK VCP); release classification remains in
-  [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md)
+  USART2 (ST-LINK VCP)
 - CI boundary gates relevant to replay crates
 
 ## Out of Scope
@@ -27,7 +23,7 @@ The canonical packaged proof route for the completed replay pipeline is
 - Multi-IRQ capture semantics
 - DPW integration/runtime wiring
 - Stability guarantees beyond the currently documented implementation
-- [docs/wip/](../wip/) research work that is not part of the current release surface
+- [docs/wip/](../wip/) research work
 
 ## Docs Index
 - [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md): canonical STM32 self-stimulus interval CSV capture contract frozen for

@@ -163,6 +163,8 @@ fn wait_for_capture_progress() {
 }
 
 fn init_gpioa_for_tim2_ch1(dp: &pac::Peripherals) {
+    // TIM2_CH1 capture input is routed on PA0 and expects the external
+    // self-stimulus loopback from TIM3_CH1 on PA6.
     dp.RCC.ahb1enr().modify(|_, w| w.gpioaen().set_bit());
 
     dp.GPIOA.moder().modify(|_, w| w.moder0().alternate());
@@ -175,6 +177,8 @@ fn init_gpioa_for_tim2_ch1(dp: &pac::Peripherals) {
 }
 
 fn init_gpioa_for_tim3_ch1(dp: &pac::Peripherals) {
+    // TIM3_CH1 drives the stimulus square wave on PA6. Capture remains zero
+    // unless PA6 is physically looped back into PA0 / TIM2_CH1.
     dp.RCC.ahb1enr().modify(|_, w| w.gpioaen().set_bit());
 
     dp.GPIOA.moder().modify(|_, w| w.moder6().alternate());

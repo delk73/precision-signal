@@ -13,13 +13,16 @@ For release decisions, use:
 
 - contract: [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
 - canonical operator path: `make gate`
-- canonical packaged proof path for the completed replay pipeline:
-  [docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md)
-- retained packaged proof bundle for that path: `artifacts/demo_evidence/retained/`
 - retained release records: [docs/verification/releases/](verification/releases/)
-- active workspace/package version: `1.5.0`
+- active workspace/package version: `1.6.0`
 - latest retained release record currently present in-tree:
-  [docs/verification/releases/1.5.0/](verification/releases/1.5.0/)
+  [docs/verification/releases/1.6.0/](verification/releases/1.6.0/)
+- active retained release summary: narrowed, non-firmware release record for the
+  primary precision CLI surface only
+- replay demo packaging material under
+  [docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md) and
+  `artifacts/demo_evidence/retained/` is support/reference material, not the
+  canonical `1.6.0` operator release surface
 
 If a descriptive document conflicts with a normative document, the normative
 document wins.
@@ -29,29 +32,32 @@ surface.
 
 ## Classification
 
-Release
+Canonical For Retained Release `1.6.0`
 
-- `precision validate` (canonical validation gate)
-- `artifact_tool.py` (artifact verification / hashing / inspection)
-- `artifact_diff.py` (deterministic divergence analysis)
-- `replay-host diff` (bounded Rust replay diff for the retained `artifacts/rpl0/` proof corpus only; exact observed command behavior and scope note retained under [docs/verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md](verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md))
-- `precision generate` (operator-path evidence: [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md))
-- `precision artifacts` (operator-path evidence: [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md))
-- `precision inspect` (operator-path evidence: [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md))
-- `precision verify` (operator-path evidence: [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md))
-- `header_audit` (operator-path evidence: [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md))
+- `make gate` (canonical operator-facing release gate)
+- the narrowed primary precision CLI surface retained for `1.6.0`; read the
+  exact release boundary, limits, and retained evidence under
+  [docs/verification/releases/1.6.0/](verification/releases/1.6.0/) and
+  [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
+- authority and retained-evidence routing under
+  [docs/verification/releases/](verification/releases/)
 
-What is proven for the completed Phase 1 through Phase 5 replay pipeline:
+Support / Reference / Historical Only
 
-- the packaged proof workflow `make demo-evidence-package` reproduces the
-  retained replay evidence bundle byte-for-byte from committed inputs
-- released Python tooling proves artifact verification, hashing, inspection, and
-  deterministic divergence analysis on the packaged fixtures
-- released Rust replay is limited to the exact `replay-host diff` behavior
-  mechanically retained for the `artifacts/rpl0/` proof corpus in the `1.5.0`
-  release bundle
-- the packaged proof bundle demonstrates the completed replay evidence ladder up
-  through captured-evidence packaging without changing the release contract
+- `sig-util validate` (underlying implementation of `make gate`, not separate
+  operator-facing release authority)
+- `artifact_tool.py` and `artifact_diff.py` (retained support/reference tooling;
+  not canonical `1.6.0` operator surface)
+- `replay-host diff` (historical bounded `1.5.0` released slice only; exact
+  scope note retained under
+  [docs/verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md](verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md);
+  not canonical `1.6.0` operator surface)
+- `make demo-evidence-package` and `artifacts/demo_evidence/retained/`
+  (retained replay demo proof/support material, not the active `1.6.0` release
+  contract)
+- firmware capture/import evidence retained under
+  [docs/verification/releases/1.6.0/](verification/releases/1.6.0/) is bounded
+  supporting evidence only; it does not promote a firmware release for `1.6.0`
 
 Experimental
 
@@ -61,17 +67,26 @@ not part of the current release surface
 - `replay-host` commands other than `diff`
 - broader `replay-host` capability outside the exact `artifacts/rpl0/` proof corpus and accepted artifact class retained under [docs/verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md](verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md)
 - schema-aware Rust replay semantics
+- `substrate_probe`, `make conformance-audit`, and `make kill-switch-audit`
+  (retained audit/probe workflow support, not canonical `1.6.0` operator
+  surface)
 
 ## Release Routing
 
 - Canonical operator entrypoint: `make gate`
-- Normative underlying command: `precision validate --mode quick`
-- Canonical proof route for the completed replay pipeline:
-  `make demo-evidence-package` via [docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md)
-- Canonical retained proof bundle for that route: `artifacts/demo_evidence/retained/`
+- Underlying support command: `sig-util validate --mode quick`
 - Canonical retained release-evidence location for release records:
   [docs/verification/releases/](verification/releases/)
-- Retained verification scope for this release surface includes the `1.5.0`
-  release-checklist outputs and the bounded Rust replay scope note under [docs/verification/releases/1.5.0/](verification/releases/1.5.0/). Historical `1.4.0`, `1.3.1`, and hardware-backed `1.2.2` retained evidence remains explicit under [docs/verification/releases/](verification/releases/).
+- Active retained release route:
+  [docs/verification/releases/1.6.0/](verification/releases/1.6.0/) for the
+  narrowed primary precision non-firmware release record
+- Supporting firmware evidence retained under the `1.6.0` bundle is bounded
+  supporting evidence only and does not widen the released operator surface
+- Replay demo packaging material and the historical `1.5.0`
+  `replay-host diff` slice are reference routes, not active `1.6.0` release
+  authority
+- Retained verification scope for this release surface includes the `1.6.0`
+  release-checklist outputs. Historical `1.5.0`, `1.4.0`, `1.3.1`, and
+  hardware-backed `1.2.2` retained evidence remains explicit under [docs/verification/releases/](verification/releases/).
 - This document classifies surfaced tools and routes proof bundles; it does not
   define release admissibility

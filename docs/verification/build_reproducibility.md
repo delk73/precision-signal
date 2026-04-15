@@ -35,7 +35,7 @@ make gate
 Normative underlying command:
 
 ```bash
-cargo run --release -p dpw4 --features cli --bin precision -- validate --mode quick
+cargo run --release -p dpw4 --features cli --bin sig-util -- validate --mode quick
 ```
 
 Supporting release-binary identity check:
@@ -47,7 +47,9 @@ bash verify_release_repro.sh
 `make gate` is the canonical release gate.
 The cargo invocation above is the underlying implementation.
 `bash verify_release_repro.sh` is a supporting same-machine dual-build identity
-check for the `precision` release binary.
+check for the `sig-util` release binary.
+It freezes `SOURCE_DATE_EPOCH` to the current `HEAD` commit timestamp unless
+the caller explicitly provides the variable.
 For `1.2.0`, retained build reproducibility evidence is supporting-only and is
 not required for release admissibility.
 

@@ -1,21 +1,25 @@
 # Replay Tooling
 
 This document defines the replay-tooling boundary.
-Release status is classified in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
-Verification authority is defined in [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md).
-The normative artifact contract is [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md).
-Released replay-facing operator tooling is the Python toolchain.
-Rust replay remains mostly experimental. Release `1.5.0` classifies one bounded
-Rust replay command slice as released, with the exact scope and retained
-transcripts documented under
+Use [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md) as the release
+classification anchor.
+The Python tooling layer (`artifact_tool.py`, `artifact_diff.py`) remains
+historically released replay-facing operator tooling, but for the retained
+`1.6.0` release it is support/reference tooling and is not part of the
+canonical `1.6.0` operator surface.
+Replay uses a two-stage model: Stage 1 is the interval CSV capture contract for firmware, defined in [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md). Stage 2 is the RPL0 replay artifact format for replay/diff, defined in [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md); these are separate contracts, not one unified artifact format.
+Rust replay remains mostly experimental, with one bounded released
+`replay-host diff` slice and retained transcripts documented under
 [docs/verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md](../verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md).
 
-## Released Python Tooling
+## Historically Released Python Tooling
 
-- [scripts/artifact_tool.py](../../scripts/artifact_tool.py): released operator CLI for capture, inspection,
-  verification, hashing, and compare workflows
-- [scripts/artifact_diff.py](../../scripts/artifact_diff.py): released divergence-localization tool for demo and
-  diagnosis
+- [scripts/artifact_tool.py](../../scripts/artifact_tool.py): historically
+  released replay-facing CLI for capture, inspection, verification, hashing,
+  and compare workflows; retained as support/reference tooling for `1.6.0`
+- [scripts/artifact_diff.py](../../scripts/artifact_diff.py): historically
+  released replay-facing divergence-localization tool for demo and diagnosis;
+  retained as support/reference tooling for `1.6.0`
 
 ## Released Rust Replay
 
@@ -55,7 +59,9 @@ Limitations:
 - the `1.5.0` release does not generalize `replay-host diff` beyond the
   retained `artifacts/rpl0/` proof corpus
 - no schema-aware replay semantics are provided by the Rust path
-- Python replay tooling remains the released operator tooling
+- the Python tooling layer remains historically released replay-facing operator
+  tooling, but for `1.6.0` it is retained as support/reference tooling and is
+  not part of the canonical `1.6.0` operator surface
 
 ## Example Commands
 

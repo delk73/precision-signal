@@ -15,8 +15,8 @@ The `precision` binary is the reference Rust CLI for generation, inspection,
 verification, artifact production, and validation of DP32 Reference Standard
 signals. It is gated behind the `cli` feature in the `dpw4` crate.
 
-For release-surface classification, use [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
-For verification governance, use [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md).
+For release-surface classification, use [docs/RELEASE_SURFACE.md](../../RELEASE_SURFACE.md).
+For verification governance, use [VERIFICATION_GUIDE.md](../../../VERIFICATION_GUIDE.md).
 
 ## Command Surface
 
@@ -88,7 +88,7 @@ Runs the canonical deterministic release gate.
 | `--json` | Emit single JSON report to `stdout` | `false` |
 | `--keep` | Keep `run1`/`run2` on PASS | `false` |
 
-*   **Operator Routing**: `make gate` is the canonical operator-facing entrypoint. `precision validate --mode quick` is the normative underlying command.
+*   **Operator Routing**: `make gate` is the canonical operator-facing entrypoint. The normative underlying command is `sig-util validate --mode quick`.
 *   **Checks**:
     *   `version_consistency`
     *   `toolchain_pin`

@@ -1,15 +1,20 @@
 use super::{GenerateArgs, ShapeArg};
+use crate::common;
+use crate::common::CliError;
 use dpw4::{
     math, signal_pipe, DpwGain, OscState, Pulse, Sawtooth, Scalar, SignalFrameHeader, Square,
     TriangleDPW1, TriangleDPW4, BIT_DEPTH_32,
 };
 use std::io::{self, Write};
 
-pub(crate) fn run_generate(args: GenerateArgs) -> io::Result<()> {
+pub(crate) fn run_generate(args: GenerateArgs) -> Result<(), CliError> {
+    if args.seconds == Some(0) {
+        return Err(CliError::User("--seconds must be greater than 0".to_string()));
+    }
+
     if args.container_wav && args.seconds.is_none() {
-        return Err(io::Error::new(
-            io::ErrorKind::InvalidInput,
-            "Error: --container-wav requires --seconds to be set.",
+        return Err(CliError::User(
+            "--container-wav requires --seconds to be set.".to_string(),
         ));
     }
 
@@ -29,16 +34,19 @@ pub(crate) fn run_generate(args: GenerateArgs) -> io::Result<()> {
     }
 
     let gain = DpwGain::new(gain_f64 as u64, gain_exp, 0, 0);
+    let audit = common::audit_state("sig-util");
+    eprintln!(
+        "AUDIT: capture_start commit={} toolchain={} features={}",
+        common::short_commit(audit.commit),
+        audit.toolchain,
+        audit.features.join(",")
+    );
 
-    let stdout = io::stdout();
-    let mut handle = stdout.lock();
+    let mut handle = common::open_output(&args.out)?;
 
     if args.container_wav {
         let seconds = args.seconds.ok_or_else(|| {
-            io::Error::new(
-                io::ErrorKind::InvalidInput,
-                "--container-wav requires --seconds",
-            )
+            CliError::User("--container-wav requires --seconds".to_string())
         })?;
         let total_samples = args.rate as u64 * seconds;
         let data_bytes = total_samples * 4;
@@ -124,7 +132,7 @@ pub(crate) fn run_generate(args: GenerateArgs) -> io::Result<()> {
             if e.kind() == io::ErrorKind::BrokenPipe {
                 break;
             }
-            return Err(e);
+            return Err(e.into());
         }
 
         if args.seconds.is_some() {

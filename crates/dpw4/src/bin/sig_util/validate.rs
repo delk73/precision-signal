@@ -3,6 +3,7 @@ use super::artifacts::{
     GoldenPolicy, VerificationScenario, HEADER_TEST_FRAMES, HEADER_TEST_RATE, SCENARIOS,
 };
 use super::{ValidateArgs, ValidateMode};
+use crate::common::CliStatus;
 use dpw4::verification::HeaderVerifier;
 use sha2::{Digest, Sha256};
 use std::fs::{self, File};
@@ -35,11 +36,11 @@ struct CheckResult {
     details: String,
 }
 
-pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
+pub(crate) fn run_validate(args: ValidateArgs) -> CliStatus {
     let out_selection = match resolve_out_dir(args.out) {
         Ok(selection) => selection,
         Err(msg) => {
-            emit_validate_line(args.json, &format!("FAIL setup: {}", msg));
+            emit_validate_line(&format!("FAIL setup: {}", msg));
             return finalize_validate(args.json, None, Vec::new(), args.keep, true);
         }
     };
@@ -52,7 +53,7 @@ pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
 
     if let Err(e) = fs::create_dir_all(&out_dir) {
         let msg = format!("failed to create out dir {}: {}", out_dir.display(), e);
-        emit_validate_line(args.json, &format!("FAIL setup: {}", msg));
+        emit_validate_line(&format!("FAIL setup: {}", msg));
         checks.push(CheckResult {
             name: "setup",
             status: CheckStatus::Fail,
@@ -65,10 +66,7 @@ pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
     let lock_version = read_dpw4_version_from_lock(Path::new("Cargo.lock"));
     let version_details = match (&workspace_version, &lock_version) {
         (Ok(ws), Ok(lock)) if ws == lock => {
-            emit_validate_line(
-                args.json,
-                &format!("PASS version_consistency: workspace={} lock={}", ws, lock),
-            );
+            emit_validate_line(&format!("PASS version_consistency: workspace={} lock={}", ws, lock));
             CheckResult {
                 name: "version_consistency",
                 status: CheckStatus::Pass,
@@ -78,7 +76,7 @@ pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
         (Ok(ws), Ok(lock)) => {
             overall_fail = true;
             let msg = format!("workspace={} lock={}", ws, lock);
-            emit_validate_line(args.json, &format!("FAIL version_consistency: {}", msg));
+            emit_validate_line(&format!("FAIL version_consistency: {}", msg));
             CheckResult {
                 name: "version_consistency",
                 status: CheckStatus::Fail,
@@ -87,7 +85,7 @@ pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
         }
         (Err(e), _) => {
             overall_fail = true;
-            emit_validate_line(args.json, &format!("FAIL version_consistency: {}", e));
+            emit_validate_line(&format!("FAIL version_consistency: {}", e));
             CheckResult {
                 name: "version_consistency",
                 status: CheckStatus::Fail,
@@ -96,7 +94,7 @@ pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
         }
         (_, Err(e)) => {
             overall_fail = true;
-            emit_validate_line(args.json, &format!("FAIL version_consistency: {}", e));
+            emit_validate_line(&format!("FAIL version_consistency: {}", e));
             CheckResult {
                 name: "version_consistency",
                 status: CheckStatus::Fail,
@@ -109,10 +107,7 @@ pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
     let toolchain = read_toolchain_channel(Path::new("rust-toolchain.toml"));
     let toolchain_result = match toolchain {
         Ok(actual) if actual == TOOLCHAIN_PIN => {
-            emit_validate_line(
-                args.json,
-                &format!("PASS toolchain_pin: channel={}", actual),
-            );
+            emit_validate_line(&format!("PASS toolchain_pin: channel={}", actual));
             CheckResult {
                 name: "toolchain_pin",
                 status: CheckStatus::Pass,
@@ -122,7 +117,7 @@ pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
         Ok(actual) => {
             overall_fail = true;
             let msg = format!("expected={} actual={}", TOOLCHAIN_PIN, actual);
-            emit_validate_line(args.json, &format!("FAIL toolchain_pin: {}", msg));
+            emit_validate_line(&format!("FAIL toolchain_pin: {}", msg));
             CheckResult {
                 name: "toolchain_pin",
                 status: CheckStatus::Fail,
@@ -131,7 +126,7 @@ pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
         }
         Err(e) => {
             overall_fail = true;
-            emit_validate_line(args.json, &format!("FAIL toolchain_pin: {}", e));
+            emit_validate_line(&format!("FAIL toolchain_pin: {}", e));
             CheckResult {
                 name: "toolchain_pin",
                 status: CheckStatus::Fail,
@@ -144,7 +139,7 @@ pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
     let run_header = out_dir.join("run_header");
     if let Err(e) = fs::create_dir_all(&run_header) {
         let msg = format!("failed to create run_header: {}", e);
-        emit_validate_line(args.json, &format!("FAIL header_stream_integrity: {}", msg));
+        emit_validate_line(&format!("FAIL header_stream_integrity: {}", msg));
         checks.push(CheckResult {
             name: "header_stream_integrity",
             status: CheckStatus::Fail,
@@ -164,13 +159,10 @@ pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
     let header_result = match generate_header_test_artifact(&header_test_path) {
         Ok(_) => match run_header_integrity_direct(&header_test_path) {
             Ok(()) => {
-                emit_validate_line(
-                    args.json,
-                    &format!(
-                        "PASS header_stream_integrity: header-only stream valid ({} frames)",
-                        HEADER_TEST_FRAMES
-                    ),
-                );
+                emit_validate_line(&format!(
+                    "PASS header_stream_integrity: header-only stream valid ({} frames)",
+                    HEADER_TEST_FRAMES
+                ));
                 CheckResult {
                     name: "header_stream_integrity",
                     status: CheckStatus::Pass,
@@ -185,7 +177,7 @@ pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
             Err(e) => {
                 overall_fail = true;
                 let msg = format!("file={} {}", header_test_path.display(), e);
-                emit_validate_line(args.json, &format!("FAIL header_stream_integrity: {}", msg));
+                emit_validate_line(&format!("FAIL header_stream_integrity: {}", msg));
                 CheckResult {
                     name: "header_stream_integrity",
                     status: CheckStatus::Fail,
@@ -196,7 +188,7 @@ pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
         Err(e) => {
             overall_fail = true;
             let msg = format!("artifact_gen_failed: {}", e);
-            emit_validate_line(args.json, &format!("FAIL header_stream_integrity: {}", msg));
+            emit_validate_line(&format!("FAIL header_stream_integrity: {}", msg));
             CheckResult {
                 name: "header_stream_integrity",
                 status: CheckStatus::Fail,
@@ -230,7 +222,7 @@ pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
                 details.push_str(&format!("{}_sha256={}", stem, actual));
             }
 
-            emit_validate_line(args.json, &msg);
+            emit_validate_line(&msg);
 
             CheckResult {
                 name: "determinism_bit_exact",
@@ -240,7 +232,7 @@ pub(crate) fn run_validate(args: ValidateArgs) -> i32 {
         }
         Err(e) => {
             overall_fail = true;
-            emit_validate_line(args.json, &format!("FAIL determinism_bit_exact: {}", e));
+            emit_validate_line(&format!("FAIL determinism_bit_exact: {}", e));
             CheckResult {
                 name: "determinism_bit_exact",
                 status: CheckStatus::Fail,
@@ -265,16 +257,20 @@ fn finalize_validate(
     checks: Vec<CheckResult>,
     keep: bool,
     failed: bool,
-) -> i32 {
+) -> CliStatus {
     let status = if failed { "failed" } else { "passed" };
     if json {
         let out_dir = out_selection
             .map(|selection| selection.path.clone())
             .unwrap_or_else(|| PathBuf::from(DEFAULT_VALIDATE_OUT_BASE));
-        let json = build_validate_json(status, &out_dir, &checks);
-        println!("{}", json);
+        let payload = build_validate_json(status, &out_dir, &checks);
+        if failed {
+            eprintln!("{}", payload);
+        } else {
+            println!("{}", payload);
+        }
     } else if failed {
-        println!("VERIFICATION FAILED");
+        eprintln!("VERIFICATION FAILED");
     } else {
         println!("VERIFICATION PASSED");
     }
@@ -284,14 +280,11 @@ fn finalize_validate(
             if selection.auto_created {
                 if selection.path.exists() {
                     if let Err(e) = fs::remove_dir_all(&selection.path) {
-                        emit_validate_line(
-                            json,
-                            &format!(
-                                "WARN cleanup: failed to remove {}: {}",
-                                selection.path.display(),
-                                e
-                            ),
-                        );
+                        emit_validate_line(&format!(
+                            "WARN cleanup: failed to remove {}: {}",
+                            selection.path.display(),
+                            e
+                        ));
                     }
                 }
             } else {
@@ -302,14 +295,11 @@ fn finalize_validate(
                 ] {
                     if run_dir.exists() {
                         if let Err(e) = fs::remove_dir_all(&run_dir) {
-                            emit_validate_line(
-                                json,
-                                &format!(
-                                    "WARN cleanup: failed to remove {}: {}",
-                                    run_dir.display(),
-                                    e
-                                ),
-                            );
+                            emit_validate_line(&format!(
+                                "WARN cleanup: failed to remove {}: {}",
+                                run_dir.display(),
+                                e
+                            ));
                         }
                     }
                 }
@@ -318,9 +308,9 @@ fn finalize_validate(
     }
 
     if failed {
-        1
+        CliStatus::UserError
     } else {
-        0
+        CliStatus::Success
     }
 }
 
@@ -376,12 +366,8 @@ fn create_default_run_dir() -> Result<OutDirSelection, String> {
     ))
 }
 
-fn emit_validate_line(json: bool, line: &str) {
-    if json {
-        eprintln!("{}", line);
-    } else {
-        println!("{}", line);
-    }
+fn emit_validate_line(line: &str) {
+    eprintln!("{}", line);
 }
 
 fn read_workspace_version(path: &Path) -> Result<String, String> {
@@ -856,7 +842,7 @@ mod tests {
 
         assert_eq!(
             finalize_validate(false, Some(&selection), Vec::new(), false, false),
-            0
+            CliStatus::Success
         );
         assert!(!out_dir.exists());
     }
@@ -874,7 +860,7 @@ mod tests {
 
         assert_eq!(
             finalize_validate(false, Some(&selection), Vec::new(), false, false),
-            0
+            CliStatus::Success
         );
         assert!(out_dir.exists());
         for subdir in ["run1", "run2", "run_header"] {

@@ -12,8 +12,9 @@ Use [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md) for release classification,
 The repository implements deterministic execution analysis
 infrastructure designed to capture execution artifacts,
 analyze divergence between independent executions, and
-provide released replay-facing operator tooling through
-the Python toolchain.
+provide a replay-tooling layer that includes historically
+released Python operator tooling retained as
+support/reference material for `1.6.0`.
 
 ## Core Concepts
 
@@ -24,9 +25,12 @@ using a canonical binary format.
 
 Deterministic Replay
 
-Released replay-facing operator tooling is the Python
-toolchain (`scripts/artifact_tool.py` and
-`scripts/artifact_diff.py`). Rust replay
+The Python tooling layer (`scripts/artifact_tool.py`
+and `scripts/artifact_diff.py`) remains historically
+released replay-facing operator tooling, but for the
+retained `1.6.0` release it is support/reference tooling
+and is not part of the canonical `1.6.0` operator
+surface. Rust replay
 (`crates/replay-host`) is experimental and limited to
 legacy-frame replay boundaries documented in
 [docs/replay/tooling.md](replay/tooling.md).
@@ -55,13 +59,16 @@ Execution
 → Divergence Analysis
 
 Artifacts encode execution events in a canonical format.
-Released Python tooling provides artifact inspection,
-verification, hashing, compare workflows, and divergence
-localization. Experimental Rust replay remains limited to
-the legacy-frame scope documented in
+Historically released Python tooling provides artifact
+inspection, verification, hashing, compare workflows, and
+divergence localization, but for `1.6.0` it is retained as
+support/reference tooling rather than part of the
+canonical `1.6.0` operator surface. Experimental Rust
+replay remains limited to the legacy-frame scope documented in
 [docs/replay/tooling.md](replay/tooling.md).
 
-Released replay-facing operator tooling and experimental Rust replay boundaries
+Replay-tooling boundaries, including the historically
+released Python layer and experimental Rust replay,
 are routed through [docs/replay/tooling.md](replay/tooling.md).
 
 ## Applications

@@ -57,7 +57,7 @@ tested domains, or for wider `q` values.
 - `WIP-012`: mechanism derivation explaining why the rule matches the observed
   boundary in the tested domain
 
-See [experiment_log.md](./experiment_log.md) for the underlying WIP entries.
+See [docs/wip/experiment_log.md](../../wip/experiment_log.md) for the underlying WIP entries.
 
 ## Non-Promotion Note
 

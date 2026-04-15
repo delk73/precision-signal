@@ -1,7 +1,9 @@
 # Replay Capture Acceptance Contract (Historical v0)
 
 > **Status: LEGACY / HISTORICAL**
-> v0 parsing remains available for historical inspection only. The active capture, baseline, repeat-check, and release path is RPL0 `version = 1`.
+> v0 parsing remains available for historical inspection only. The active
+> firmware hardware gate is the STM32 interval CSV path, not UART `RPL0`
+> capture.
 
 Status: historical v0 boundary retained for audit traceability.
 
@@ -30,7 +32,7 @@ Canonical baseline SHA-256:
 - Multibyte fields are little-endian.
 - Serialization emits bytes only from explicit field encodes; raw struct memory is never serialized.
 
-### Gate 1: Single capture acceptance (`make replay-check`)
+### Gate 1: Single capture acceptance (`make rpl0-replay-check`)
 - Human-in-the-loop.
 - Listener waits for replay header.
 - Operator presses reset once after listener starts.
@@ -38,7 +40,7 @@ Canonical baseline SHA-256:
 - Verification enforces signal model.
 - Candidate artifact must be byte-identical to baseline.
 
-### Gate 2: Repeatability acceptance (`make replay-repeat-check`)
+### Gate 2: Repeatability acceptance (`make rpl0-replay-repeat-check`)
 - Wrapper creates run directory under `artifacts/replay_runs/`.
 - Baseline artifacts are read-only.
 - Required outputs: `replay_manifest_v0.txt`, `sha256_summary.txt`.
@@ -64,9 +66,9 @@ Required `replay_manifest_v0.txt` fields:
 
 ## Reference Commands
 ```bash
-make replay-check
-make replay-repeat-check
-REPLAY_REPEAT_RUNS=10 make replay-repeat-check
+make rpl0-replay-check
+make rpl0-replay-repeat-check
+REPLAY_REPEAT_RUNS=10 make rpl0-replay-repeat-check
 ```
 
 ## Scope Lock (Stabilization Horizon)
