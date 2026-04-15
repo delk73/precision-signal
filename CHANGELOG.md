@@ -7,30 +7,26 @@
 
 ## [Unreleased]
 
-### Maintenance
+### Added
 
-- clarified workflow authority between `make gate` and `make ci-local` without changing release acceptance semantics
-- modularized large entrypoints to reduce maintenance surface
-- consolidated stable developer workflow orchestration under `xtask`
-- clarified audit runlog handling for limited non-release samples
-
-- no behavior or artifact changes
-
-## [1.6.0] - 2026-04-10
+- authoritative CLI contract for the intended `1.6.0` primary precision surface in `docs/authority/cli_contract.md`
+- artifact retention and classification policy in `docs/governance/ARTIFACT_POLICY.md`
+- contributor guidance for release-boundary and evidence discipline in `CONTRIBUTING.md`
+- retained `1.6.0` release evidence bundle under `docs/verification/releases/1.6.0/`, including authoritative-surface test evidence and supporting reproducibility records
 
 ### Changed
 
-- modularized the released precision CLI entrypoint (`precision.rs`) to separate authoritative command dispatch from shared utility harness
-- split utility surface into separate `sig_util` entrypoint to maintain clear authority boundary
-- routed the validation gate through `sig-util -- validate` while keeping `make gate` as the canonical operator-facing release command
-- added the substrate audit/probe proof path (`make conformance-audit`, `make kill-switch-audit`) to the retained 1.6.0 release evidence workflow
-- updated the release-bundle machinery to retain the 1.6.0 CLI-primary retained evidence set with bounded supporting firmware capture/import evidence and reproducibility record on the final branch state
+- split the primary precision CLI surface from supporting utility workflows by keeping `precision` authoritative and routing non-authoritative utility commands through `sig-util`
+- routed the validation gate through `sig-util validate --mode quick` while keeping `make gate` as the canonical operator-facing release command
+- hardened the authoritative CLI contract around command routing, result-block behavior, exit and publication semantics, and retained evidence boundaries for the primary precision surface
+- narrowed the intended `1.6.0` release surface to the primary precision CLI only, with bounded supporting firmware capture/import evidence retained as supplemental material
 
 ### Notes
 
-- Maintenance release; no behavior changes to released precision commands (record, replay, diff, envelope)
-- Narrowed retained release for the primary precision CLI surface with bounded supporting firmware capture/import evidence retained
-- No replay-host or firmware scope expansion
+- pending `1.6.0` release cut
+- no replay-host promotion
+- no firmware release promotion
+- intended `1.6.0` claim remains bounded to the primary precision CLI surface and exercised-path retained evidence
 
 ## [1.5.0] - 2026-04-04
 
