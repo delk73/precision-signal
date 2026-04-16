@@ -8,13 +8,15 @@ Maturity and verification authority are routed elsewhere:
 
 - current release-surface classification: [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md)
 - canonical verification contract: [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md)
-- released replay operator tooling boundary: [docs/replay/tooling.md](../replay/tooling.md)
+- replay tooling boundary: [docs/replay/tooling.md](../replay/tooling.md)
 
-The released replay operator tooling is the Python tooling described in
-[docs/replay/tooling.md](../replay/tooling.md). The Rust replay engine remains experimental: it
-supports RPL0 format version 0 replay plus RPL0 format version 1 container
-parsing, with current replay defined only by the legacy 16-byte `EventFrame0`
-interpretation.
+This document stays within the replay explanation layer. It does not define
+release scope or promote any replay implementation. Read
+[docs/replay/tooling.md](../replay/tooling.md) as the support/reference
+boundary for replay tooling, and treat the Rust replay path as the existing
+experimental implementation that parses RPL0 format version 0 artifacts and
+RPL0 format version 1 containers while preserving the legacy 16-byte
+`EventFrame0` replay interpretation.
 
 ## 1. Replay artifact model
 
