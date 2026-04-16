@@ -4,6 +4,12 @@
 
 ---
 
+This guide is retained historical performance background only.
+It is not part of the active authority spine, does not define release claims,
+and remains behind the active routing. Use [docs/README.md](docs/README.md)
+and [docs/architecture/performance/README.md](docs/architecture/performance/README.md)
+for routing.
+
 ## Overview
 
 This guide documents the **performance characteristics** of the Reference Baseline engine on reference hardware. These metrics are **advisory**—they characterize computational cost but are not normative requirements for conformance (see `VERIFICATION_GUIDE.md` for normative tests).

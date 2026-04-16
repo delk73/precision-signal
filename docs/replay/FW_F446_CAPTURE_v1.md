@@ -15,6 +15,8 @@
 > path by [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md).
 > The active path no longer uses this document as its operator-facing capture
 > contract.
+> Historical release-record routing lives in
+> [docs/verification/releases/index.md](../verification/releases/index.md).
 
 ---
 

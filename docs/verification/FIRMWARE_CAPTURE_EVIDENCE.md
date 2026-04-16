@@ -1,5 +1,11 @@
 # Firmware Capture Evidence
 
+This file is retained historical firmware evidence only.
+It is not the active STM32 capture contract and it does not outrank
+[docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](../replay/INTERVAL_CAPTURE_CONTRACT_v1.md).
+Use [docs/verification/releases/index.md](releases/index.md) for historical
+verification and release-record routing.
+
 ## Context
 
 Historical path/name references in this file are preserved from the

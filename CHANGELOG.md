@@ -7,6 +7,20 @@
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-04-15
+
+### Changed
+
+- compressed the active documentation authority spine across the root/docs entry routes so release, CLI, and STM32 capture authority resolve through one consistent path
+- de-emphasized historical verification and replay surfaces from the active reading path while preserving retained access through the release-record landing and historical references
+- reduced human-facing duplication in the retained `1.6.0` release bundle routing so one primary summary page remains for readers while keeping GitHub Pages compatibility
+- compressed default `make help` to the active operator/release path and moved demo, firmware, and historical/support workflows behind `help-all` and grouped help targets as presentation-only routing cleanup
+
+### Notes
+
+- Surface-discipline release only; no operator or release-surface expansion
+- No replay-host promotion, firmware promotion, new correctness claim, proof-scope expansion, or target-behavior change
+
 ## [1.6.0] - 2026-04-15
 
 ### Added

@@ -1,5 +1,13 @@
 # Replay Wire Format v0
 
+> **Status: HISTORICAL WIRE FORMAT**
+> This document is retained for legacy `RPL0` v0 inspection only. It does not
+> define the active STM32 capture authority. Use
+> [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md)
+> for the live capture contract and
+> [docs/verification/releases/index.md](../verification/releases/index.md) for
+> historical verification routing.
+
 This document defines the normative wire format for the RPL0 artifact.
 It is the referenced wire-format specification for the capture contract in [docs/replay/FW_F446_CAPTURE_v0.md](FW_F446_CAPTURE_v0.md).
 For the stabilized artifact contract with schema extension block and fixed 16-byte opaque frames, see [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md).

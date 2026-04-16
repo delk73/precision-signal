@@ -1,37 +1,52 @@
 # Replay Tooling
 
-This document defines the replay-tooling boundary.
-Use [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md) as the release
-classification anchor.
-The Python tooling layer (`artifact_tool.py`, `artifact_diff.py`) remains
-historically released replay-facing operator tooling, but for the retained
-`1.6.0` release it is support/reference tooling and is not part of the
-canonical `1.6.0` operator surface.
-Replay uses a two-stage model: Stage 1 is the interval CSV capture contract for firmware, defined in [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md). Stage 2 is the RPL0 replay artifact format for replay/diff, defined in [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md); these are separate contracts, not one unified artifact format.
-Rust replay remains mostly experimental, with one bounded released
-`replay-host diff` slice and retained transcripts documented under
+This document is support/reference guidance for replay tooling and local replay
+validation. It is not active CLI authority and it does not define the active
+`1.6.0` operator surface.
+
+Use:
+
+- [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md) for release classification
+- [docs/authority/cli_contract.md](../authority/cli_contract.md) for the sole
+  active CLI contract
+- [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md)
+  for the sole active STM32 capture contract
+- [docs/verification/releases/index.md](../verification/releases/index.md) for
+  historical release records and retained verification material
+
+Replay uses a two-stage model: Stage 1 is the interval CSV capture contract for
+firmware, defined in
+[docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md).
+Stage 2 is the RPL0 replay artifact format for replay and diff, defined in
+[docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md). These
+are separate contracts, not one unified artifact format.
+
+The Python tooling layer (`artifact_tool.py`, `artifact_diff.py`) is retained as
+historical support/reference tooling. Rust replay remains mostly experimental,
+with one bounded historical `replay-host diff` slice retained under
 [docs/verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md](../verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md).
 
 ## Historically Released Python Tooling
 
 - [scripts/artifact_tool.py](../../scripts/artifact_tool.py): historically
-  released replay-facing CLI for capture, inspection, verification, hashing,
-  and compare workflows; retained as support/reference tooling for `1.6.0`
+  released replay-facing support tool for capture, inspection, verification,
+  hashing, and compare workflows; retained as support/reference tooling for
+  `1.6.0`
 - [scripts/artifact_diff.py](../../scripts/artifact_diff.py): historically
-  released replay-facing divergence-localization tool for demo and diagnosis;
-  retained as support/reference tooling for `1.6.0`
+  released replay-facing divergence-localization support tool for demo and
+  diagnosis; retained as support/reference tooling for `1.6.0`
 
-## Released Rust Replay
+## Historical Rust Replay Slice
 
-- `replay-host diff`
+- bounded `replay-host diff`
 
-### Released `replay-host diff`
+### Historical `replay-host diff`
 
 ```bash
 cargo run -q -p replay-host -- diff artifacts/rpl0/run_20260331T150000Z.import1.rpl artifacts/rpl0/run_20260331T150000Z.frame017_plus1.rpl
 ```
 
-Released scope:
+Retained scope:
 
 - the retained `artifacts/rpl0/` proof corpus only
 - the exact accepted artifact class mechanically demonstrated by that corpus and
@@ -59,8 +74,7 @@ Limitations:
 - the `1.5.0` release does not generalize `replay-host diff` beyond the
   retained `artifacts/rpl0/` proof corpus
 - no schema-aware replay semantics are provided by the Rust path
-- the Python tooling layer remains historically released replay-facing operator
-  tooling, but for `1.6.0` it is retained as support/reference tooling and is
+- the Python tooling layer remains historical support/reference tooling and is
   not part of the canonical `1.6.0` operator surface
 
 ## Example Commands
@@ -100,5 +114,5 @@ make replay-tool-tests
 make replay-tests
 ```
 
-These gates cover replay artifact handling, parser validity, and operator tool
+These gates cover replay artifact handling, parser validity, and support-tool
 behavior.
