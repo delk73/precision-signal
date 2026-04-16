@@ -1,5 +1,17 @@
 # CLI Surface Evidence
 
+This file is retained historical CLI promotion evidence only.
+It is not the active CLI contract, it is not the active `1.6.0` operator
+authority, and it does not outrank
+[docs/authority/cli_contract.md](../authority/cli_contract.md).
+
+Use:
+
+- [docs/authority/cli_contract.md](../authority/cli_contract.md) for the sole
+  active CLI contract authority
+- [docs/verification/releases/index.md](releases/index.md) for historical
+  verification and release-record routing
+
 This document records the minimal operator-path evidence used to promote safe
 CLI surfaces from Reference to Release.
 

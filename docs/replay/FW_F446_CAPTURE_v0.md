@@ -4,6 +4,10 @@
 > This document retains the historical v0 capture contract for audit traceability only.
 > Firmware capture now emits RPL0 version = 1 container artifacts with `[HEADER][SCHEMA BLOCK][FRAME DATA]`.
 > Replay semantics remain the legacy 16-byte `EventFrame0` interpretation.
+> Use [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md)
+> for the active STM32 capture contract and
+> [docs/verification/releases/index.md](../verification/releases/index.md) for
+> historical verification routing.
 
 ---
 

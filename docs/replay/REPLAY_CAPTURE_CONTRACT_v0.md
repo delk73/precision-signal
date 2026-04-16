@@ -4,6 +4,10 @@
 > v0 parsing remains available for historical inspection only. The active
 > firmware hardware gate is the STM32 interval CSV path, not UART `RPL0`
 > capture.
+> Use [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md)
+> for the live capture contract and
+> [docs/verification/releases/index.md](../verification/releases/index.md) for
+> historical verification routing.
 
 Status: historical v0 boundary retained for audit traceability.
 

@@ -1,16 +1,26 @@
 # Documentation Index
 
-This directory contains the descriptive, architectural, operational, and evidence
-documents for `precision-signal`.
+This directory contains the descriptive, architectural, operational, and
+supporting evidence documents for `precision-signal`.
 
 `precision-signal` is a multi-crate workspace. Its system category is
 deterministic execution analysis infrastructure.
 
-This index is descriptive only. Use [docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md) for
-the reference packaged proof route covering the completed Phase 1 through Phase
-5 replay demo pipeline; it is not part of the `1.6.0` release contract.
+This index is descriptive only. For release and verification routing, use the
+active authority spine before reading supporting material here.
+
+## Active Authority Spine
+
+- [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md): release-readiness authority and verification contract
+- [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md): release-surface classification and routing
+- [docs/authority/cli_contract.md](authority/cli_contract.md): sole active CLI contract authority
+- [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](replay/INTERVAL_CAPTURE_CONTRACT_v1.md): sole active STM32 capture contract authority
+
+## Historical / Release-Record Landing
+
+- [docs/verification/releases/index.md](verification/releases/index.md): retained release records and historical verification landing
+
 Experimental notes live under [docs/wip/README.md](wip/README.md) and are non-normative.
-For release and verification routing, see [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md) and [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md).
 
 Normative behavior is covered by the contract and spec documents listed below:
 
@@ -25,7 +35,6 @@ Normative behavior is covered by the contract and spec documents listed below:
 ## Start Here
 
 - [docs/architecture/workspace.md](architecture/workspace.md): workspace framing and routing
-- [docs/demos/demo_evidence_packaging.md](demos/demo_evidence_packaging.md): reference packaged proof route and retained bundle for the replay demo pipeline; not part of the `1.6.0` release contract
 - [docs/architecture/architecture_whitepaper.md](architecture/architecture_whitepaper.md): replay architecture whitepaper
 - [docs/architecture/signal_path.md](architecture/signal_path.md): non-normative signal-path overview
 - [docs/architecture/float_boundary.md](architecture/float_boundary.md): float quarantine and allowed surfaces
@@ -36,12 +45,8 @@ Normative behavior is covered by the contract and spec documents listed below:
 ## Replay
 
 - [docs/replay/README.md](replay/README.md): replay subsystem scope and document index
-- [docs/replay/tooling.md](replay/tooling.md): replay-tooling boundary, operator tools, validation suites, and local gates
-- [docs/replay/HOST_REPLAY_v0.md](replay/HOST_REPLAY_v0.md): host replay and divergence semantics
 - [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](replay/INTERVAL_CAPTURE_CONTRACT_v1.md): current STM32 self-stimulus capture contract
-- [docs/replay/FW_F446_CAPTURE_v1.md](replay/FW_F446_CAPTURE_v1.md): historical board-capture contract retained as superseded material
-- [docs/replay/FW_F446_CAPTURE_v0.md](replay/FW_F446_CAPTURE_v0.md): legacy historical capture contract
-- [docs/replay/WIRE_FORMAT_v0.md](replay/WIRE_FORMAT_v0.md): byte-level artifact format
+- [docs/replay/tooling.md](replay/tooling.md): support/reference replay tooling boundary and validation guidance
 - [docs/replay/DIVERGENCE_SEMANTICS.md](replay/DIVERGENCE_SEMANTICS.md): normative replay explanation and classification contract
 - [docs/architecture/replay_explained.md](architecture/replay_explained.md): single-pass replay system narrative and demo ladder
 
@@ -51,20 +56,15 @@ Normative behavior is covered by the contract and spec documents listed below:
   and physical verification routing
 - [docs/verification/build_reproducibility.md](verification/build_reproducibility.md): pinned toolchain, release build, and
   reproducibility checks
-- [docs/verification/CI_EVIDENCE.md](verification/CI_EVIDENCE.md): CI evidence notes
 - [docs/verification/CROSS_CONTEXT_INVARIANCE.md](verification/CROSS_CONTEXT_INVARIANCE.md): cross-context replay invariance check for RPL0 format version 1 artifacts
 - [docs/verification/chaos_probes.md](verification/chaos_probes.md): chaos-probe verification notes
-- [docs/verification/FIRMWARE_CAPTURE_EVIDENCE.md](verification/FIRMWARE_CAPTURE_EVIDENCE.md): retained firmware capture evidence routing
 - [docs/verification/hardware_procedures.md](verification/hardware_procedures.md): non-authoritative manual hardware support procedures
-- [docs/verification/D-03_TriangleDPW4_Audit.md](verification/D-03_TriangleDPW4_Audit.md): retained TriangleDPW4 audit note
-- [docs/verification/releases/](verification/releases/): retained release evidence bundles
+- [docs/verification/releases/index.md](verification/releases/index.md): retained release records and historical verification landing
 
 ## CLI
 
 - [docs/authority/cli_contract.md](authority/cli_contract.md): authoritative CLI invocation, stream, and exit contract
-- [docs/verification/CLI_SURFACE_EVIDENCE.md](verification/CLI_SURFACE_EVIDENCE.md): historical operator-path evidence for older CLI surface promotions; not the active `1.6.0` release contract
-- [docs/archive/cli/precision.md](archive/cli/precision.md): `precision` CLI reference
-- [docs/archive/cli/examples.md](archive/cli/examples.md): CLI usage examples
+- [docs/replay/tooling.md](replay/tooling.md): support/reference tooling guidance and local replay validation gates
 
 ## Demo
 
@@ -97,9 +97,7 @@ Normative behavior is covered by the contract and spec documents listed below:
 
 ## Performance
 
-- [docs/architecture/performance/README.md](architecture/performance/README.md): performance benchmarking index
-- [docs/architecture/performance/CONTROL_SCHEDULER_BENCHMARKING.md](architecture/performance/CONTROL_SCHEDULER_BENCHMARKING.md): control scheduler benchmarking notes
-- [docs/architecture/performance/HOT_PATH_EXECUTION_AND_BENCHMARKING.md](architecture/performance/HOT_PATH_EXECUTION_AND_BENCHMARKING.md): hot-path execution and benchmarking notes
+- [docs/architecture/performance/README.md](architecture/performance/README.md): retained performance background and benchmarking index
 
 ## Debug
 

@@ -2,10 +2,9 @@
 
 This route exists so GitHub Pages resolves `docs/verification/releases/1.6.0/` correctly.
 
-Primary retained release record:
+Primary human-readable summary:
 
 - [README.md](README.md): release summary and retained file inventory
-- [index.md](index.md): this file
 
 Retained command outputs:
 

@@ -13,7 +13,7 @@ The repository implements deterministic execution analysis
 infrastructure designed to capture execution artifacts,
 analyze divergence between independent executions, and
 provide a replay-tooling layer that includes historically
-released Python operator tooling retained as
+released Python support tooling retained as
 support/reference material for `1.6.0`.
 
 ## Core Concepts
@@ -27,10 +27,10 @@ Deterministic Replay
 
 The Python tooling layer (`scripts/artifact_tool.py`
 and `scripts/artifact_diff.py`) remains historically
-released replay-facing operator tooling, but for the
+released replay-facing support tooling, but for the
 retained `1.6.0` release it is support/reference tooling
 and is not part of the canonical `1.6.0` operator
-surface. Rust replay
+surface or active operator authority. Rust replay
 (`crates/replay-host`) is experimental and limited to
 legacy-frame replay boundaries documented in
 [docs/replay/tooling.md](replay/tooling.md).
@@ -63,7 +63,8 @@ Historically released Python tooling provides artifact
 inspection, verification, hashing, compare workflows, and
 divergence localization, but for `1.6.0` it is retained as
 support/reference tooling rather than part of the
-canonical `1.6.0` operator surface. Experimental Rust
+canonical `1.6.0` operator surface or active operator
+authority. Experimental Rust
 replay remains limited to the legacy-frame scope documented in
 [docs/replay/tooling.md](replay/tooling.md).
 

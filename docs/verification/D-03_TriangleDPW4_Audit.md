@@ -1,3 +1,8 @@
+Retained historical audit note only.
+This file does not define the release contract, CLI contract, or active replay
+capture authority. Use [docs/verification/releases/index.md](releases/index.md)
+for historical verification routing.
+
 Δ-03
 Operational Domain
 Phase is externally drivable via the public API `TriangleDPW4::tick(&mut OscState, phase: Scalar, gain: &DpwGain)`.

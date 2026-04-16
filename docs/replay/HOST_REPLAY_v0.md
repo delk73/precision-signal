@@ -1,5 +1,13 @@
 # Host Replay (RPL0) Semantics (WIP / Experimental)
 
+> **Status: HISTORICAL / EXPERIMENTAL**
+> This document is retained for historical replay semantics only. It is not
+> the active capture contract or active operator authority. Use
+> [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md)
+> for the live STM32 capture contract and
+> [docs/verification/releases/index.md](../verification/releases/index.md) for
+> historical release-record routing.
+
 This document describes current `replay-host` replay/diff semantics.
 All logic is integer-only and deterministic.
 Current support is limited to:

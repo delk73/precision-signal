@@ -13,17 +13,27 @@ make gate
 
 Runs the canonical release verification gate.
 
-Use these documents as the authoritative entry points:
+## Active Authority Spine
+
+Use these documents in this order:
 
 | Path | Role |
 | --- | --- |
 | [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md) | release-readiness authority and verification contract |
 | [docs/RELEASE_SURFACE.md](docs/RELEASE_SURFACE.md) | release-surface classification and routing |
-| [docs/verification/releases/index.md](docs/verification/releases/index.md) | retained release evidence index |
+| [docs/authority/cli_contract.md](docs/authority/cli_contract.md) | sole active CLI contract authority |
+| [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md) | sole active STM32 capture contract authority |
 
-Historical CLI reference material is retained under [docs/archive/cli/](docs/archive/cli/) for archival context only and is not part of the active CLI reading path.
+## Historical / Release-Record Landing
 
-For deeper documentation, see [docs/README.md](docs/README.md), [docs/replay/tooling.md](docs/replay/tooling.md), and [docs/wip/README.md](docs/wip/README.md).
+| Path | Role |
+| --- | --- |
+| [docs/verification/releases/index.md](docs/verification/releases/index.md) | retained release records and historical verification landing |
+
+## Descriptive Index
+
+For descriptive and supporting documentation behind the active authority spine, use [docs/README.md](docs/README.md).
+Experimental notes remain under [docs/wip/README.md](docs/wip/README.md) and are non-normative.
 
 ## License
 

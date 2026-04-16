@@ -36,7 +36,7 @@ Firmware binary emission is verified locally via Makefile targets (`make fw-bin`
     - `verify` is strict and rejects trailing bytes.
     - `hash` computes identity over the canonical artifact prefix and may ignore trailing bytes.
   - Verifies structural/model validity and detects accidental baseline mutation.
-  - Active operator contract is [docs/replay/FW_F446_CAPTURE_v1.md](FW_F446_CAPTURE_v1.md); v0 is retained for legacy inspection only.
+  - Active STM32 capture contract is [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md). Historical RPL0 capture notes remain retained for legacy inspection only.
 
 - `Replay Artifact Parser Adversarial Tests`
   - `python3 scripts/test_artifact_parser_adversarial.py`

@@ -3,6 +3,8 @@
 This file is historical CI evidence only.
 It is not the release contract, it is not the canonical release gate
 definition, and it is not the canonical retained release record.
+It remains retained historical verification material behind
+[docs/verification/releases/index.md](releases/index.md).
 Historical repository name/path references are preserved from the
 pre-ejection repository identity (`precision-dpw`).
 
