@@ -7,8 +7,6 @@
 
 ## [Unreleased]
 
-## [1.7.0] - 2026-04-15
-
 ### Changed
 
 - compressed the active documentation authority spine across the root/docs entry routes so release, CLI, and STM32 capture authority resolve through one consistent path
