@@ -6,8 +6,9 @@
 
 This guide is retained historical performance background only.
 It is not part of the active authority spine, does not define release claims,
-and should be read behind [docs/README.md](docs/README.md) and
-[docs/architecture/performance/README.md](docs/architecture/performance/README.md).
+and remains behind the active routing. Use [docs/README.md](docs/README.md)
+and [docs/architecture/performance/README.md](docs/architecture/performance/README.md)
+for routing.
 
 ## Overview
 
