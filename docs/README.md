@@ -9,9 +9,9 @@ over UART.
 This documentation set describes the architecture, operation, and evidence for that system.
 
 This index is descriptive only. For release and verification routing, use the
-active authority spine before reading supporting material here.
+active authority path before reading supporting material here.
 
-## Active Authority Spine
+## Active Authority Path
 
 - [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md): release-readiness authority and verification contract
 - [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md): release-surface classification and routing

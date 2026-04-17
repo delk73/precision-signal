@@ -5,7 +5,7 @@ replay, operated through the `precision` CLI against an attached STM32 target
 over UART.
 This folder documents the replay subsystem within that system.
 
-Use the active authority spine first:
+Use the active authority path first:
 
 - [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md)
 - [docs/authority/cli_contract.md](../authority/cli_contract.md)
