@@ -1,9 +1,11 @@
 # Replay MVP Docs
 
-This folder documents the replay subsystem within the broader deterministic
-execution analysis infrastructure implemented by `precision-signal`.
+Precision Signal is a deterministic execution validation system centered on
+replay, operated through the `precision` CLI against an attached STM32 target
+over UART.
+This folder documents the replay subsystem within that system.
 
-Use the active authority spine first:
+Use the active authority path first:
 
 - [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md)
 - [docs/authority/cli_contract.md](../authority/cli_contract.md)
@@ -17,6 +19,8 @@ Use the active authority spine first:
   legacy 16-byte `EventFrame0` replay semantics
 - Deterministic host-side hash-stream and first-divergence logic used by the
   experimental Rust replay host
+- Attached STM32 target over UART as the canonical replay path operated through
+  the `precision` CLI
 - F446 firmware capture->halt->dump path for the current operator workflow over
   USART2 (ST-LINK VCP)
 - CI boundary gates relevant to replay crates

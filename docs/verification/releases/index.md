@@ -3,7 +3,7 @@
 This directory is the GitHub Pages route for retained release-evidence bundles
 and historical verification references.
 
-Use the active authority spine first:
+Use the active authority path first:
 
 - [VERIFICATION_GUIDE.md](../../../VERIFICATION_GUIDE.md): release contract
 - [docs/RELEASE_SURFACE.md](../../RELEASE_SURFACE.md): release-surface

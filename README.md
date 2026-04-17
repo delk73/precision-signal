@@ -1,6 +1,11 @@
 # precision-signal
 
-A deterministic execution validation system that captures runtime artifacts and verifies replay equivalence across contexts.
+Precision Signal is a deterministic execution validation system centered on replay, operated through the `precision` CLI against an attached STM32 target over UART.
+
+**Naming**
+- Product name: **Precision Signal**
+- Authoritative CLI command: `precision`
+- Canonical hardware path: attached STM32 target over UART
 
 ## Quick Start
 
@@ -13,7 +18,7 @@ make gate
 
 Runs the canonical release verification gate.
 
-## Active Authority Spine
+## Active Authority Path
 
 Use these documents in this order:
 
@@ -32,7 +37,7 @@ Use these documents in this order:
 
 ## Descriptive Index
 
-For descriptive and supporting documentation behind the active authority spine, use [docs/README.md](docs/README.md).
+For descriptive and supporting documentation behind the active authority path, use [docs/README.md](docs/README.md).
 Experimental notes remain under [docs/wip/README.md](docs/wip/README.md) and are non-normative.
 
 ## License

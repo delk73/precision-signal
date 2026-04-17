@@ -3,6 +3,9 @@
 This document gives a single system narrative for the replay explanation layer.
 It describes deterministic replay artifacts, how divergence is captured, and
 how the explanation ladder is derived without adding new replay capabilities.
+Precision Signal is a deterministic execution validation system centered on
+replay, operated through the `precision` CLI against an attached STM32 target
+over UART.
 
 Maturity and verification authority are routed elsewhere:
 
@@ -17,6 +20,8 @@ boundary for replay tooling, and treat the Rust replay path as the existing
 experimental implementation that parses RPL0 format version 0 artifacts and
 RPL0 format version 1 containers while preserving the legacy 16-byte
 `EventFrame0` replay interpretation.
+Within that boundary, the authoritative operator entrypoint is the `precision`
+CLI and the canonical replay path is an attached STM32 target over UART.
 
 ## 1. Replay artifact model
 

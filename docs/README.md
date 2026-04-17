@@ -3,13 +3,15 @@
 This directory contains the descriptive, architectural, operational, and
 supporting evidence documents for `precision-signal`.
 
-`precision-signal` is a multi-crate workspace. Its system category is
-deterministic execution analysis infrastructure.
+Precision Signal is a deterministic execution validation system centered on
+replay, operated through the `precision` CLI against an attached STM32 target
+over UART.
+This documentation set describes the architecture, operation, and evidence for that system.
 
 This index is descriptive only. For release and verification routing, use the
-active authority spine before reading supporting material here.
+active authority path before reading supporting material here.
 
-## Active Authority Spine
+## Active Authority Path
 
 - [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md): release-readiness authority and verification contract
 - [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md): release-surface classification and routing

@@ -11,6 +11,9 @@ implemented in the `precision-signal` repository. The system captures execution
 artifacts from physical hardware, encodes them in a canonical binary format,
 replays those artifacts through deterministic tooling, and performs structured
 divergence analysis on the resulting hash streams.
+Precision Signal is a deterministic execution validation system centered on
+replay, operated through the `precision` CLI against an attached STM32 target
+over UART.
 
 The central architectural contribution is the **artifact boundary**: a
 well-defined serialization contract that separates runtime capture from offline
@@ -22,6 +25,9 @@ The system is implemented across bare-metal firmware (STM32F446RE), a Rust
 workspace of `no_std` and host-side crates, Python replay tooling, and a
 multi-tier verification architecture including formal proofs (Kani), hash-locked
 reference outputs, and deterministic build enforcement.
+Within that architecture, the authoritative operator entrypoint is the
+`precision` CLI, and the canonical attached-hardware route is an STM32 target
+over UART.
 
 This document is architectural, not a release classifier. Command-surface
 classification is routed to [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md); verification authority is
@@ -731,9 +737,9 @@ Evidence:
 
 ### 9.4 Multi-Tier Validation Gate (`sig-util validate`)
 
-`make gate` is the canonical operator-facing release gate.
-Its normative underlying command, `sig-util validate --mode quick`, executes
-the following verification pipeline:
+`make gate` remains the canonical release gate, and its current underlying
+validation command, `sig-util validate --mode quick`, executes the following
+verification pipeline:
 
 | Tier | Check | Description |
 |------|-------|-------------|
@@ -910,14 +916,15 @@ yet used by the analysis pipeline.
 
 ## 14. Conclusion
 
-The `precision-signal` repository implements a deterministic execution analysis
-infrastructure organized around a central invariant: the artifact boundary.
+The `precision-signal` repository implements a deterministic execution
+validation system centered on replay, organized around a central invariant: the
+artifact boundary.
 
-Execution artifacts captured from physical hardware are encoded in the RPL0
-binary format. A deterministic replay engine reconstructs state from
-artifact frames and produces hash streams. Divergence analysis classifies
-differences between hash streams along four dimensions: localization, region,
-shape, and evolution.
+Execution artifacts captured from an attached STM32 target over UART are
+encoded in the RPL0 binary format. A deterministic replay engine reconstructs
+state from artifact frames and produces hash streams. Divergence analysis
+classifies differences between hash streams along four dimensions:
+localization, region, shape, and evolution.
 
 The verification architecture combines formal proofs (Kani), hash-locked
 reference outputs, deterministic build enforcement, and a multi-tier validation

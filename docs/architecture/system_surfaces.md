@@ -1,6 +1,9 @@
 # System Surfaces
 
 This document explains repository surfaces and build targets.
+Precision Signal is a deterministic execution validation system centered on
+replay, operated through the `precision` CLI against an attached STM32 target
+over UART.
 Exact operator-surface classification lives in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
 Normative verification governance remains in [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md).
 This file is descriptive only and does not define release classification.
@@ -31,6 +34,8 @@ not core arithmetic definition.
 
 These surfaces describe the current implementation path.
 Release classification is defined only in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
+The authoritative operator entrypoint is the `precision` CLI, and the
+canonical attached-hardware route is an STM32 target over UART.
 
 The active STM32 self-stimulus capture contract is
 [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](../replay/INTERVAL_CAPTURE_CONTRACT_v1.md).

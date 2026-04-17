@@ -1,10 +1,10 @@
 # Workspace Framing
 
-This repository is a multi-crate workspace implementing
-deterministic execution analysis infrastructure.
+Precision Signal is a deterministic execution validation system centered on
+replay, operated through the `precision` CLI against an attached STM32 target
+over UART.
 
-System category:
-deterministic execution analysis infrastructure
+This repository is the multi-crate workspace that implements that system.
 
 This page is descriptive only.
 Release status is classified in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
@@ -18,6 +18,8 @@ Workspace framing:
   validation/build surfaces.
 - Replay-related implementation and operator documentation lives under
   [docs/replay/](../replay/).
+- The authoritative replay operator interface is the `precision` CLI, and the
+  canonical attached-hardware route is an STM32 target over UART.
 - Demo and evidence walkthroughs live under [docs/demos/](../demos/); the
   canonical retained proof bundle for the completed replay pipeline is
   `artifacts/demo_evidence/retained/`.
