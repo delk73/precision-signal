@@ -1,13 +1,10 @@
 # Workspace Framing
 
-This repository is a multi-crate workspace implementing
-deterministic execution analysis infrastructure.
 Precision Signal is a deterministic execution validation system centered on
 replay, operated through the `precision` CLI against an attached STM32 target
 over UART.
 
-System category:
-deterministic execution analysis infrastructure
+This repository is the multi-crate workspace that implements that system.
 
 This page is descriptive only.
 Release status is classified in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).

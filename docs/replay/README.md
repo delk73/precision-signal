@@ -1,10 +1,9 @@
 # Replay MVP Docs
 
-This folder documents the replay subsystem within the broader deterministic
-execution analysis infrastructure implemented by `precision-signal`.
 Precision Signal is a deterministic execution validation system centered on
 replay, operated through the `precision` CLI against an attached STM32 target
 over UART.
+This folder documents the replay subsystem within that system.
 
 Use the active authority spine first:
 

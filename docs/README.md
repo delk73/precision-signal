@@ -3,11 +3,10 @@
 This directory contains the descriptive, architectural, operational, and
 supporting evidence documents for `precision-signal`.
 
-`precision-signal` is a multi-crate workspace. Its system category is
-deterministic execution analysis infrastructure.
 Precision Signal is a deterministic execution validation system centered on
 replay, operated through the `precision` CLI against an attached STM32 target
 over UART.
+This documentation set describes the architecture, operation, and evidence for that system.
 
 This index is descriptive only. For release and verification routing, use the
 active authority spine before reading supporting material here.
