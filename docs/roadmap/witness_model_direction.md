@@ -1,4 +1,4 @@
-# Witness Model Direction (Post v1.2.2)
+# Witness Model Direction (Post 1.6.0)
 
 Status: Research / Directional
 Scope: Non-normative
@@ -63,9 +63,10 @@ imply any current format or implementation change.
 ### Perturbation as first-class
 
 A future architecture may treat controlled perturbation workflows as a primary
-tool for understanding divergence propagation rather than only as supporting
-demonstration material. This would be an optional future extension to the
-architectural model and not a statement about current scope.
+tool for understanding divergence propagation rather than only as retained
+reference evidence. This would be an optional
+future extension to the architectural model and not a statement about current
+scope.
 
 ### Reduced semantic coupling
 
@@ -83,6 +84,11 @@ direction:
 - `artifact_diff` already acts as a comparator over that surface
 - Demo V3 through Demo V5 already provide bounded explanation layers
 - unsupported differences are rejected rather than explained speculatively
+- the `precision` / `sig-util` CLI split (1.6.0) advances hard layer separation
+  by keeping the authoritative operator surface distinct from utility workflows
+- the CLI result block schema (`RESULT`, `EQUIVALENCE`, `FIRST_DIVERGENCE`)
+  already expresses the small set of explicit divergence states this direction
+  describes
 
 This document therefore describes a refinement in framing for future
 architecture discussion. It is not a claim that the current system is
@@ -106,4 +112,31 @@ Any future adoption of this direction should:
 
 ## Next Steps (Post-Release)
 
-Evaluate this direction only within a dedicated future architecture sprint.
+The 1.6.0 release stabilizes the explanation layer, locks the CLI contract, and
+narrows the operator surface. This direction may now be evaluated in a
+dedicated future architecture sprint.
+
+## Active Sprint Direction
+
+The next sprint should not attempt broad witness-model adoption. The active
+next target is one bounded separation pass for record, compare, explain, and
+replay roles. No other adoption target is active for that sprint.
+
+The sprint deliverable should be one bounded planning note or architecture
+delta. It should state the authoritative recorded surface, comparison
+surface, explanation surface, replay surface, and the non-goals for the
+separation pass.
+
+Sprint non-goals:
+
+- no rename of the current release surface
+- no artifact-format change
+- no promotion of experimental replay paths
+
+Promotion gate for this separation pass:
+
+- no release-surface drift
+- no terminology migration beyond planning docs
+- compatibility with the current `1.6.0` contract and retained validation
+  behavior
+- incremental adoption path rather than rewrite
