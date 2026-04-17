@@ -15,6 +15,9 @@ analyze divergence between independent executions, and
 provide a replay-tooling layer that includes historically
 released Python support tooling retained as
 support/reference material for `1.6.0`.
+Precision Signal is a deterministic execution validation system centered on
+replay, operated through the `precision` CLI against an attached STM32 target
+over UART.
 
 ## Core Concepts
 
@@ -67,6 +70,8 @@ canonical `1.6.0` operator surface or active operator
 authority. Experimental Rust
 replay remains limited to the legacy-frame scope documented in
 [docs/replay/tooling.md](replay/tooling.md).
+The authoritative operator entrypoint is the `precision` CLI, and the
+canonical attached-hardware route is an STM32 target over UART.
 
 Replay-tooling boundaries, including the historically
 released Python layer and experimental Rust replay,
