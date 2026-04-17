@@ -1,10 +1,11 @@
 # precision-signal
 
-Precision Signal is a deterministic execution validation system centered on replay, operated through the precision CLI against a supported STM32 target over UART.
+Precision Signal is a deterministic execution validation system centered on replay, operated through the `precision` CLI against an attached STM32 target over UART.
 
 **Naming**
 - Product name: **Precision Signal**
 - Authoritative CLI command: `precision`
+- Canonical hardware path: attached STM32 target over UART
 
 ## Quick Start
 
