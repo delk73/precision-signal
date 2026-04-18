@@ -91,7 +91,7 @@ space :=
 space +=
 comma := ,
 
-.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-1.6.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
+.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-1.6.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
 
 help:
 	echo "Active operator / release path:"
@@ -1052,6 +1052,10 @@ doc-link-check:
 
 test:
 	cargo test --workspace --locked
+	$(MAKE) --no-print-directory authoritative-replay-cli-tests
+
+authoritative-replay-cli-tests:
+	cargo test -p dpw4 --features cli --test precision_authoritative_surface --locked
 
 parser-tests:
 	cargo run --quiet -p xtask -- workflow parser-tests
