@@ -482,17 +482,21 @@ fn load_authoritative_artifact(
     purpose: ArtifactPurpose,
 ) -> Result<LoadedArtifact, CliError> {
     let base = Path::new(target);
+    validate_authoritative_artifact_dir(base, target)?;
+    let result_path = base.join("result.txt");
     let trace_path = base.join("trace.json");
     let meta_path = base.join("meta.json");
+    let result_bytes = fs::read(&result_path)?;
     let trace_bytes = fs::read(&trace_path)?;
     let meta_bytes = fs::read(&meta_path)?;
+    let result = parse_published_result_block(target, base, &result_bytes)?;
     let trace: TraceArtifact = serde_json::from_slice(&trace_bytes).map_err(|err| {
         CliError::User(format!("invalid authoritative trace at {}: {err}", trace_path.display()))
     })?;
     let meta: MetaArtifact = serde_json::from_slice(&meta_bytes).map_err(|err| {
         CliError::User(format!("invalid authoritative meta at {}: {err}", meta_path.display()))
     })?;
-    validate_loaded_artifact(target, &trace, &meta, purpose)?;
+    validate_loaded_artifact(target, &result, &trace, &meta, purpose)?;
     Ok(LoadedArtifact { trace })
 }
 
@@ -647,10 +651,29 @@ fn extract_i64_node_values(trace: &SemanticTrace, node_id: &str) -> Result<Vec<i
 
 fn validate_loaded_artifact(
     target: &str,
+    result: &ResultBlock,
     trace: &TraceArtifact,
     meta: &MetaArtifact,
     purpose: ArtifactPurpose,
 ) -> Result<(), CliError> {
+    if result.command != meta.command {
+        return Err(CliError::User(format!(
+            "result/meta command mismatch for {target}: {} vs {}",
+            result.command, meta.command
+        )));
+    }
+    if result.target != meta.target {
+        return Err(CliError::User(format!(
+            "result/meta target mismatch for {target}: {} vs {}",
+            result.target, meta.target
+        )));
+    }
+    if result.mode != meta.mode {
+        return Err(CliError::User(format!(
+            "result/meta mode mismatch for {target}: {} vs {}",
+            result.mode, meta.mode
+        )));
+    }
     if trace.schema != TRACE_SCHEMA {
         return Err(CliError::User(format!(
             "invalid trace schema for {target}: expected {TRACE_SCHEMA}, got {}",
@@ -703,6 +726,154 @@ fn validate_loaded_artifact(
         ArtifactPurpose::Replay => validate_replay_compatibility(target, trace, meta)?,
         ArtifactPurpose::Diff => validate_diff_compatibility(target, trace, meta)?,
         ArtifactPurpose::Envelope => validate_envelope_compatibility(target, trace, meta)?,
+    }
+    Ok(())
+}
+
+fn validate_authoritative_artifact_dir(base: &Path, target: &str) -> Result<(), CliError> {
+    let metadata = fs::metadata(base).map_err(|err| match err.kind() {
+        std::io::ErrorKind::NotFound => {
+            CliError::User(format!("authoritative artifact directory not found for {target}"))
+        }
+        _ => CliError::Io(err),
+    })?;
+    if !metadata.is_dir() {
+        return Err(CliError::User(format!(
+            "authoritative replay requires a published artifact directory, got non-directory target {target}"
+        )));
+    }
+    for name in ["result.txt", "trace.json", "meta.json"] {
+        let path = base.join(name);
+        let entry = fs::metadata(&path).map_err(|err| match err.kind() {
+            std::io::ErrorKind::NotFound => CliError::User(format!(
+                "authoritative artifact directory missing required file {} for {target}",
+                path.display()
+            )),
+            _ => CliError::Io(err),
+        })?;
+        if !entry.is_file() {
+            return Err(CliError::User(format!(
+                "authoritative artifact directory contains non-file entry {} for {target}",
+                path.display()
+            )));
+        }
+    }
+    Ok(())
+}
+
+fn parse_published_result_block(
+    target: &str,
+    base: &Path,
+    bytes: &[u8],
+) -> Result<ResultBlock, CliError> {
+    let text = std::str::from_utf8(bytes)
+        .map_err(|err| CliError::User(format!("invalid result.txt for {target}: {err}")))?;
+    if !text.ends_with('\n') {
+        return Err(CliError::User(format!(
+            "invalid result.txt for {target}: missing trailing LF"
+        )));
+    }
+
+    let lines: Vec<&str> = text.lines().collect();
+    if lines.len() != 7 {
+        return Err(CliError::User(format!(
+            "invalid result.txt for {target}: expected 7 lines, found {}",
+            lines.len()
+        )));
+    }
+
+    let result = parse_result_line(target, lines[0], "RESULT: ")?;
+    let command = parse_result_line(target, lines[1], "COMMAND: ")?;
+    let result_target = parse_result_line(target, lines[2], "TARGET: ")?;
+    let mode = parse_result_line(target, lines[3], "MODE: ")?;
+    let equivalence = parse_result_line(target, lines[4], "EQUIVALENCE: ")?;
+    let first_divergence = parse_result_line(target, lines[5], "FIRST_DIVERGENCE: ")?;
+    let artifact = parse_result_line(target, lines[6], "ARTIFACT: ")?;
+
+    if !matches!(result.as_str(), "PASS" | "FAIL") {
+        return Err(CliError::User(format!(
+            "invalid result.txt RESULT for {target}: {result}"
+        )));
+    }
+    if !is_authoritative_command(&command) {
+        return Err(CliError::User(format!(
+            "invalid result.txt COMMAND for {target}: {command}"
+        )));
+    }
+    if !matches!(mode.as_str(), "runtime_mode" | "mock" | "none") {
+        return Err(CliError::User(format!(
+            "invalid result.txt MODE for {target}: {mode}"
+        )));
+    }
+    if !matches!(equivalence.as_str(), "exact" | "diverged") {
+        return Err(CliError::User(format!(
+            "invalid result.txt EQUIVALENCE for {target}: {equivalence}"
+        )));
+    }
+    validate_result_block_invariants(target, &result, &equivalence, &first_divergence)?;
+    validate_result_artifact_path(target, base, &artifact)?;
+
+    Ok(ResultBlock {
+        result,
+        command,
+        target: result_target,
+        mode,
+        equivalence,
+        first_divergence,
+        artifact,
+    })
+}
+
+fn parse_result_line(target: &str, line: &str, prefix: &str) -> Result<String, CliError> {
+    line.strip_prefix(prefix)
+        .map(str::to_string)
+        .ok_or_else(|| CliError::User(format!("invalid result.txt line for {target}: {line}")))
+}
+
+fn validate_result_block_invariants(
+    target: &str,
+    result: &str,
+    equivalence: &str,
+    first_divergence: &str,
+) -> Result<(), CliError> {
+    let is_pass = result == "PASS";
+    let invariants_hold = if is_pass {
+        equivalence == "exact" && first_divergence == "none"
+    } else {
+        equivalence == "diverged"
+    };
+    if !invariants_hold {
+        return Err(CliError::User(format!(
+            "invalid result.txt invariants for {target}"
+        )));
+    }
+    Ok(())
+}
+
+fn validate_result_artifact_path(
+    target: &str,
+    base: &Path,
+    artifact: &str,
+) -> Result<(), CliError> {
+    let Some((parent, run_id)) = artifact.split_once('/') else {
+        return Err(CliError::User(format!(
+            "invalid result.txt ARTIFACT path for {target}: {artifact}"
+        )));
+    };
+    if parent != "artifacts" || run_id.is_empty() || run_id.contains('/') {
+        return Err(CliError::User(format!(
+            "invalid result.txt ARTIFACT path for {target}: {artifact}"
+        )));
+    }
+    let dir_name = base.file_name().and_then(|name| name.to_str()).ok_or_else(|| {
+        CliError::User(format!(
+            "invalid authoritative artifact directory name for {target}"
+        ))
+    })?;
+    if dir_name != run_id {
+        return Err(CliError::User(format!(
+            "result.txt ARTIFACT path does not match directory name for {target}: {artifact}"
+        )));
     }
     Ok(())
 }
