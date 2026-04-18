@@ -149,7 +149,7 @@ enum ArtifactPurpose {
     Envelope,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 struct FirstDivergence {
     step: u64,
     node: String,
@@ -705,6 +705,7 @@ fn validate_loaded_artifact(
             trace.signal_inputs.len()
         )));
     }
+    validate_command_shape(target, trace, meta)?;
     let expected_len = trace.signal_inputs.len();
     for node in &trace.captured_trace.nodes {
         validate_node(node, expected_len, target)?;
@@ -715,6 +716,7 @@ fn validate_loaded_artifact(
         }
     }
     validate_comparison_summary(target, trace.comparison.as_ref())?;
+    validate_replay_payload_consistency(target, result, trace, meta)?;
     if let Some(hash) = &meta.transient_rpl0_sha256 {
         if hash.len() != 64 || !hash.bytes().all(|b| b.is_ascii_hexdigit()) {
             return Err(CliError::User(format!(
@@ -810,7 +812,7 @@ fn parse_published_result_block(
             "invalid result.txt EQUIVALENCE for {target}: {equivalence}"
         )));
     }
-    validate_result_block_invariants(target, &result, &equivalence, &first_divergence)?;
+    validate_result_block_invariants(target, &result, &mode, &equivalence, &first_divergence)?;
     validate_result_artifact_path(target, base, &artifact)?;
 
     Ok(ResultBlock {
@@ -833,14 +835,17 @@ fn parse_result_line(target: &str, line: &str, prefix: &str) -> Result<String, C
 fn validate_result_block_invariants(
     target: &str,
     result: &str,
+    mode: &str,
     equivalence: &str,
     first_divergence: &str,
 ) -> Result<(), CliError> {
-    let is_pass = result == "PASS";
-    let invariants_hold = if is_pass {
-        equivalence == "exact" && first_divergence == "none"
-    } else {
-        equivalence == "diverged"
+    let invariants_hold = match result {
+        "PASS" => equivalence == "exact" && first_divergence == "none",
+        "FAIL" if mode == "mock" => equivalence == "diverged" && first_divergence == "none",
+        "FAIL" => {
+            equivalence == "diverged" && parse_first_divergence_text(target, first_divergence).is_ok()
+        }
+        _ => false,
     };
     if !invariants_hold {
         return Err(CliError::User(format!(
@@ -876,6 +881,214 @@ fn validate_result_artifact_path(
         )));
     }
     Ok(())
+}
+
+fn validate_command_shape(
+    target: &str,
+    trace: &TraceArtifact,
+    meta: &MetaArtifact,
+) -> Result<(), CliError> {
+    match meta.command.as_str() {
+        "record" => {
+            if meta.comparison_performed != Some(false) {
+                return Err(CliError::User(format!(
+                    "invalid meta comparison_performed for record artifact {target}"
+                )));
+            }
+            if meta.secondary_target.is_some() {
+                return Err(CliError::User(format!(
+                    "invalid meta secondary_target for record artifact {target}"
+                )));
+            }
+            if trace.replay_trace.is_some() || trace.comparison.is_some() {
+                return Err(CliError::User(format!(
+                    "record artifact must not contain replay comparison payload for {target}"
+                )));
+            }
+        }
+        "replay" => {
+            if meta.source_kind != "authoritative_artifact" {
+                return Err(CliError::User(format!(
+                    "invalid meta source_kind for replay artifact {target}: {}",
+                    meta.source_kind
+                )));
+            }
+            if meta.comparison_performed != Some(true) {
+                return Err(CliError::User(format!(
+                    "invalid meta comparison_performed for replay artifact {target}"
+                )));
+            }
+            if meta.secondary_target.is_some() {
+                return Err(CliError::User(format!(
+                    "invalid meta secondary_target for replay artifact {target}"
+                )));
+            }
+            if trace.replay_trace.is_none() || trace.comparison.is_none() {
+                return Err(CliError::User(format!(
+                    "replay artifact must contain replay comparison payload for {target}"
+                )));
+            }
+        }
+        "diff" => {
+            if meta.source_kind != "authoritative_artifact_pair" {
+                return Err(CliError::User(format!(
+                    "invalid meta source_kind for diff artifact {target}: {}",
+                    meta.source_kind
+                )));
+            }
+            if meta.comparison_performed != Some(true) {
+                return Err(CliError::User(format!(
+                    "invalid meta comparison_performed for diff artifact {target}"
+                )));
+            }
+            if meta.secondary_target.is_none() {
+                return Err(CliError::User(format!(
+                    "diff artifact missing secondary_target for {target}"
+                )));
+            }
+            if trace.replay_trace.is_some() || trace.comparison.is_none() {
+                return Err(CliError::User(format!(
+                    "diff artifact must contain comparison-only payload for {target}"
+                )));
+            }
+        }
+        "envelope" => {
+            if meta.source_kind != "authoritative_artifact" {
+                return Err(CliError::User(format!(
+                    "invalid meta source_kind for envelope artifact {target}: {}",
+                    meta.source_kind
+                )));
+            }
+            if meta.comparison_performed != Some(true) {
+                return Err(CliError::User(format!(
+                    "invalid meta comparison_performed for envelope artifact {target}"
+                )));
+            }
+            if meta.secondary_target.is_some() {
+                return Err(CliError::User(format!(
+                    "invalid meta secondary_target for envelope artifact {target}"
+                )));
+            }
+        }
+        _ => {}
+    }
+    Ok(())
+}
+
+fn validate_replay_payload_consistency(
+    target: &str,
+    result: &ResultBlock,
+    trace: &TraceArtifact,
+    meta: &MetaArtifact,
+) -> Result<(), CliError> {
+    match meta.command.as_str() {
+        "record" => match (&trace.replay_trace, &trace.comparison) {
+            (None, None) => Ok(()),
+            _ => Err(CliError::User(format!(
+                "record artifact must not contain replay comparison payload for {target}"
+            ))),
+        },
+        "replay" | "envelope" => match (&trace.replay_trace, &trace.comparison) {
+        (Some(replay_trace), Some(comparison)) => {
+            let actual_divergence = compare_traces(&trace.captured_trace, replay_trace);
+            let actual_equivalence = if actual_divergence.is_none() {
+                "exact"
+            } else {
+                "diverged"
+            };
+            if comparison.equivalence != actual_equivalence {
+                return Err(CliError::User(format!(
+                    "inconsistent comparison equivalence for {target}: {} vs {}",
+                    comparison.equivalence, actual_equivalence
+                )));
+            }
+            if comparison.first_divergence != actual_divergence {
+                return Err(CliError::User(format!(
+                    "inconsistent comparison first_divergence for {target}"
+                )));
+            }
+            if result.command == "replay" {
+                validate_result_matches_comparison(target, result, Some(comparison))?;
+            }
+            Ok(())
+        }
+        _ => Err(CliError::User(format!(
+            "incomplete replay comparison payload for {target}"
+        ))),
+        },
+        "diff" => Ok(()),
+        _ => Ok(()),
+    }
+}
+
+fn validate_result_matches_comparison(
+    target: &str,
+    result: &ResultBlock,
+    comparison: Option<&ComparisonSummary>,
+) -> Result<(), CliError> {
+    let expected_equivalence = comparison
+        .map(|comparison| comparison.equivalence.as_str())
+        .unwrap_or("exact");
+    if result.equivalence != expected_equivalence {
+        return Err(CliError::User(format!(
+            "result/comparison equivalence mismatch for {target}: {} vs {}",
+            result.equivalence, expected_equivalence
+        )));
+    }
+    let expected_first_divergence = comparison
+        .and_then(|comparison| comparison.first_divergence.as_ref())
+        .map(format_first_divergence)
+        .unwrap_or_else(|| "none".to_string());
+    if result.first_divergence != expected_first_divergence {
+        return Err(CliError::User(format!(
+            "result/comparison first_divergence mismatch for {target}: {} vs {}",
+            result.first_divergence, expected_first_divergence
+        )));
+    }
+    Ok(())
+}
+
+fn format_first_divergence(divergence: &FirstDivergence) -> String {
+    format!(
+        "step={} node={} cause={}",
+        divergence.step, divergence.node, divergence.cause
+    )
+}
+
+fn parse_first_divergence_text(target: &str, text: &str) -> Result<FirstDivergence, CliError> {
+    let mut parts = text.split_whitespace();
+    let step = parts
+        .next()
+        .and_then(|part| part.strip_prefix("step="))
+        .ok_or_else(|| {
+            CliError::User(format!("invalid result.txt FIRST_DIVERGENCE for {target}: {text}"))
+        })?
+        .parse::<u64>()
+        .map_err(|_| {
+            CliError::User(format!("invalid result.txt FIRST_DIVERGENCE for {target}: {text}"))
+        })?;
+    let node = parts
+        .next()
+        .and_then(|part| part.strip_prefix("node="))
+        .ok_or_else(|| {
+            CliError::User(format!("invalid result.txt FIRST_DIVERGENCE for {target}: {text}"))
+        })?
+        .to_string();
+    let cause = parts
+        .next()
+        .and_then(|part| part.strip_prefix("cause="))
+        .ok_or_else(|| {
+            CliError::User(format!("invalid result.txt FIRST_DIVERGENCE for {target}: {text}"))
+        })?
+        .to_string();
+    if parts.next().is_some() {
+        return Err(CliError::User(format!(
+            "invalid result.txt FIRST_DIVERGENCE for {target}: {text}"
+        )));
+    }
+    let divergence = FirstDivergence { step, node, cause };
+    validate_divergence(target, &divergence)?;
+    Ok(divergence)
 }
 
 fn validate_node(node: &SemanticNode, expected_len: usize, target: &str) -> Result<(), CliError> {
