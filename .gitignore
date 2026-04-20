@@ -43,6 +43,9 @@ st-util.log
 scripts/__pycache__/
 experiments/quantization_probe/__pycache__/
 experiments/quantization_probe/*.pyc
+
+artifacts/stability_envelope/*/cycle_*/
+
 __pycache__/
 *.pyc
 artifacts/replay_runs
