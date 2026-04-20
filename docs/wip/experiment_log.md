@@ -759,3 +759,65 @@ Decide whether a shared constants module can remove duplication cleanly without 
 
 Promotion Path
 scripts/ or shared internal module (non-normative)
+
+## 2026-04-20 — Minimal replay validation path [Packet]
+Status: completed
+Owner: signal
+
+Problem
+Generate one fresh replay golden seed through the current `precision` record
+path and use it for one authoritative replay attempt on STM32.
+
+Grounding
+- project: Precision Signal
+- core capability: deterministic execution validation via replay
+- authoritative interface: `precision` CLI
+- canonical path: attached STM32 target over UART
+- replay golden seed: a record-produced artifact directory that is valid replay
+  input under the current authoritative contract
+
+Execution
+- Initial direct serial record attempts exposed two failure classes:
+  - no `STATE,...` preamble observed within timeout
+  - `STATE,CAPTURE_INCOMPLETE,0`
+- Verified firmware on STM32 using under-reset flash and compare:
+  - `make flash-ur`
+  - `make flash-compare-ur`
+- Firmware interrogation and repo-local documentation established that
+  `STATE,CAPTURE_INCOMPLETE,0` meant zero recorded intervals (`write_idx = 0`)
+  and was consistent with incorrect or missing `PA6 -> PA0` self-stimulus loopback
+- Corrected the physical `PA6 -> PA0` loopback / cable path
+- Re-ran bounded ST-LINK capture probe:
+  - `SERIAL=/dev/ttyACM0 python3 scripts/repeat_capture.py --contract csv --runs 3 --reset-mode stlink --artifacts-dir artifacts/stlink_capture_probe --timeout 10`
+- Result:
+  - all 3 runs reached `STATE,CAPTURE_DONE,138`
+  - all 3 capture hashes were identical:
+    `b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1`
+- Generated replay golden seed from validated capture CSV:
+  - `cargo run -q -p dpw4 --features cli --bin precision -- record artifacts/stlink_capture_probe/run_01.csv --mode runtime_mode`
+  - published artifact:
+    `artifacts/20260420T165734Z-92191f1cb478398a`
+- Replayed from that seed:
+  - `cargo run -q -p dpw4 --features cli --bin precision -- replay artifacts/20260420T165734Z-92191f1cb478398a --mode runtime_mode`
+  - published artifact:
+    `artifacts/20260420T165836Z-07863965af56b16f`
+
+Result
+- capture: PASS
+- record: PASS
+- replay: PASS
+- replay equivalence: exact
+- first divergence: none
+
+Classification
+- completed on validated STM32-derived path
+
+Evidence Retained
+- retained fixture bundle:
+  `artifacts/capture_contract_v1/`
+- replay golden seed artifact:
+  `artifacts/20260420T165734Z-92191f1cb478398a`
+- replay result artifact:
+  `artifacts/20260420T165836Z-07863965af56b16f`
+- ST-LINK capture probe evidence:
+  `artifacts/stlink_capture_probe/`
