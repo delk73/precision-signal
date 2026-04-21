@@ -10,7 +10,14 @@
 
 CRITICAL PRECONDITION
 
-`PA6` (`TIM3_CH1`) -> `PA0` (`TIM2_CH1`) loopback must be present.
+Loopback must be installed between:
+
+- PA6 (`TIM3_CH1`) → PA0 (`TIM2_CH1`)
+
+On boards with Arduino-style silk labels, this corresponds to:
+
+- D12 → A0
+
 If incorrect: `CAPTURE_INCOMPLETE,0` will occur.
 
 Preconditions:
