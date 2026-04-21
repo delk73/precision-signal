@@ -17,6 +17,7 @@ make gate
 ```
 
 Runs the canonical release verification gate.
+See docs/operator/stm32_replay.md for the validated STM32 replay procedure.
 
 ## Active Authority Path
 
