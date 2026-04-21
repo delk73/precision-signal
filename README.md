@@ -17,7 +17,6 @@ make gate
 ```
 
 Runs the canonical release verification gate.
-See docs/operator/stm32_replay.md for the validated STM32 replay procedure.
 
 ## Active Authority Path
 
@@ -29,6 +28,9 @@ Use these documents in this order:
 | [docs/RELEASE_SURFACE.md](docs/RELEASE_SURFACE.md) | release-surface classification and routing |
 | [docs/authority/cli_contract.md](docs/authority/cli_contract.md) | sole active CLI contract authority |
 | [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md) | sole active STM32 capture contract authority |
+
+
+See docs/operator/stm32_replay.md for the validated STM32 replay procedure.
 
 ## Historical / Release-Record Landing
 

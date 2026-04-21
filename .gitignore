@@ -44,7 +44,13 @@ scripts/__pycache__/
 experiments/quantization_probe/__pycache__/
 experiments/quantization_probe/*.pyc
 
-artifacts/stability_envelope/*/cycle_*/
+# Ignore all cycle directories under stability envelope sessions
+artifacts/stability_envelope/*/cycle_*
+
+# Retain top-level session summaries
+!artifacts/stability_envelope/*/manifest.tsv
+!artifacts/stability_envelope/*/session_status.txt
+
 
 __pycache__/
 *.pyc
