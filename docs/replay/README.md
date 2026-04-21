@@ -12,22 +12,19 @@ Use the active authority path first:
 - [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md)
 - [docs/verification/releases/index.md](../verification/releases/index.md)
 
-Current authoritative `precision replay` is recorded-boundary validation over
-the published artifact directory path emitted by the authoritative CLI result
-block (`ARTIFACT: artifacts/<run_id>/`). Within the current boundary, `.rpl` artifacts and `replay-host` remain support/reference material in this explanation layer; they are not part of the current authoritative `precision replay` path.
+Current authoritative `precision replay` consumes the published artifact
+directory emitted by the CLI result block (`ARTIFACT: artifacts/<run_id>/`).
+`.rpl` artifacts and `replay-host` are retained as support/reference material,
+not current authoritative replay inputs.
 
 ## In Scope
-- Current authoritative `precision replay` boundary: recorded-boundary
-  validation over the published `artifacts/<run_id>/` directory path consumed
-  by the `precision` CLI
+- Authoritative replay boundary over published `artifacts/<run_id>/` directories
 - Legacy artifact wire contract for RPL0 format version 0 (`Header0`,
   `EventFrame0`, LE encoding)
 - Current parser and firmware path for RPL0 format version 1 containers with
-  legacy 16-byte `EventFrame0` replay semantics as retained replay
-  support/reference material
+  legacy 16-byte `EventFrame0` replay semantics (support/reference)
 - Deterministic host-side hash-stream and first-divergence logic used by the
-  experimental Rust replay host as retained support/reference material, not as
-  current authoritative `precision replay`
+  experimental Rust replay host (support/reference)
 - Attached STM32 target over UART as the canonical replay path operated through
   the `precision` CLI
 - F446 firmware capture->halt->dump path for the current operator workflow over
@@ -48,10 +45,7 @@ block (`ARTIFACT: artifacts/<run_id>/`). Within the current boundary, `.rpl` art
   path consumed by current authoritative `precision replay`
 - [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md): canonical STM32 self-stimulus interval CSV capture contract frozen for
   downstream import
-- [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md): normative RPL0 artifact contract
-  (`[HEADER][SCHEMA BLOCK][FRAME DATA]`) retained as replay artifact format
-  authority, not as an additional current authoritative `precision replay`
-  input class
+- [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md): normative RPL0 format authority (support/reference)
 - [docs/replay/tooling.md](tooling.md): support/reference replay tooling boundary and local validation guidance
 - [docs/replay/RPL0_PARSER_TRACEABILITY.md](RPL0_PARSER_TRACEABILITY.md): rule-level spec -> parser -> tests -> CI traceability matrix
 - [docs/replay/ARTIFACT_VALIDATION_WORKFLOW.md](ARTIFACT_VALIDATION_WORKFLOW.md): operator/local/CI validation workflow for artifact parser + toolchain
