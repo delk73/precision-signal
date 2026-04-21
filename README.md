@@ -30,7 +30,7 @@ Use these documents in this order:
 | [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md) | sole active STM32 capture contract authority |
 
 
-See docs/operator/stm32_replay.md for the validated STM32 replay procedure.
+See [docs/operator/stm32_replay.md](docs/operator/stm32_replay.md) for the validated STM32 replay procedure.
 
 ## Historical / Release-Record Landing
 
