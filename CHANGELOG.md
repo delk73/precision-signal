@@ -7,6 +7,25 @@
 
 ## [Unreleased]
 
+### Replay Authority Hardening + STM32 Operator Path
+
+- Hardened authoritative `precision replay` input boundary:
+  - requires published artifact directory (`result.txt`, `meta.json`, `trace.json`)
+  - validates ResultBlock structure and internal consistency
+  - rejects malformed or incomplete replay artifacts
+- Expanded replay CLI test coverage:
+  - malformed artifact rejection
+  - result/meta/trace consistency checks
+  - deterministic replay validation
+  - stdout vs `result.txt` identity enforcement
+  - `.rpl` explicitly rejected as authoritative replay input
+- Integrated authoritative replay tests into `make test`
+- Validated STM32 replay path (capture -> record -> replay) and retained stability evidence
+- Added operator-facing STM32 replay procedure (`docs/operator/stm32_replay.md`)
+- Clarified replay documentation:
+  - authoritative replay consumes artifact directories
+  - `.rpl` artifacts and replay-host retained as support/reference
+
 ### Changed
 
 - compressed the active documentation authority path across the root/docs entry routes so release, CLI, and STM32 capture authority resolve through one consistent path
