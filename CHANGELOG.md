@@ -7,7 +7,9 @@
 
 ## [Unreleased]
 
-### Replay Authority Hardening + STM32 Operator Path
+## [1.7.0] - 2026-04-22
+
+### Replay Authority Hardening
 
 - Hardened authoritative `precision replay` input boundary:
   - requires published artifact directory (`result.txt`, `meta.json`, `trace.json`)
@@ -18,20 +20,20 @@
   - result/meta/trace consistency checks
   - deterministic replay validation
   - stdout vs `result.txt` identity enforcement
-  - `.rpl` explicitly rejected as authoritative replay input
+  - `.rpl` rejected as authoritative replay input
 - Integrated authoritative replay tests into `make test`
-- Validated STM32 replay path (capture -> record -> replay) and retained stability evidence
+- Validated deterministic replay path (capture → record → replay) with retained stability evidence
 - Added operator-facing STM32 replay procedure (`docs/operator/stm32_replay.md`)
 - Clarified replay documentation:
   - authoritative replay consumes artifact directories
-  - `.rpl` artifacts and replay-host retained as support/reference
+  - `.rpl` artifacts and replay-host remain support/reference only
 
 ### Changed
 
-- compressed the active documentation authority path across the root/docs entry routes so release, CLI, and STM32 capture authority resolve through one consistent path
-- de-emphasized historical verification and replay surfaces from the active reading path while preserving retained access through the release-record landing and historical references
-- reduced human-facing duplication in the retained `1.6.0` release bundle routing so one primary summary page remains for readers while keeping GitHub Pages compatibility
-- compressed default `make help` to the active operator/release path and moved demo, firmware, and historical/support workflows behind `help-all` and grouped help targets as presentation-only routing cleanup
+- Compressed active documentation authority path so release, CLI, and STM32 capture resolve through a single consistent route
+- De-emphasized historical and experimental surfaces from the active reading path while preserving retained access
+- Simplified retained `1.6.0` release bundle routing to a single primary summary surface
+- Reduced `make help` to the active operator/release path; moved demo, firmware, and support workflows behind `help-all`
 
 ### Notes
 
