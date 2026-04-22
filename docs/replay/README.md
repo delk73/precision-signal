@@ -13,12 +13,12 @@ Use the active authority path first:
 - [docs/verification/releases/index.md](../verification/releases/index.md)
 
 Current authoritative `precision replay` consumes the published artifact
-directory emitted by the CLI result block (`ARTIFACT: artifacts/<run_id>/`).
+directory emitted by the CLI result block (`ARTIFACT: artifacts/<run_id>`).
 `.rpl` artifacts and `replay-host` are retained as support/reference material,
 not current authoritative replay inputs.
 
 ## In Scope
-- Authoritative replay boundary over published `artifacts/<run_id>/` directories
+- Authoritative replay boundary over published `artifacts/<run_id>` directories
 - Legacy artifact wire contract for RPL0 format version 0 (`Header0`,
   `EventFrame0`, LE encoding)
 - Current parser and firmware path for RPL0 format version 1 containers with
@@ -41,7 +41,7 @@ not current authoritative replay inputs.
 
 ## Active Replay Routing
 - [docs/authority/cli_contract.md](../authority/cli_contract.md): sole active
-  CLI authority, including the published `ARTIFACT: artifacts/<run_id>/` result
+  CLI authority, including the published `ARTIFACT: artifacts/<run_id>` result
   path consumed by current authoritative `precision replay`
 - [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md): canonical STM32 self-stimulus interval CSV capture contract frozen for
   downstream import
