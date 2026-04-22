@@ -1,13 +1,19 @@
-command: cargo run -p replay-host -- validate-interval-csv artifacts/capture_contract_v1/run_20260331T150000Z.csv
-validated: artifacts/capture_contract_v1/run_20260331T150000Z.csv
+command: cargo run -q -p replay-host -- validate-interval-csv artifacts/capture_contract_v1/capture.csv
+validated: artifacts/capture_contract_v1/capture.csv
 header: index,interval_us
 rows: 138
 first_index: 0
 last_index: 137
 
-command: cargo run -p replay-host -- validate-interval-csv artifacts/capture_contract_v1/run_20260331T160000Z.csv
-validated: artifacts/capture_contract_v1/run_20260331T160000Z.csv
-header: index,interval_us
-rows: 138
-first_index: 0
-last_index: 137
+hardware_basis:
+- firmware flash path verified with `make flash-ur` and `make flash-compare-ur`
+- PA6 -> PA0 loopback corrected on the attached STM32 target
+- ST-LINK reset path produced stable `STATE,CAPTURE_DONE,138` captures
+- repeated validated source captures were byte-identical (`b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1`)
+
+record_replay_basis:
+- `cargo run -q -p replay-host -- import-interval-csv artifacts/capture_contract_v1/capture.csv /tmp/capture_contract_v1.import.rpl`
+- `cargo run -q -p replay-host -- diff /tmp/capture_contract_v1.import.rpl /tmp/capture_contract_v1.import.rpl`
+- result: `no divergence`
+
+bundle_note: This directory is a retained fixture bundle, not an authoritative replay artifact directory.

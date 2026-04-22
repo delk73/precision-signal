@@ -91,14 +91,14 @@ space :=
 space +=
 comma := ,
 
-.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-1.6.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
+.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-1.7.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
 
 help:
 	echo "Active operator / release path:"
 	echo "  make gate"
-	echo "  make release-1.6.0"
-	echo "  make release-bundle VERSION=1.6.0"
-	echo "  make release-bundle-check VERSION=1.6.0"
+	echo "  make release-1.7.0"
+	echo "  make release-bundle VERSION=1.7.0"
+	echo "  make release-bundle-check VERSION=1.7.0"
 	echo "  make doc-link-check"
 	echo "  make check-workspace"
 	echo "  make test"
@@ -107,9 +107,9 @@ help:
 help-all:
 	echo "Active operator / release:"
 	echo "  make gate"
-	echo "  make release-1.6.0"
-	echo "  make release-bundle VERSION=1.6.0"
-	echo "  make release-bundle-check VERSION=1.6.0"
+	echo "  make release-1.7.0"
+	echo "  make release-bundle VERSION=1.7.0"
+	echo "  make release-bundle-check VERSION=1.7.0"
 	echo "  make doc-link-check"
 	echo "  make check-workspace"
 	echo "  make test"
@@ -204,13 +204,13 @@ fixture-drift-check:
 demo-evidence-package:
 	cargo run --quiet -p xtask -- workflow demo-evidence-package
 
-release-1.6.0:
-	@REL_DIR="docs/verification/releases/1.6.0"; \
+release-1.7.0:
+	@REL_DIR="docs/verification/releases/1.7.0"; \
 	test -f "$$REL_DIR/kani_evidence.txt" && test -s "$$REL_DIR/kani_evidence.txt" || { \
-	  echo "[release-1.6.0] FAIL missing or empty $$REL_DIR/kani_evidence.txt"; \
+	  echo "[release-1.7.0] FAIL missing or empty $$REL_DIR/kani_evidence.txt"; \
 	  exit 1; \
 	}
-	@REL_DIR="docs/verification/releases/1.6.0"; \
+	@REL_DIR="docs/verification/releases/1.7.0"; \
 	echo "--- [GATE 1/4] Functional Validation ---" && \
 	$(MAKE) --no-print-directory gate > "$$REL_DIR/make_gate.txt" 2>&1 && \
 	echo "--- [GATE 2/4] Evidence Packaging ---" && \
@@ -220,7 +220,7 @@ release-1.6.0:
 	echo "--- [GATE 4/4] Reproducibility Record ---" && \
 	RELEASE_EVIDENCE_DIR="$$REL_DIR" bash verify_release_repro.sh > "$$REL_DIR/release_reproducibility.txt" 2>&1 && \
 	echo "--- [AUDIT] Bundle Coherence Check ---" && \
-	$(MAKE) --no-print-directory release-bundle-check VERSION=1.6.0
+	$(MAKE) --no-print-directory release-bundle-check VERSION=1.7.0 > "$$REL_DIR/make_release_bundle_check.txt" 2>&1
 
 shell-check:
 	test -x "$(SHELL)"
@@ -1052,6 +1052,10 @@ doc-link-check:
 
 test:
 	cargo test --workspace --locked
+	$(MAKE) --no-print-directory authoritative-replay-cli-tests
+
+authoritative-replay-cli-tests:
+	cargo test -p dpw4 --features cli --test precision_authoritative_surface --locked
 
 parser-tests:
 	cargo run --quiet -p xtask -- workflow parser-tests
@@ -1092,7 +1096,7 @@ ci-local:
 	cargo run --quiet -p xtask -- workflow ci-local
 
 conformance-audit: $(AUDIT_BIN)
-	echo "Audit: Verifying 1.6.0 Substrate Twin Invariant"
+	echo "Audit: Verifying current substrate twin invariant"
 	rm -f .audit_stdout
 	mkdir -p artifacts
 	$(AUDIT_BIN) --target "$(AUDIT_TARGET)" > .audit_stdout
@@ -1108,7 +1112,7 @@ conformance-audit: $(AUDIT_BIN)
 	$(MAKE) --no-print-directory stream-purity
 
 kill-switch-audit: $(AUDIT_BIN)
-	echo "Audit: Verifying 1.6.0 Silence-on-Failure Invariant"
+	echo "Audit: Verifying current silence-on-failure invariant"
 	rm -f .audit_stdout
 	rm -rf "artifacts/.tmp_$(AUDIT_FIXED_RUN_ID)" "artifacts/$(AUDIT_FIXED_RUN_ID)"
 	mkdir -p "artifacts/.tmp_$(AUDIT_FIXED_RUN_ID)"

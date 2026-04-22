@@ -1,5 +1,6 @@
 #![cfg(feature = "cli")]
 
+use serde_json::Value;
 use std::fs;
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -43,9 +44,45 @@ fn make_replay_artifact(temp_root: &std::path::Path) -> (String, String) {
     (recorded, replayed)
 }
 
+fn make_record_artifact(temp_root: &std::path::Path) -> String {
+    let record = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(temp_root)
+        .args(["record", "fixture://target", "--mode", "runtime_mode"])
+        .output()
+        .expect("precision record should run");
+    assert!(record.status.success(), "stderr: {}", String::from_utf8_lossy(&record.stderr));
+    artifact_path_from_stdout(&record.stdout)
+}
+
 fn assert_stdout_has_exactly_seven_lines(stdout: &[u8]) {
     let stdout = String::from_utf8(stdout.to_vec()).expect("stdout must be utf8");
     assert_eq!(stdout.lines().count(), 7, "stdout must contain exactly 7 lines");
+}
+
+fn scrub_volatile_result_block_fields(stdout: &[u8]) -> String {
+    String::from_utf8(stdout.to_vec())
+        .expect("stdout must be utf8")
+        .lines()
+        .map(|line| {
+            if line.starts_with("ARTIFACT: ") {
+                "ARTIFACT: <volatile>".to_string()
+            } else {
+                line.to_string()
+            }
+        })
+        .collect::<Vec<_>>()
+        .join("\n")
+        + "\n"
+}
+
+fn read_json(path: &std::path::Path) -> Value {
+    serde_json::from_str(&fs::read_to_string(path).expect("json file must exist"))
+        .expect("json must parse")
+}
+
+fn write_json(path: &std::path::Path, value: &Value) {
+    fs::write(path, serde_json::to_vec_pretty(value).expect("json should serialize"))
+        .expect("json should be written");
 }
 
 #[test]
@@ -189,6 +226,46 @@ fn precision_replay_passes_for_known_good_capture() {
 }
 
 #[test]
+fn precision_replay_repeated_runs_are_deterministic_for_same_artifact_directory() {
+    let temp_root = unique_temp_root("precision-replay-deterministic");
+    let recorded = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["record", "fixture://target", "--mode", "runtime_mode"])
+        .output()
+        .expect("precision record should run");
+    assert!(recorded.status.success(), "stderr: {}", String::from_utf8_lossy(&recorded.stderr));
+    let artifact_rel = artifact_path_from_stdout(&recorded.stdout);
+
+    let first = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["replay", &artifact_rel, "--mode", "runtime_mode"])
+        .output()
+        .expect("first replay should run");
+    let second = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["replay", &artifact_rel, "--mode", "runtime_mode"])
+        .output()
+        .expect("second replay should run");
+
+    assert_eq!(first.status.code(), Some(0));
+    assert_eq!(second.status.code(), Some(0));
+    assert!(first.stderr.is_empty());
+    assert!(second.stderr.is_empty());
+    assert_eq!(
+        scrub_volatile_result_block_fields(&first.stdout),
+        scrub_volatile_result_block_fields(&second.stdout)
+    );
+
+    let first_artifact = artifact_path_from_stdout(&first.stdout);
+    let second_artifact = artifact_path_from_stdout(&second.stdout);
+    let first_trace = fs::read(temp_root.join(first_artifact).join("trace.json")).expect("first trace.json");
+    let second_trace = fs::read(temp_root.join(second_artifact).join("trace.json")).expect("second trace.json");
+    assert_eq!(first_trace, second_trace);
+
+    fs::remove_dir_all(&temp_root).expect("temp root cleanup");
+}
+
+#[test]
 fn precision_diff_reports_semantic_divergence_for_perturbed_capture() {
     let temp_root = unique_temp_root("precision-diff-fail");
 
@@ -311,14 +388,309 @@ fn precision_replay_rejects_invalid_trace_schema_with_exit_2() {
 }
 
 #[test]
+fn precision_replay_rejects_missing_required_artifact_files_with_exit_2() {
+    for missing in ["result.txt", "trace.json", "meta.json"] {
+        let temp_root = unique_temp_root(&format!("precision-replay-missing-{missing}"));
+        let artifact_rel = make_record_artifact(&temp_root);
+        fs::remove_file(temp_root.join(&artifact_rel).join(missing)).expect("required file should be removed");
+
+        let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
+            .current_dir(&temp_root)
+            .args(["replay", &artifact_rel, "--mode", "runtime_mode"])
+            .output()
+            .expect("precision replay should run");
+
+        assert_eq!(replay.status.code(), Some(2), "missing={missing}");
+        assert!(replay.stdout.is_empty(), "missing={missing}");
+        let stderr = String::from_utf8(replay.stderr).expect("stderr must be utf8");
+        assert!(stderr.contains("missing required file"), "missing={missing}, stderr={stderr}");
+
+        fs::remove_dir_all(&temp_root).expect("temp root cleanup");
+    }
+}
+
+#[test]
+fn precision_replay_rejects_malformed_result_txt_with_exit_2() {
+    let temp_root = unique_temp_root("precision-replay-malformed-result");
+    let artifact_rel = make_record_artifact(&temp_root);
+    fs::write(
+        temp_root.join(&artifact_rel).join("result.txt"),
+        concat!(
+            "RESULT: PASS\n",
+            "COMMAND: record\n",
+            "TARGET: fixture://target\n",
+            "MODE: runtime_mode\n",
+            "EQUIVALENCE: exact\n",
+        ),
+    )
+    .expect("malformed result must be written");
+
+    let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["replay", &artifact_rel, "--mode", "runtime_mode"])
+        .output()
+        .expect("precision replay should run");
+
+    assert_eq!(replay.status.code(), Some(2));
+    assert!(replay.stdout.is_empty());
+    let stderr = String::from_utf8(replay.stderr).expect("stderr must be utf8");
+    assert!(stderr.contains("invalid result.txt"));
+
+    fs::remove_dir_all(&temp_root).expect("temp root cleanup");
+}
+
+#[test]
+fn precision_replay_rejects_result_meta_command_target_and_mode_mismatches_with_exit_2() {
+    let cases = [
+        ("COMMAND: record\n", "COMMAND: replay\n", "result/meta command mismatch"),
+        ("TARGET: fixture://target\n", "TARGET: fixture://other\n", "result/meta target mismatch"),
+        ("MODE: runtime_mode\n", "MODE: none\n", "result/meta mode mismatch"),
+    ];
+
+    for (from, to, needle) in cases {
+        let temp_root = unique_temp_root(&format!("precision-replay-result-mismatch-{}", needle.replace(' ', "-")));
+        let artifact_rel = make_record_artifact(&temp_root);
+        let result_path = temp_root.join(&artifact_rel).join("result.txt");
+        let original = fs::read_to_string(&result_path).expect("result.txt must exist");
+        let invalid = original.replacen(from, to, 1);
+        fs::write(&result_path, invalid).expect("invalid result must be written");
+
+        let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
+            .current_dir(&temp_root)
+            .args(["replay", &artifact_rel, "--mode", "runtime_mode"])
+            .output()
+            .expect("precision replay should run");
+
+        assert_eq!(replay.status.code(), Some(2), "needle={needle}");
+        assert!(replay.stdout.is_empty(), "needle={needle}");
+        let stderr = String::from_utf8(replay.stderr).expect("stderr must be utf8");
+        assert!(stderr.contains(needle), "needle={needle}, stderr={stderr}");
+
+        fs::remove_dir_all(&temp_root).expect("temp root cleanup");
+    }
+}
+
+#[test]
+fn precision_replay_rejects_malformed_meta_json_with_exit_2() {
+    let temp_root = unique_temp_root("precision-replay-malformed-meta-json");
+    let artifact_rel = make_record_artifact(&temp_root);
+    fs::write(temp_root.join(&artifact_rel).join("meta.json"), b"{not-json").expect("broken meta must be written");
+
+    let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["replay", &artifact_rel, "--mode", "runtime_mode"])
+        .output()
+        .expect("precision replay should run");
+
+    assert_eq!(replay.status.code(), Some(2));
+    assert!(replay.stdout.is_empty());
+    let stderr = String::from_utf8(replay.stderr).expect("stderr must be utf8");
+    assert!(stderr.contains("invalid authoritative meta"));
+
+    fs::remove_dir_all(&temp_root).expect("temp root cleanup");
+}
+
+#[test]
+fn precision_replay_rejects_inconsistent_meta_json_with_exit_2() {
+    let temp_root = unique_temp_root("precision-replay-inconsistent-meta");
+    let artifact_rel = make_record_artifact(&temp_root);
+    let meta_path = temp_root.join(&artifact_rel).join("meta.json");
+    let mut meta = read_json(&meta_path);
+    let signal_input_count = meta
+        .as_object_mut()
+        .and_then(|meta| meta.get_mut("signal_input_count"))
+        .and_then(|value| value.as_u64())
+        .expect("meta signal_input_count must be a u64");
+    meta["signal_input_count"] = Value::from(signal_input_count - 1);
+    write_json(&meta_path, &meta);
+
+    let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["replay", &artifact_rel, "--mode", "runtime_mode"])
+        .output()
+        .expect("precision replay should run");
+
+    assert_eq!(replay.status.code(), Some(2));
+    assert!(replay.stdout.is_empty());
+    let stderr = String::from_utf8(replay.stderr).expect("stderr must be utf8");
+    assert!(stderr.contains("meta signal_input_count mismatch"));
+
+    fs::remove_dir_all(&temp_root).expect("temp root cleanup");
+}
+
+#[test]
+fn precision_replay_rejects_artifact_directory_outside_artifacts_parent_with_exit_2() {
+    let temp_root = unique_temp_root("precision-replay-non-artifacts-parent");
+    let artifact_rel = make_record_artifact(&temp_root);
+    let run_id = artifact_rel
+        .rsplit('/')
+        .next()
+        .expect("artifact path must contain run id");
+    let relocated_parent = temp_root.join("published");
+    fs::create_dir_all(&relocated_parent).expect("published dir must be created");
+    let relocated_artifact = relocated_parent.join(run_id);
+    fs::rename(temp_root.join(&artifact_rel), &relocated_artifact)
+        .expect("artifact dir must be moved outside artifacts");
+
+    let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args([
+            "replay",
+            relocated_artifact
+                .strip_prefix(&temp_root)
+                .expect("relocated path must stay under temp root")
+                .to_str()
+                .expect("relocated path must be utf8"),
+            "--mode",
+            "runtime_mode",
+        ])
+        .output()
+        .expect("precision replay should run");
+
+    assert_eq!(replay.status.code(), Some(2));
+    assert!(replay.stdout.is_empty());
+    let stderr = String::from_utf8(replay.stderr).expect("stderr must be utf8");
+    assert!(stderr.contains("published artifact directories under artifacts/"));
+
+    fs::remove_dir_all(&temp_root).expect("temp root cleanup");
+}
+
+#[test]
+fn precision_replay_rejects_malformed_trace_json_with_exit_2() {
+    let temp_root = unique_temp_root("precision-replay-malformed-trace-json");
+    let artifact_rel = make_record_artifact(&temp_root);
+    fs::write(temp_root.join(&artifact_rel).join("trace.json"), b"{not-json").expect("broken trace must be written");
+
+    let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["replay", &artifact_rel, "--mode", "runtime_mode"])
+        .output()
+        .expect("precision replay should run");
+
+    assert_eq!(replay.status.code(), Some(2));
+    assert!(replay.stdout.is_empty());
+    let stderr = String::from_utf8(replay.stderr).expect("stderr must be utf8");
+    assert!(stderr.contains("invalid authoritative trace"));
+
+    fs::remove_dir_all(&temp_root).expect("temp root cleanup");
+}
+
+#[test]
+fn precision_replay_rejects_inconsistent_trace_json_with_exit_2() {
+    let temp_root = unique_temp_root("precision-replay-inconsistent-trace");
+    let artifact_rel = make_record_artifact(&temp_root);
+    let trace_path = temp_root.join(&artifact_rel).join("trace.json");
+    let mut trace = read_json(&trace_path);
+    trace["captured_trace"]["nodes"][0]["values"]
+        .as_array_mut()
+        .expect("values array")
+        .push(Value::from(123456_u64));
+    write_json(&trace_path, &trace);
+
+    let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["replay", &artifact_rel, "--mode", "runtime_mode"])
+        .output()
+        .expect("precision replay should run");
+
+    assert_eq!(replay.status.code(), Some(2));
+    assert!(replay.stdout.is_empty());
+    let stderr = String::from_utf8(replay.stderr).expect("stderr must be utf8");
+    assert!(stderr.contains("node length mismatch"));
+
+    fs::remove_dir_all(&temp_root).expect("temp root cleanup");
+}
+
+#[test]
+fn precision_replay_reports_first_divergence_for_induced_recorded_mismatch() {
+    let temp_root = unique_temp_root("precision-replay-mismatch");
+    let record = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["record", "fixture://target", "--mode", "runtime_mode"])
+        .output()
+        .expect("precision record should run");
+    assert!(record.status.success(), "stderr: {}", String::from_utf8_lossy(&record.stderr));
+    let artifact_rel = artifact_path_from_stdout(&record.stdout);
+
+    let trace_path = temp_root.join(&artifact_rel).join("trace.json");
+    let original = fs::read_to_string(&trace_path).expect("trace.json must exist");
+    let perturbed = original.replacen("304000", "304001", 1);
+    fs::write(&trace_path, perturbed).expect("perturbed trace must be written");
+
+    let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["replay", &artifact_rel, "--mode", "runtime_mode"])
+        .output()
+        .expect("precision replay should run");
+
+    assert_eq!(replay.status.code(), Some(1), "stderr: {}", String::from_utf8_lossy(&replay.stderr));
+    assert!(replay.stderr.is_empty(), "unexpected stderr: {}", String::from_utf8_lossy(&replay.stderr));
+    let stdout = String::from_utf8(replay.stdout).expect("replay stdout must be utf8");
+    assert!(stdout.contains("RESULT: FAIL\n"));
+    assert!(stdout.contains("EQUIVALENCE: diverged\n"));
+    assert!(stdout.contains("FIRST_DIVERGENCE: step=1 node=signal.interval_us cause=VAL_MISMATCH\n"));
+
+    fs::remove_dir_all(&temp_root).expect("temp root cleanup");
+}
+
+#[test]
+fn precision_replay_stdout_matches_published_result_file_byte_for_byte() {
+    let temp_root = unique_temp_root("precision-replay-byte-identity");
+    let record = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["record", "fixture://target", "--mode", "runtime_mode"])
+        .output()
+        .expect("precision record should run");
+    let artifact_rel = artifact_path_from_stdout(&record.stdout);
+
+    let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["replay", &artifact_rel, "--mode", "runtime_mode"])
+        .output()
+        .expect("precision replay should run");
+
+    assert_eq!(replay.status.code(), Some(0), "stderr: {}", String::from_utf8_lossy(&replay.stderr));
+    let replay_artifact = artifact_path_from_stdout(&replay.stdout);
+    let result_txt = fs::read(temp_root.join(replay_artifact).join("result.txt")).expect("result.txt must exist");
+    assert_eq!(result_txt, replay.stdout);
+
+    fs::remove_dir_all(&temp_root).expect("temp root cleanup");
+}
+
+#[test]
+fn precision_replay_rejects_rpl_file_input_with_exit_2() {
+    let temp_root = unique_temp_root("precision-replay-rpl-reject");
+    let rpl_path = temp_root.join("retained-proof.rpl");
+    fs::write(&rpl_path, b"RPL0").expect("rpl proof file should be written");
+
+    let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args([
+            "replay",
+            rpl_path.file_name().and_then(|name| name.to_str()).expect("utf8 path"),
+            "--mode",
+            "runtime_mode",
+        ])
+        .output()
+        .expect("precision replay should run");
+
+    assert_eq!(replay.status.code(), Some(2));
+    assert!(replay.stdout.is_empty());
+    let stderr = String::from_utf8(replay.stderr).expect("stderr must be utf8");
+    assert!(stderr.contains("published artifact directory"));
+
+    fs::remove_dir_all(&temp_root).expect("temp root cleanup");
+}
+
+#[test]
 fn precision_replay_rejects_malformed_comparison_payload_with_exit_2() {
     let temp_root = unique_temp_root("precision-replay-invalid-comparison");
     let (_, replay_artifact) = make_replay_artifact(&temp_root);
 
     let trace_path = temp_root.join(&replay_artifact).join("trace.json");
-    let original = fs::read_to_string(&trace_path).expect("trace.json must exist");
-    let invalid = original.replacen("\"equivalence\": \"exact\"", "\"equivalence\": \"maybe\"", 1);
-    fs::write(&trace_path, invalid).expect("invalid trace must be written");
+    let mut trace = read_json(&trace_path);
+    trace["comparison"]["equivalence"] = Value::from("maybe");
+    write_json(&trace_path, &trace);
 
     let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
         .current_dir(&temp_root)
@@ -330,6 +702,61 @@ fn precision_replay_rejects_malformed_comparison_payload_with_exit_2() {
     assert!(replay.stdout.is_empty());
     let stderr = String::from_utf8(replay.stderr).expect("stderr must be utf8");
     assert!(stderr.contains("ERROR: invalid comparison equivalence"));
+
+    fs::remove_dir_all(&temp_root).expect("temp root cleanup");
+}
+
+#[test]
+fn precision_replay_rejects_incomplete_replay_comparison_payload_with_exit_2() {
+    let temp_root = unique_temp_root("precision-replay-incomplete-comparison");
+    let (_, replay_artifact) = make_replay_artifact(&temp_root);
+
+    let trace_path = temp_root.join(&replay_artifact).join("trace.json");
+    let mut trace = read_json(&trace_path);
+    trace
+        .as_object_mut()
+        .expect("trace root object")
+        .remove("comparison");
+    write_json(&trace_path, &trace);
+
+    let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["replay", &replay_artifact, "--mode", "runtime_mode"])
+        .output()
+        .expect("precision replay should run");
+
+    assert_eq!(replay.status.code(), Some(2));
+    assert!(replay.stdout.is_empty());
+    let stderr = String::from_utf8(replay.stderr).expect("stderr must be utf8");
+    assert!(stderr.contains("replay artifact must contain replay comparison payload"));
+
+    fs::remove_dir_all(&temp_root).expect("temp root cleanup");
+}
+
+#[test]
+fn precision_replay_rejects_inconsistent_replay_comparison_payload_with_exit_2() {
+    let temp_root = unique_temp_root("precision-replay-inconsistent-comparison");
+    let (_, replay_artifact) = make_replay_artifact(&temp_root);
+
+    let trace_path = temp_root.join(&replay_artifact).join("trace.json");
+    let mut trace = read_json(&trace_path);
+    trace["comparison"]["first_divergence"] = serde_json::json!({
+        "step": 9,
+        "node": "signal.interval_us",
+        "cause": "VAL_MISMATCH"
+    });
+    write_json(&trace_path, &trace);
+
+    let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["replay", &replay_artifact, "--mode", "runtime_mode"])
+        .output()
+        .expect("precision replay should run");
+
+    assert_eq!(replay.status.code(), Some(2));
+    assert!(replay.stdout.is_empty());
+    let stderr = String::from_utf8(replay.stderr).expect("stderr must be utf8");
+    assert!(stderr.contains("inconsistent comparison first_divergence"));
 
     fs::remove_dir_all(&temp_root).expect("temp root cleanup");
 }

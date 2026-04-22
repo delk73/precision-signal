@@ -21,6 +21,7 @@ NON_FIRMWARE_REQUIRED_FILES = (
     "make_demo_evidence_package.txt",
     "make_doc_link_check.txt",
     "make_gate.txt",
+    "make_release_bundle_check.txt",
     "make_replay_tests.txt",
     "release_reproducibility.txt",
 )

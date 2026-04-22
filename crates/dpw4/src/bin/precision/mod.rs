@@ -149,7 +149,7 @@ enum ArtifactPurpose {
     Envelope,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 struct FirstDivergence {
     step: u64,
     node: String,
@@ -482,17 +482,21 @@ fn load_authoritative_artifact(
     purpose: ArtifactPurpose,
 ) -> Result<LoadedArtifact, CliError> {
     let base = Path::new(target);
+    validate_authoritative_artifact_dir(base, target)?;
+    let result_path = base.join("result.txt");
     let trace_path = base.join("trace.json");
     let meta_path = base.join("meta.json");
+    let result_bytes = fs::read(&result_path)?;
     let trace_bytes = fs::read(&trace_path)?;
     let meta_bytes = fs::read(&meta_path)?;
+    let result = parse_published_result_block(target, base, &result_bytes)?;
     let trace: TraceArtifact = serde_json::from_slice(&trace_bytes).map_err(|err| {
         CliError::User(format!("invalid authoritative trace at {}: {err}", trace_path.display()))
     })?;
     let meta: MetaArtifact = serde_json::from_slice(&meta_bytes).map_err(|err| {
         CliError::User(format!("invalid authoritative meta at {}: {err}", meta_path.display()))
     })?;
-    validate_loaded_artifact(target, &trace, &meta, purpose)?;
+    validate_loaded_artifact(target, &result, &trace, &meta, purpose)?;
     Ok(LoadedArtifact { trace })
 }
 
@@ -647,10 +651,29 @@ fn extract_i64_node_values(trace: &SemanticTrace, node_id: &str) -> Result<Vec<i
 
 fn validate_loaded_artifact(
     target: &str,
+    result: &ResultBlock,
     trace: &TraceArtifact,
     meta: &MetaArtifact,
     purpose: ArtifactPurpose,
 ) -> Result<(), CliError> {
+    if result.command != meta.command {
+        return Err(CliError::User(format!(
+            "result/meta command mismatch for {target}: {} vs {}",
+            result.command, meta.command
+        )));
+    }
+    if result.target != meta.target {
+        return Err(CliError::User(format!(
+            "result/meta target mismatch for {target}: {} vs {}",
+            result.target, meta.target
+        )));
+    }
+    if result.mode != meta.mode {
+        return Err(CliError::User(format!(
+            "result/meta mode mismatch for {target}: {} vs {}",
+            result.mode, meta.mode
+        )));
+    }
     if trace.schema != TRACE_SCHEMA {
         return Err(CliError::User(format!(
             "invalid trace schema for {target}: expected {TRACE_SCHEMA}, got {}",
@@ -682,6 +705,7 @@ fn validate_loaded_artifact(
             trace.signal_inputs.len()
         )));
     }
+    validate_command_shape(target, trace, meta)?;
     let expected_len = trace.signal_inputs.len();
     for node in &trace.captured_trace.nodes {
         validate_node(node, expected_len, target)?;
@@ -692,6 +716,7 @@ fn validate_loaded_artifact(
         }
     }
     validate_comparison_summary(target, trace.comparison.as_ref())?;
+    validate_replay_payload_consistency(target, result, trace, meta)?;
     if let Some(hash) = &meta.transient_rpl0_sha256 {
         if hash.len() != 64 || !hash.bytes().all(|b| b.is_ascii_hexdigit()) {
             return Err(CliError::User(format!(
@@ -705,6 +730,379 @@ fn validate_loaded_artifact(
         ArtifactPurpose::Envelope => validate_envelope_compatibility(target, trace, meta)?,
     }
     Ok(())
+}
+
+fn validate_authoritative_artifact_dir(base: &Path, target: &str) -> Result<(), CliError> {
+    let metadata = fs::metadata(base).map_err(|err| match err.kind() {
+        std::io::ErrorKind::NotFound => {
+            CliError::User(format!("authoritative artifact directory not found for {target}"))
+        }
+        _ => CliError::Io(err),
+    })?;
+    if !metadata.is_dir() {
+        return Err(CliError::User(format!(
+            "authoritative commands require a published artifact directory, got non-directory target {target}"
+        )));
+    }
+    let parent = base
+        .parent()
+        .and_then(Path::file_name)
+        .and_then(|name| name.to_str())
+        .ok_or_else(|| {
+            CliError::User(format!(
+                "authoritative commands require published artifact directories under artifacts/ for {target}"
+            ))
+        })?;
+    if parent != "artifacts" {
+        return Err(CliError::User(format!(
+            "authoritative commands require published artifact directories under artifacts/ for {target}"
+        )));
+    }
+    for name in ["result.txt", "trace.json", "meta.json"] {
+        let path = base.join(name);
+        let entry = fs::metadata(&path).map_err(|err| match err.kind() {
+            std::io::ErrorKind::NotFound => CliError::User(format!(
+                "authoritative artifact directory missing required file {} for {target}",
+                path.display()
+            )),
+            _ => CliError::Io(err),
+        })?;
+        if !entry.is_file() {
+            return Err(CliError::User(format!(
+                "authoritative artifact directory contains non-file entry {} for {target}",
+                path.display()
+            )));
+        }
+    }
+    Ok(())
+}
+
+fn parse_published_result_block(
+    target: &str,
+    base: &Path,
+    bytes: &[u8],
+) -> Result<ResultBlock, CliError> {
+    let text = std::str::from_utf8(bytes)
+        .map_err(|err| CliError::User(format!("invalid result.txt for {target}: {err}")))?;
+    if !text.ends_with('\n') {
+        return Err(CliError::User(format!(
+            "invalid result.txt for {target}: missing trailing LF"
+        )));
+    }
+
+    let lines: Vec<&str> = text.lines().collect();
+    if lines.len() != 7 {
+        return Err(CliError::User(format!(
+            "invalid result.txt for {target}: expected 7 lines, found {}",
+            lines.len()
+        )));
+    }
+
+    let result = parse_result_line(target, lines[0], "RESULT: ")?;
+    let command = parse_result_line(target, lines[1], "COMMAND: ")?;
+    let result_target = parse_result_line(target, lines[2], "TARGET: ")?;
+    let mode = parse_result_line(target, lines[3], "MODE: ")?;
+    let equivalence = parse_result_line(target, lines[4], "EQUIVALENCE: ")?;
+    let first_divergence = parse_result_line(target, lines[5], "FIRST_DIVERGENCE: ")?;
+    let artifact = parse_result_line(target, lines[6], "ARTIFACT: ")?;
+
+    if !matches!(result.as_str(), "PASS" | "FAIL") {
+        return Err(CliError::User(format!(
+            "invalid result.txt RESULT for {target}: {result}"
+        )));
+    }
+    if !is_authoritative_command(&command) {
+        return Err(CliError::User(format!(
+            "invalid result.txt COMMAND for {target}: {command}"
+        )));
+    }
+    if !matches!(mode.as_str(), "runtime_mode" | "mock" | "none") {
+        return Err(CliError::User(format!(
+            "invalid result.txt MODE for {target}: {mode}"
+        )));
+    }
+    if !matches!(equivalence.as_str(), "exact" | "diverged") {
+        return Err(CliError::User(format!(
+            "invalid result.txt EQUIVALENCE for {target}: {equivalence}"
+        )));
+    }
+    validate_result_block_invariants(target, &result, &mode, &equivalence, &first_divergence)?;
+    validate_result_artifact_path(target, base, &artifact)?;
+
+    Ok(ResultBlock {
+        result,
+        command,
+        target: result_target,
+        mode,
+        equivalence,
+        first_divergence,
+        artifact,
+    })
+}
+
+fn parse_result_line(target: &str, line: &str, prefix: &str) -> Result<String, CliError> {
+    line.strip_prefix(prefix)
+        .map(str::to_string)
+        .ok_or_else(|| CliError::User(format!("invalid result.txt line for {target}: {line}")))
+}
+
+fn validate_result_block_invariants(
+    target: &str,
+    result: &str,
+    mode: &str,
+    equivalence: &str,
+    first_divergence: &str,
+) -> Result<(), CliError> {
+    let invariants_hold = match result {
+        "PASS" => equivalence == "exact" && first_divergence == "none",
+        "FAIL" if mode == "mock" => equivalence == "diverged" && first_divergence == "none",
+        "FAIL" => {
+            equivalence == "diverged" && parse_first_divergence_text(target, first_divergence).is_ok()
+        }
+        _ => false,
+    };
+    if !invariants_hold {
+        return Err(CliError::User(format!(
+            "invalid result.txt invariants for {target}"
+        )));
+    }
+    Ok(())
+}
+
+fn validate_result_artifact_path(
+    target: &str,
+    base: &Path,
+    artifact: &str,
+) -> Result<(), CliError> {
+    let Some((parent, run_id)) = artifact.split_once('/') else {
+        return Err(CliError::User(format!(
+            "invalid result.txt ARTIFACT path for {target}: {artifact}"
+        )));
+    };
+    if parent != "artifacts" || run_id.is_empty() || run_id.contains('/') {
+        return Err(CliError::User(format!(
+            "invalid result.txt ARTIFACT path for {target}: {artifact}"
+        )));
+    }
+    let dir_name = base.file_name().and_then(|name| name.to_str()).ok_or_else(|| {
+        CliError::User(format!(
+            "invalid authoritative artifact directory name for {target}"
+        ))
+    })?;
+    if dir_name != run_id {
+        return Err(CliError::User(format!(
+            "result.txt ARTIFACT path does not match directory name for {target}: {artifact}"
+        )));
+    }
+    Ok(())
+}
+
+fn validate_command_shape(
+    target: &str,
+    trace: &TraceArtifact,
+    meta: &MetaArtifact,
+) -> Result<(), CliError> {
+    match meta.command.as_str() {
+        "record" => {
+            if meta.comparison_performed != Some(false) {
+                return Err(CliError::User(format!(
+                    "invalid meta comparison_performed for record artifact {target}"
+                )));
+            }
+            if meta.secondary_target.is_some() {
+                return Err(CliError::User(format!(
+                    "invalid meta secondary_target for record artifact {target}"
+                )));
+            }
+            if trace.replay_trace.is_some() || trace.comparison.is_some() {
+                return Err(CliError::User(format!(
+                    "record artifact must not contain replay comparison payload for {target}"
+                )));
+            }
+        }
+        "replay" => {
+            if meta.source_kind != "authoritative_artifact" {
+                return Err(CliError::User(format!(
+                    "invalid meta source_kind for replay artifact {target}: {}",
+                    meta.source_kind
+                )));
+            }
+            if meta.comparison_performed != Some(true) {
+                return Err(CliError::User(format!(
+                    "invalid meta comparison_performed for replay artifact {target}"
+                )));
+            }
+            if meta.secondary_target.is_some() {
+                return Err(CliError::User(format!(
+                    "invalid meta secondary_target for replay artifact {target}"
+                )));
+            }
+            if trace.replay_trace.is_none() || trace.comparison.is_none() {
+                return Err(CliError::User(format!(
+                    "replay artifact must contain replay comparison payload for {target}"
+                )));
+            }
+        }
+        "diff" => {
+            if meta.source_kind != "authoritative_artifact_pair" {
+                return Err(CliError::User(format!(
+                    "invalid meta source_kind for diff artifact {target}: {}",
+                    meta.source_kind
+                )));
+            }
+            if meta.comparison_performed != Some(true) {
+                return Err(CliError::User(format!(
+                    "invalid meta comparison_performed for diff artifact {target}"
+                )));
+            }
+            if meta.secondary_target.is_none() {
+                return Err(CliError::User(format!(
+                    "diff artifact missing secondary_target for {target}"
+                )));
+            }
+            if trace.replay_trace.is_some() || trace.comparison.is_none() {
+                return Err(CliError::User(format!(
+                    "diff artifact must contain comparison-only payload for {target}"
+                )));
+            }
+        }
+        "envelope" => {
+            if meta.source_kind != "authoritative_artifact" {
+                return Err(CliError::User(format!(
+                    "invalid meta source_kind for envelope artifact {target}: {}",
+                    meta.source_kind
+                )));
+            }
+            if meta.comparison_performed != Some(true) {
+                return Err(CliError::User(format!(
+                    "invalid meta comparison_performed for envelope artifact {target}"
+                )));
+            }
+            if meta.secondary_target.is_some() {
+                return Err(CliError::User(format!(
+                    "invalid meta secondary_target for envelope artifact {target}"
+                )));
+            }
+        }
+        _ => {}
+    }
+    Ok(())
+}
+
+fn validate_replay_payload_consistency(
+    target: &str,
+    result: &ResultBlock,
+    trace: &TraceArtifact,
+    meta: &MetaArtifact,
+) -> Result<(), CliError> {
+    match meta.command.as_str() {
+        "record" => match (&trace.replay_trace, &trace.comparison) {
+            (None, None) => Ok(()),
+            _ => Err(CliError::User(format!(
+                "record artifact must not contain replay comparison payload for {target}"
+            ))),
+        },
+        "replay" | "envelope" => match (&trace.replay_trace, &trace.comparison) {
+        (Some(replay_trace), Some(comparison)) => {
+            let actual_divergence = compare_traces(&trace.captured_trace, replay_trace);
+            let actual_equivalence = if actual_divergence.is_none() {
+                "exact"
+            } else {
+                "diverged"
+            };
+            if comparison.equivalence != actual_equivalence {
+                return Err(CliError::User(format!(
+                    "inconsistent comparison equivalence for {target}: {} vs {}",
+                    comparison.equivalence, actual_equivalence
+                )));
+            }
+            if comparison.first_divergence != actual_divergence {
+                return Err(CliError::User(format!(
+                    "inconsistent comparison first_divergence for {target}"
+                )));
+            }
+            if result.command == "replay" {
+                validate_result_matches_comparison(target, result, Some(comparison))?;
+            }
+            Ok(())
+        }
+        _ => Err(CliError::User(format!(
+            "incomplete replay comparison payload for {target}"
+        ))),
+        },
+        "diff" => Ok(()),
+        _ => Ok(()),
+    }
+}
+
+fn validate_result_matches_comparison(
+    target: &str,
+    result: &ResultBlock,
+    comparison: Option<&ComparisonSummary>,
+) -> Result<(), CliError> {
+    let expected_equivalence = comparison
+        .map(|comparison| comparison.equivalence.as_str())
+        .unwrap_or("exact");
+    if result.equivalence != expected_equivalence {
+        return Err(CliError::User(format!(
+            "result/comparison equivalence mismatch for {target}: {} vs {}",
+            result.equivalence, expected_equivalence
+        )));
+    }
+    let expected_first_divergence = comparison
+        .and_then(|comparison| comparison.first_divergence.as_ref())
+        .map(format_first_divergence)
+        .unwrap_or_else(|| "none".to_string());
+    if result.first_divergence != expected_first_divergence {
+        return Err(CliError::User(format!(
+            "result/comparison first_divergence mismatch for {target}: {} vs {}",
+            result.first_divergence, expected_first_divergence
+        )));
+    }
+    Ok(())
+}
+
+fn format_first_divergence(divergence: &FirstDivergence) -> String {
+    format!(
+        "step={} node={} cause={}",
+        divergence.step, divergence.node, divergence.cause
+    )
+}
+
+fn parse_first_divergence_text(target: &str, text: &str) -> Result<FirstDivergence, CliError> {
+    let mut parts = text.split_whitespace();
+    let step = parts
+        .next()
+        .and_then(|part| part.strip_prefix("step="))
+        .ok_or_else(|| {
+            CliError::User(format!("invalid result.txt FIRST_DIVERGENCE for {target}: {text}"))
+        })?
+        .parse::<u64>()
+        .map_err(|_| {
+            CliError::User(format!("invalid result.txt FIRST_DIVERGENCE for {target}: {text}"))
+        })?;
+    let node = parts
+        .next()
+        .and_then(|part| part.strip_prefix("node="))
+        .ok_or_else(|| {
+            CliError::User(format!("invalid result.txt FIRST_DIVERGENCE for {target}: {text}"))
+        })?
+        .to_string();
+    let cause = parts
+        .next()
+        .and_then(|part| part.strip_prefix("cause="))
+        .ok_or_else(|| {
+            CliError::User(format!("invalid result.txt FIRST_DIVERGENCE for {target}: {text}"))
+        })?
+        .to_string();
+    if parts.next().is_some() {
+        return Err(CliError::User(format!(
+            "invalid result.txt FIRST_DIVERGENCE for {target}: {text}"
+        )));
+    }
+    let divergence = FirstDivergence { step, node, cause };
+    validate_divergence(target, &divergence)?;
+    Ok(divergence)
 }
 
 fn validate_node(node: &SemanticNode, expected_len: usize, target: &str) -> Result<(), CliError> {

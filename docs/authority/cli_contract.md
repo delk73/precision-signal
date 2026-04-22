@@ -129,7 +129,7 @@ Any contract-valid `FAIL` for `record` must still satisfy the general `FAIL` inv
 The artifact layout is defined exactly as:
 
 ```text
-artifacts/<run_id>/
+artifacts/<run_id>
   result.txt
   trace.json
   meta.json
@@ -161,7 +161,7 @@ No alternate `run_id` form is valid.
 The publication rule is defined exactly as:
 
 ```text
-artifacts/.tmp_<run_id>/ -> artifacts/<run_id>/
+artifacts/.tmp_<run_id>/ -> artifacts/<run_id>
 ```
 
 The temporary and final directories must be siblings.
