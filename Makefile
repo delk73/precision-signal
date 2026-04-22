@@ -220,7 +220,7 @@ release-1.7.0:
 	echo "--- [GATE 4/4] Reproducibility Record ---" && \
 	RELEASE_EVIDENCE_DIR="$$REL_DIR" bash verify_release_repro.sh > "$$REL_DIR/release_reproducibility.txt" 2>&1 && \
 	echo "--- [AUDIT] Bundle Coherence Check ---" && \
-	$(MAKE) --no-print-directory release-bundle-check VERSION=1.7.0
+	$(MAKE) --no-print-directory release-bundle-check VERSION=1.7.0 > "$$REL_DIR/make_release_bundle_check.txt" 2>&1
 
 shell-check:
 	test -x "$(SHELL)"
@@ -1096,7 +1096,7 @@ ci-local:
 	cargo run --quiet -p xtask -- workflow ci-local
 
 conformance-audit: $(AUDIT_BIN)
-	echo "Audit: Verifying 1.6.0 Substrate Twin Invariant"
+	echo "Audit: Verifying current substrate twin invariant"
 	rm -f .audit_stdout
 	mkdir -p artifacts
 	$(AUDIT_BIN) --target "$(AUDIT_TARGET)" > .audit_stdout
@@ -1112,7 +1112,7 @@ conformance-audit: $(AUDIT_BIN)
 	$(MAKE) --no-print-directory stream-purity
 
 kill-switch-audit: $(AUDIT_BIN)
-	echo "Audit: Verifying 1.6.0 Silence-on-Failure Invariant"
+	echo "Audit: Verifying current silence-on-failure invariant"
 	rm -f .audit_stdout
 	rm -rf "artifacts/.tmp_$(AUDIT_FIXED_RUN_ID)" "artifacts/$(AUDIT_FIXED_RUN_ID)"
 	mkdir -p "artifacts/.tmp_$(AUDIT_FIXED_RUN_ID)"
