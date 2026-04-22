@@ -18,6 +18,26 @@ Release readiness for a retained repository release record requires:
 - the retained release evidence bundle to live under `docs/verification/releases/<version>/`
 - `make release-bundle-check VERSION=<version>` to pass against that retained bundle
 
+For release `1.7.0`, run the pre-tag path in this order:
+
+1. `bash verify_kani.sh`
+2. `make gate`
+3. `make release-1.7.0`
+4. `make release-bundle-check VERSION=1.7.0`
+
+Nested-target note for `1.7.0`: `make release-1.7.0` already reruns `make gate`,
+`make doc-link-check`, and `make release-bundle-check VERSION=1.7.0` while
+recording retained outputs under `docs/verification/releases/1.7.0/`. The
+ordered path above remains the operator-facing pre-tag sequence for this
+release; the duplicated runs come from the existing orchestration and do not
+change the requirement set.
+
+Not part of the active `1.7.0` pre-tag contract:
+
+- `make gate-full` is supplementary validation only
+- manual STM32 validation and hardware support procedures are supporting/reference material, not release authority
+- changelog timing is not a release-admissibility requirement in this guide
+
 For release-surface questions, use this guide as the source of truth for:
 
 - what must be true for release readiness
