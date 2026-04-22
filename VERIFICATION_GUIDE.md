@@ -13,24 +13,27 @@ This document is the canonical release contract for `precision-signal`.
 Release readiness for a retained repository release record requires:
 
 - retained Kani evidence from the manual preflight `bash verify_kani.sh` to exist under `docs/verification/releases/1.7.0/`
-- the canonical operator-facing release gate `make gate` to pass
 - the canonical `1.7.0` release-record orchestration `make release-1.7.0` to pass
 - the retained release evidence bundle to live under `docs/verification/releases/<version>/`
-- `make release-bundle-check VERSION=<version>` to pass against that retained bundle
+- the canonical operator-facing release gate `make gate` to pass within the retained release-record orchestration
+- `make release-bundle-check VERSION=<version>` to pass against that retained bundle within the retained release-record orchestration
 
 For release `1.7.0`, run the pre-tag path in this order:
 
 1. `bash verify_kani.sh`
-2. `make gate`
-3. `make release-1.7.0`
-4. `make release-bundle-check VERSION=1.7.0`
+2. `make release-1.7.0`
 
-Nested-target note for `1.7.0`: `make release-1.7.0` already reruns `make gate`,
-`make doc-link-check`, and `make release-bundle-check VERSION=1.7.0` while
-recording retained outputs under `docs/verification/releases/1.7.0/`. The
-ordered path above remains the operator-facing pre-tag sequence for this
-release; the duplicated runs come from the existing orchestration and do not
-change the requirement set.
+Embedded checks for `1.7.0`: `make release-1.7.0` requires existing
+`kani_evidence.txt`, reruns `make gate`, reruns `make doc-link-check`, and
+runs `make release-bundle-check VERSION=1.7.0` while recording retained outputs
+under `docs/verification/releases/1.7.0/`. Those checks remain required for the
+release record, but they are satisfied inside the orchestration rather than as
+additional mandatory operator invocations in the minimal pre-tag path.
+
+Standalone re-runs remain allowed for reviewer verification or diagnosis:
+
+- `make gate`
+- `make release-bundle-check VERSION=1.7.0`
 
 Not part of the active `1.7.0` pre-tag contract:
 
