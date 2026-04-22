@@ -168,7 +168,6 @@ EOF
 require_single_exact_line() {
   local file_path="$1"
   local expected_line="$2"
-  local failure_class="$3"
   local count
   count="$(grep -Fxc "$expected_line" "$file_path" || true)"
   if [[ "$count" != "1" ]]; then
@@ -208,17 +207,17 @@ verify_result_block() {
   if [[ "$line_count" != "7" ]]; then
     fail_cycle "$cycle_id" "$cycle_dir" "$capture_csv" "$capture_status" "$capture_sha" "$record_artifact" "$replay_artifact" "${command_name}_result_block_line_count_invalid" "$completed_before_failure"
   fi
-  require_single_exact_line "$file_path" "RESULT: PASS" "${command_name}_result_not_pass" || \
+  require_single_exact_line "$file_path" "RESULT: PASS" || \
     fail_cycle "$cycle_id" "$cycle_dir" "$capture_csv" "$capture_status" "$capture_sha" "$record_artifact" "$replay_artifact" "${command_name}_result_not_pass" "$completed_before_failure"
-  require_single_exact_line "$file_path" "COMMAND: $command_name" "${command_name}_command_field_invalid" || \
+  require_single_exact_line "$file_path" "COMMAND: $command_name" || \
     fail_cycle "$cycle_id" "$cycle_dir" "$capture_csv" "$capture_status" "$capture_sha" "$record_artifact" "$replay_artifact" "${command_name}_command_field_invalid" "$completed_before_failure"
-  require_single_exact_line "$file_path" "TARGET: $target_path" "${command_name}_target_field_invalid" || \
+  require_single_exact_line "$file_path" "TARGET: $target_path" || \
     fail_cycle "$cycle_id" "$cycle_dir" "$capture_csv" "$capture_status" "$capture_sha" "$record_artifact" "$replay_artifact" "${command_name}_target_field_invalid" "$completed_before_failure"
-  require_single_exact_line "$file_path" "MODE: runtime_mode" "${command_name}_mode_field_invalid" || \
+  require_single_exact_line "$file_path" "MODE: runtime_mode" || \
     fail_cycle "$cycle_id" "$cycle_dir" "$capture_csv" "$capture_status" "$capture_sha" "$record_artifact" "$replay_artifact" "${command_name}_mode_field_invalid" "$completed_before_failure"
-  require_single_exact_line "$file_path" "EQUIVALENCE: exact" "${command_name}_equivalence_not_exact" || \
+  require_single_exact_line "$file_path" "EQUIVALENCE: exact" || \
     fail_cycle "$cycle_id" "$cycle_dir" "$capture_csv" "$capture_status" "$capture_sha" "$record_artifact" "$replay_artifact" "${command_name}_equivalence_not_exact" "$completed_before_failure"
-  require_single_exact_line "$file_path" "FIRST_DIVERGENCE: none" "${command_name}_first_divergence_not_none" || \
+  require_single_exact_line "$file_path" "FIRST_DIVERGENCE: none" || \
     fail_cycle "$cycle_id" "$cycle_dir" "$capture_csv" "$capture_status" "$capture_sha" "$record_artifact" "$replay_artifact" "${command_name}_first_divergence_not_none" "$completed_before_failure"
   if ! extract_artifact_path "$file_path" >/dev/null; then
     fail_cycle "$cycle_id" "$cycle_dir" "$capture_csv" "$capture_status" "$capture_sha" "$record_artifact" "$replay_artifact" "${command_name}_artifact_field_invalid" "$completed_before_failure"

@@ -741,7 +741,7 @@ fn validate_authoritative_artifact_dir(base: &Path, target: &str) -> Result<(), 
     })?;
     if !metadata.is_dir() {
         return Err(CliError::User(format!(
-            "authoritative replay requires a published artifact directory, got non-directory target {target}"
+            "authoritative commands require a published artifact directory, got non-directory target {target}"
         )));
     }
     let parent = base
@@ -750,12 +750,12 @@ fn validate_authoritative_artifact_dir(base: &Path, target: &str) -> Result<(), 
         .and_then(|name| name.to_str())
         .ok_or_else(|| {
             CliError::User(format!(
-                "authoritative replay requires published artifact directories under artifacts/ for {target}"
+                "authoritative commands require published artifact directories under artifacts/ for {target}"
             ))
         })?;
     if parent != "artifacts" {
         return Err(CliError::User(format!(
-            "authoritative replay requires published artifact directories under artifacts/ for {target}"
+            "authoritative commands require published artifact directories under artifacts/ for {target}"
         )));
     }
     for name in ["result.txt", "trace.json", "meta.json"] {
