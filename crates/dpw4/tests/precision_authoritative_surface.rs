@@ -495,9 +495,14 @@ fn precision_replay_rejects_inconsistent_meta_json_with_exit_2() {
     let temp_root = unique_temp_root("precision-replay-inconsistent-meta");
     let artifact_rel = make_record_artifact(&temp_root);
     let meta_path = temp_root.join(&artifact_rel).join("meta.json");
-    let original = fs::read_to_string(&meta_path).expect("meta.json must exist");
-    let invalid = original.replacen("\"signal_input_count\": 138", "\"signal_input_count\": 137", 1);
-    fs::write(&meta_path, invalid).expect("inconsistent meta must be written");
+    let mut meta = read_json(&meta_path);
+    let signal_input_count = meta
+        .as_object_mut()
+        .and_then(|meta| meta.get_mut("signal_input_count"))
+        .and_then(|value| value.as_u64())
+        .expect("meta signal_input_count must be a u64");
+    meta["signal_input_count"] = Value::from(signal_input_count - 1);
+    write_json(&meta_path, &meta);
 
     let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
         .current_dir(&temp_root)
