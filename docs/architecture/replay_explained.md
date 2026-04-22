@@ -24,7 +24,7 @@ Within that boundary, the authoritative operator entrypoint is the `precision`
 CLI and the canonical replay path is an attached STM32 target over UART.
 For the current authoritative `precision replay` boundary, replay input is the
 published artifact directory path emitted by the authoritative CLI result block
-(`ARTIFACT: artifacts/<run_id>/`), and the active validation focus is
+(`ARTIFACT: artifacts/<run_id>`), and the active validation focus is
 recorded-boundary validation first. `.rpl` artifacts and `replay-host` remain
 support/reference or historical material in this explanation layer; they are
 not part of the current authoritative `precision replay` path.
