@@ -519,6 +519,43 @@ fn precision_replay_rejects_inconsistent_meta_json_with_exit_2() {
 }
 
 #[test]
+fn precision_replay_rejects_artifact_directory_outside_artifacts_parent_with_exit_2() {
+    let temp_root = unique_temp_root("precision-replay-non-artifacts-parent");
+    let artifact_rel = make_record_artifact(&temp_root);
+    let run_id = artifact_rel
+        .rsplit('/')
+        .next()
+        .expect("artifact path must contain run id");
+    let relocated_parent = temp_root.join("published");
+    fs::create_dir_all(&relocated_parent).expect("published dir must be created");
+    let relocated_artifact = relocated_parent.join(run_id);
+    fs::rename(temp_root.join(&artifact_rel), &relocated_artifact)
+        .expect("artifact dir must be moved outside artifacts");
+
+    let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args([
+            "replay",
+            relocated_artifact
+                .strip_prefix(&temp_root)
+                .expect("relocated path must stay under temp root")
+                .to_str()
+                .expect("relocated path must be utf8"),
+            "--mode",
+            "runtime_mode",
+        ])
+        .output()
+        .expect("precision replay should run");
+
+    assert_eq!(replay.status.code(), Some(2));
+    assert!(replay.stdout.is_empty());
+    let stderr = String::from_utf8(replay.stderr).expect("stderr must be utf8");
+    assert!(stderr.contains("published artifact directories under artifacts/"));
+
+    fs::remove_dir_all(&temp_root).expect("temp root cleanup");
+}
+
+#[test]
 fn precision_replay_rejects_malformed_trace_json_with_exit_2() {
     let temp_root = unique_temp_root("precision-replay-malformed-trace-json");
     let artifact_rel = make_record_artifact(&temp_root);

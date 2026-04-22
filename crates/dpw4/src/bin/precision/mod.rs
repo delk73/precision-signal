@@ -744,6 +744,20 @@ fn validate_authoritative_artifact_dir(base: &Path, target: &str) -> Result<(), 
             "authoritative replay requires a published artifact directory, got non-directory target {target}"
         )));
     }
+    let parent = base
+        .parent()
+        .and_then(Path::file_name)
+        .and_then(|name| name.to_str())
+        .ok_or_else(|| {
+            CliError::User(format!(
+                "authoritative replay requires published artifact directories under artifacts/ for {target}"
+            ))
+        })?;
+    if parent != "artifacts" {
+        return Err(CliError::User(format!(
+            "authoritative replay requires published artifact directories under artifacts/ for {target}"
+        )));
+    }
     for name in ["result.txt", "trace.json", "meta.json"] {
         let path = base.join(name);
         let entry = fs::metadata(&path).map_err(|err| match err.kind() {

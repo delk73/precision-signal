@@ -300,7 +300,7 @@ for cycle_num in $(seq 1 "$cycles"); do
   capture_sha="$(sha256sum "$capture_csv_file" | awk '{print $1}')"
   printf '%s\n' "$capture_sha" > "$capture_sha_file"
 
-  if ! run_to_files "$record_stdout" "$record_stderr" cargo run -q -p dpw4 --features cli --bin precision -- \
+  if ! run_to_files "$record_stdout" "$record_stderr" cargo run --locked -q -p dpw4 --features cli --bin precision -- \
       record "$capture_csv_file" --mode runtime_mode; then
     fail_cycle "$cycle_id" "$cycle_dir" "$capture_csv_file" "$capture_status" "$capture_sha" "" "" "record_command_failed" "$((cycle_num - 1))"
   fi
@@ -310,7 +310,7 @@ for cycle_num in $(seq 1 "$cycles"); do
   printf '%s\n' "$record_artifact" > "$record_artifact_path_file"
   verify_artifact_dir "$record_artifact" "$record_stdout" "record" "$cycle_id" "$cycle_dir" "$capture_csv_file" "$capture_status" "$capture_sha" "$record_artifact" "" "$((cycle_num - 1))"
 
-  if ! run_to_files "$replay_stdout" "$replay_stderr" cargo run -q -p dpw4 --features cli --bin precision -- \
+  if ! run_to_files "$replay_stdout" "$replay_stderr" cargo run --locked -q -p dpw4 --features cli --bin precision -- \
       replay "$record_artifact" --mode runtime_mode; then
     fail_cycle "$cycle_id" "$cycle_dir" "$capture_csv_file" "$capture_status" "$capture_sha" "$record_artifact" "" "replay_command_failed" "$((cycle_num - 1))"
   fi
