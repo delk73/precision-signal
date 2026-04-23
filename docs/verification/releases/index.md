@@ -24,8 +24,6 @@ Active retained release record: `1.7.0`
 
 ## Historical Verification References
 
-- [docs/verification/CLI_SURFACE_EVIDENCE.md](../CLI_SURFACE_EVIDENCE.md):
-  retained historical CLI promotion evidence
 - [docs/verification/CI_EVIDENCE.md](../CI_EVIDENCE.md): retained historical CI
   evidence
 - [docs/verification/FIRMWARE_CAPTURE_EVIDENCE.md](../FIRMWARE_CAPTURE_EVIDENCE.md):

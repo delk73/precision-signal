@@ -2,7 +2,7 @@
 
 This document is support/reference guidance for replay tooling and local replay
 validation. It is not active CLI authority and it does not define the active
-`1.6.0` operator surface.
+operator surface.
 
 Use:
 
@@ -75,7 +75,7 @@ Limitations:
   retained `artifacts/rpl0/` proof corpus
 - no schema-aware replay semantics are provided by the Rust path
 - the Python tooling layer remains historical support/reference tooling and is
-  not part of the canonical `1.6.0` operator surface
+  not part of the canonical operator surface
 
 ## Example Commands
 
