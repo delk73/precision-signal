@@ -11,7 +11,7 @@ non-firmware release evidence for that narrowed operator path.
 ## Scope of this cut
 
 - replay-authoritative hardening for the primary `precision replay` path
-- retained release evidence aligned to workspace version `1.7.0`
+- retained release evidence for `1.7.0`
 - no replay-host promotion
 - no firmware release promotion
 - no release-surface expansion beyond the documented primary precision CLI path
