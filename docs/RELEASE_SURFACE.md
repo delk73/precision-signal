@@ -25,6 +25,21 @@ For release decisions, use:
   `artifacts/demo_evidence/retained/` is support/reference material, not the
   canonical `1.7.0` operator release surface
 
+The `1.7.0` release remains the retained baseline until a later release bundle
+exists.
+
+Physical replay characterization for STM32 power-floor and degradation
+workflows is prepared as supporting documentation only. It does not expand the
+authoritative release surface beyond the exercised `precision` CLI replay path.
+
+Physical characterization evidence is supporting evidence unless explicitly
+promoted by a later release packet.
+
+See:
+
+- [docs/verification/hardware_procedures.md](verification/hardware_procedures.md)
+  for characterization procedure, provenance requirements, and non-claims
+
 If a descriptive document conflicts with a normative document, the normative
 document wins.
 
@@ -36,6 +51,8 @@ surface.
 Canonical For Retained Release `1.7.0`
 
 - `make gate` (canonical operator-facing release gate)
+- authoritative replay through `precision record` and `precision replay` over
+  retained replay artifacts and exact equivalence / first-divergence reporting
 - the narrowed primary precision CLI surface retained for `1.7.0`; read the
   exact release boundary, limits, and retained evidence under
   [docs/verification/releases/1.7.0/](verification/releases/1.7.0/) and
@@ -59,6 +76,9 @@ Support / Reference / Historical Only
 - firmware capture/import evidence retained under
   [docs/verification/releases/1.7.0/](verification/releases/1.7.0/) is bounded
   supporting evidence only; it does not promote a firmware release for `1.7.0`
+- STM32 physical replay characterization and power-floor characterization are
+  supporting physical evidence unless promoted by a later release packet with
+  retained evidence
 
 Experimental
 
@@ -94,3 +114,8 @@ not part of the current release surface
   hardware-backed `1.2.2` retained evidence remains explicit under [docs/verification/releases/](verification/releases/).
 - This document classifies surfaced tools and routes proof bundles; it does not
   define release admissibility
+- Physical characterization prep is routed through
+  [docs/operator/stm32_replay.md](operator/stm32_replay.md) and
+  [docs/verification/hardware_procedures.md](verification/hardware_procedures.md)
+  as support documentation only; firmware, replay-host, and sidecar surfaces
+  are not promoted by implication
