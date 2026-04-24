@@ -496,6 +496,10 @@ release-bundle:
 	  exit 1; \
 	fi; \
 	mkdir -p "$$REL_DIR"; \
+	if [[ -f "$$REL_DIR/README.md" && -f "$$REL_DIR/index.md" ]]; then \
+	  echo "[release-bundle] FAIL landing: retain index.md only, not both README.md and index.md"; \
+	  exit 1; \
+	fi; \
 	echo "[release-bundle] 1/6 cargo_check_dpw4_thumb_locked.txt"; \
 	if ! cargo check --locked -p dpw4 --target thumbv7em-none-eabihf > "$$REL_DIR/cargo_check_dpw4_thumb_locked.txt" 2>&1; then \
 	  echo "[release-bundle] FAIL phase=1 file=$$REL_DIR/cargo_check_dpw4_thumb_locked.txt"; \
