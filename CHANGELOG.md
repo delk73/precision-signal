@@ -7,6 +7,12 @@
 
 ## [Unreleased]
 
+### Documentation
+
+- Prepared bounded STM32 physical replay characterization documentation for
+  future power-floor evidence capture while preserving the existing
+  authoritative `precision` CLI replay surface.
+
 ## [1.7.0] - 2026-04-22
 
 ### Replay Authority Hardening
