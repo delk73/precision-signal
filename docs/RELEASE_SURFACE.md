@@ -99,8 +99,6 @@ not part of the current release surface
 - Canonical retained release-evidence location for release records:
   [docs/verification/releases/](verification/releases/)
 - Active retained release record: `1.7.0`
-- `1.7.0` remains the retained baseline until a later retained release bundle
-  exists
 - Active retained release route:
   [docs/verification/releases/1.7.0/](verification/releases/1.7.0/) for the
   narrowed primary precision non-firmware release record
