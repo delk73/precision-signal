@@ -14,7 +14,6 @@ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 RUN_DIR_REL_RE = re.compile(r"^artifacts/replay_runs/(run_\d{8}T\d{6}Z)$")
 
 NON_FIRMWARE_REQUIRED_FILES = (
-    "README.md",
     "index.md",
     "cargo_check_dpw4_thumb_locked.txt",
     "kani_evidence.txt",
@@ -169,6 +168,8 @@ def validate_bundle(bundle_dir: Path, repo_root: Path, strict_paths: bool) -> tu
 
     if "replay_manifest_v0.txt" in file_names and "replay_manifest_v1.txt" in file_names:
         return ["retained release bundle cannot contain both replay_manifest_v0.txt and replay_manifest_v1.txt"], []
+    if "README.md" in file_names and "index.md" in file_names:
+        return ["retained release bundle cannot contain both README.md and index.md"], []
 
     bundle_class = "non_firmware"
     required_files = NON_FIRMWARE_REQUIRED_FILES

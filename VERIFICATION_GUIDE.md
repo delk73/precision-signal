@@ -327,7 +327,6 @@ For a retained repository release record under
 `docs/verification/releases/<version>/`, the required evidence set is:
 
 - Non-firmware retained release bundle:
-  - `README.md`
   - `index.md`
   - `cargo_check_dpw4_thumb_locked.txt`
   - `kani_evidence.txt`

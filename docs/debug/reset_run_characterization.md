@@ -77,7 +77,7 @@ make firmware-release-check SERIAL=/dev/ttyACM0
 
 Gate notes:
 - gate/reset authority is manual reset only
-- current validated `1.6.0` firmware release gate is manual-reset, human-in-the-loop
+- current validated firmware release gate is manual-reset, human-in-the-loop
 - gate capture must fail fast if no UART emission arrives within the configured timeout
 - no default gate path may wait for `RPL0`
 

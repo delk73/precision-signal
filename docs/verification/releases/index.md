@@ -19,13 +19,11 @@ Active retained release record: `1.7.0`
 
 - [Release 1.7.0](1.7.0/): narrowed primary precision non-firmware release
   bundle
-- [Release 1.7.0 README.md](1.7.0/README.md): primary human-readable release
+- [Release 1.7.0 index.md](1.7.0/index.md): primary human-readable release
   summary and retained file inventory
 
 ## Historical Verification References
 
-- [docs/verification/CLI_SURFACE_EVIDENCE.md](../CLI_SURFACE_EVIDENCE.md):
-  retained historical CLI promotion evidence
 - [docs/verification/CI_EVIDENCE.md](../CI_EVIDENCE.md): retained historical CI
   evidence
 - [docs/verification/FIRMWARE_CAPTURE_EVIDENCE.md](../FIRMWARE_CAPTURE_EVIDENCE.md):
