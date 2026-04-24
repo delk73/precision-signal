@@ -19,7 +19,7 @@ Active retained release record: `1.7.0`
 
 - [Release 1.7.0](1.7.0/): narrowed primary precision non-firmware release
   bundle
-- [Release 1.7.0 README.md](1.7.0/README.md): primary human-readable release
+- [Release 1.7.0 index.md](1.7.0/index.md): primary human-readable release
   summary and retained file inventory
 
 ## Historical Verification References
