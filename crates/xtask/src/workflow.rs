@@ -104,6 +104,7 @@ fn run_replay_tool_tests(repo_root: &Path) -> i32 {
         ["scripts/test_artifact_tool_verify.py"],
         ["scripts/test_artifact_tool_hash.py"],
         ["scripts/test_doc_link_check.py"],
+        ["scripts/test_release_bundle_check.py"],
         ["scripts/test_artifact_diff.py"],
         ["scripts/test_demo_v3_fixtures.py"],
         ["tests/test_demo_v4_region_attribution.py"],
