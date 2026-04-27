@@ -145,3 +145,32 @@ Next steps
 3. Improve measurement:
    - log measured 3V3 at each point
    - optionally isolate USB power influence
+
+
+
+Refined low-voltage boundary
+
+~1.760 V measured rail
+- measured input: 1.760 V
+- measured 3V3 rail: 1.758 V
+- measured NRST: 1.399 V
+- result: PASS
+- interpretation: stable confirmed pass point
+
+~1.691 V measured rail
+- measured input: 1.691 V
+- measured 3V3 rail: 1.688 V
+- measured NRST: 1.43 V
+- result: PASS, but inconsistent / near floor
+- interpretation: lowest observed passing point so far, not a robust margin point
+
+Prior failure:
+- ~1.56 V measured rail: FAIL
+
+Updated boundary:
+- stable PASS: ~1.760 V
+- lowest inconsistent PASS: ~1.691 V
+- FAIL: ~1.56 V
+- current failure band: below ~1.69 V and above ~1.56 V
+
+
