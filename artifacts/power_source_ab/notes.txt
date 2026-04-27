@@ -1,0 +1,147 @@
+Power Source A/B + External Voltage Sweep Characterization
+
+A/B smoke test (baseline USB vs external 5V)
+
+- baseline_usb.csv and ext_5v.csv are bit-identical
+- sha256: b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1
+
+Result:
+- baseline USB power and external 5V (nominal conditions) produce identical interval capture CSVs
+- record: PASS
+- replay: PASS
+- equivalence: exact
+- first_divergence: none
+
+Interpretation:
+- external 5V path is valid for replay capture under nominal conditions
+- no observable difference between USB-powered and externally powered execution at the capture/replay surface
+
+---
+
+Sweep invalidation (first pass)
+
+- initial sweep (4.90 → 4.70 nominal) was performed with incorrect board jumper configuration
+- board was not under external 5V authority
+- results are invalid for power-floor characterization
+
+Action:
+- reconfigured board to external 5V (E5V)
+- re-ran sweep with verified PSU authority over board power
+
+Verification:
+- PSU OFF → board unpowered
+- PSU ON → board powered
+- confirmed external rail is authoritative
+
+---
+
+Validation sanity check (negative control)
+
+- negative_control.csv created by mutating a single interval value
+- record: PASS
+- replay: PASS
+- diff vs baseline artifact: FAIL
+- equivalence: diverged
+- first_divergence: step=0 node=artifact.signal_inputs cause=VAL_MISMATCH
+
+Interpretation:
+- record/replay validate internal artifact consistency
+- diff is the correct cross-artifact validation mechanism
+- validation surface is sensitive to single-value mutation
+- identical CSV hashes across sweep are meaningful
+
+---
+
+External 5V sweep (E5V mode, calibrated)
+
+rail behavior:
+- PSU exhibits ~±0.04–0.05 V fluctuation under load
+- voltage labels corrected to measured rail values
+- external input sweep propagates to board 3V3 rail
+
+results (all valid runs):
+
+measured rail ≈ 4.9 V → PASS
+measured rail ≈ 4.8 V → PASS
+measured rail ≈ 4.7 V → PASS
+measured rail ≈ 4.6 V → PASS
+measured rail ≈ 4.5 V → PASS
+measured rail ≈ 4.4 V → PASS
+measured rail ≈ 4.3 V → PASS
+measured rail ≈ 4.2 V → PASS
+measured rail ≈ 2.2 V → PASS
+
+For all above:
+
+- capture: STATE,CAPTURE_DONE,138
+- record: PASS
+- replay: PASS
+- equivalence: exact
+- first_divergence: none
+- CSV hash identical to baseline
+
+---
+
+Low-voltage characterization (measured rail)
+
+- ~1.75 V:
+  - capture: STATE,CAPTURE_DONE,138
+  - record: PASS
+  - replay: PASS
+  - equivalence: exact
+  - first_divergence: none
+  - CSV hash matches baseline
+
+- ~1.56 V:
+  - capture: FAIL (no valid capture / unstable operation)
+  - no replay artifact promoted
+
+---
+
+Failure boundary
+
+- last confirmed PASS: ~1.75 V measured rail
+- first confirmed FAIL: ~1.56 V measured rail
+- coarse operating band: ~1.56–1.75 V
+
+---
+
+Interpretation
+
+- deterministic replay surface remains bit-exact across a wide undervoltage range
+- no execution-level divergence observed for this firmware/stimulus down to ~1.75 V
+- failure manifests as loss of capture / unstable execution below ~1.56 V
+- external voltage reduction is confirmed to propagate to MCU supply rail (3V3)
+
+---
+
+Constraints / caveats
+
+- result applies only to this minimal firmware and stimulus
+- workload is low complexity and timing-tolerant
+- USB remains connected (possible residual bias not fully eliminated)
+- PSU resolution is coarse (±0.05 V)
+
+---
+
+Summary
+
+Minimal firmware demonstrates stable, replay-identical execution across a substantial undervoltage range, with a first observed failure band between ~1.56 V and ~1.75 V measured rail.
+
+No replay divergence was observed prior to failure; correctness holds until execution collapses.
+
+---
+
+Next steps
+
+1. Refine boundary:
+   - test ~1.70 V, ~1.65 V, ~1.60 V measured rail
+
+2. Increase workload sensitivity:
+   - higher frequency
+   - irregular interval patterns
+   - memory/branch stress
+
+3. Improve measurement:
+   - log measured 3V3 at each point
+   - optionally isolate USB power influence
