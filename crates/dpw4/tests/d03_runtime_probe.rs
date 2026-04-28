@@ -78,7 +78,7 @@ fn mul_u128_u32_to_u256(x: u128, n: u32) -> U256 {
     let lo = lo0 | ((lo1 & 0xFFFF_FFFF_FFFF_FFFF) << 64);
     let hi = lo1 >> 64;
 
-    U256 { hi: hi as u128, lo }
+    U256 { hi, lo }
 }
 
 #[test]
@@ -102,7 +102,7 @@ fn test_d03_runtime_probe() {
     let t0 = Instant::now();
     for _ in 0..num_ticks {
         TriangleDPW4::tick(&mut state1, phase1, &gain);
-        let (new_sum, of) = sum_z_shifted.overflowing_add((state1.tri.z as i128) >> MEAN_SHIFT);
+        let (new_sum, of) = sum_z_shifted.overflowing_add(state1.tri.z >> MEAN_SHIFT);
         overflowed |= of;
         sum_z_shifted = new_sum;
         phase1 += phase_inc;
@@ -118,7 +118,7 @@ fn test_d03_runtime_probe() {
     let t1 = Instant::now();
     for _ in 0..num_ticks {
         TriangleDPW4::tick(&mut state2, phase2, &gain);
-        sum_exact.add_i128(state2.tri.z as i128);
+        sum_exact.add_i128(state2.tri.z);
         phase2 += phase_inc;
         clip_phase(&mut phase2);
     }
@@ -139,7 +139,7 @@ fn test_d03_runtime_probe() {
             max_abs_z = abs_z;
         }
 
-        sum_exact_chk.add_i128(z as i128);
+        sum_exact_chk.add_i128(z);
 
         phase3 += phase_inc;
         clip_phase(&mut phase3);

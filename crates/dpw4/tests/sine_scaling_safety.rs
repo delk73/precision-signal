@@ -60,7 +60,7 @@ fn test_sine_scaling_safety_sweep() {
         // (c) Convert: result must be in calibrated range.
         let q: i32 = scaled.to_num::<i32>();
         assert!(
-            q >= -SINE_EGRESS_SCALE_Q31 && q <= SINE_EGRESS_SCALE_Q31,
+            (-SINE_EGRESS_SCALE_Q31..=SINE_EGRESS_SCALE_Q31).contains(&q),
             "to_num::<i32>() out of range at i={}: q={}, s bits={:#x}",
             i,
             q,

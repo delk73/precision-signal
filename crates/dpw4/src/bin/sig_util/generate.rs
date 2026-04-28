@@ -67,8 +67,8 @@ pub(crate) fn run_generate(args: GenerateArgs) -> Result<(), CliError> {
     while samples_remaining > 0 {
         let chunk_size = std::cmp::min(buffer.len() as u64, samples_remaining) as usize;
 
-        for i in 0..chunk_size {
-            phases[i] = current_phase;
+        for phase in phases.iter_mut().take(chunk_size) {
+            *phase = current_phase;
             current_phase += phase_inc;
             if current_phase >= two_pi_scalar {
                 current_phase -= two_pi_scalar;

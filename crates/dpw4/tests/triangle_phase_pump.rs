@@ -44,7 +44,7 @@ fn test_triangle_phase_pump() {
 
     for _ in 0..num_ticks {
         // Dry run normal increment to predict delta
-        let mut dry_state = state.clone();
+        let mut dry_state = state;
         let dry_z_before = dry_state.tri.z;
         TriangleDPW4::tick(&mut dry_state, pump_phase, &gain);
         let delta = dry_state.tri.z.wrapping_sub(dry_z_before);

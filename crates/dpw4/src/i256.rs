@@ -52,7 +52,7 @@ impl I256 {
         let n = n as u128;
 
         let lo_0 = (self.lo as u64) as u128;
-        let hi_0 = (self.lo >> 64) as u128;
+        let hi_0 = self.lo >> 64;
 
         let p0 = lo_0.wrapping_mul(n);
         let p1 = hi_0.wrapping_mul(n);
