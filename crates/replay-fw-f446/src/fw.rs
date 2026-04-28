@@ -19,8 +19,20 @@ const CSV_HEADER: &str = "index,interval_us\n";
 const CAPTURE_WAIT_POLL_CYCLES: u32 = 16_000;
 const CAPTURE_WAIT_POLLS: u32 = 5_000;
 const STIM_TIM_PSC: u16 = 15_999;
+#[cfg(not(feature = "irregular-timing"))]
 const STIM_TIM_ARR: u16 = 18;
-const STIM_TIM_CCR1: u16 = 9;
+#[cfg(not(feature = "irregular-timing"))]
+const STIM_TIM_CCR1: u16 = midpoint_ccr(STIM_TIM_ARR);
+#[cfg(feature = "irregular-timing")]
+const STIM_TIM_ARR: u16 = irregular_arr_for_interval(0);
+#[cfg(feature = "irregular-timing")]
+const STIM_TIM_CCR1: u16 = midpoint_ccr(STIM_TIM_ARR);
+
+#[cfg(all(
+    feature = "irregular-timing",
+    any(feature = "demo-divergence", feature = "demo-persistent-divergence")
+))]
+compile_error!("irregular-timing cannot be combined with demo divergence injection features");
 
 static CAPTURE_DONE: AtomicBool = AtomicBool::new(false);
 static HAVE_PREV: AtomicBool = AtomicBool::new(false);
@@ -139,6 +151,7 @@ pub fn tim2_isr() {
 
     let next = idx + 1;
     WRITE_IDX.store(next, Ordering::Release);
+    configure_next_stimulus_interval(next);
     if next >= INTERVAL_COUNT {
         CAPTURE_DONE.store(true, Ordering::Release);
         stop_tim2_capture();
@@ -228,7 +241,10 @@ fn init_tim3_stimulus() {
             tim3.ccmr1_output().write(|w| {
                 w.cc1s().output();
                 w.oc1fe().disabled();
+                #[cfg(not(feature = "irregular-timing"))]
                 w.oc1pe().enabled();
+                #[cfg(feature = "irregular-timing")]
+                w.oc1pe().disabled();
                 w.oc1m().pwm_mode1()
             });
             tim3.ccer().write(|w| {
@@ -238,9 +254,51 @@ fn init_tim3_stimulus() {
             });
             tim3.egr().write(|w| w.ug().update());
             tim3.sr().write(|w| w.uif().clear());
-            tim3.cr1().modify(|_, w| w.arpe().enabled().cen().enabled());
+            tim3.cr1().modify(|_, w| {
+                #[cfg(not(feature = "irregular-timing"))]
+                w.arpe().enabled();
+                #[cfg(feature = "irregular-timing")]
+                w.arpe().disabled();
+                w.cen().enabled()
+            });
         }
     });
+}
+
+#[cfg(feature = "irregular-timing")]
+fn configure_next_stimulus_interval(interval_idx: usize) {
+    if interval_idx >= INTERVAL_COUNT {
+        return;
+    }
+
+    let arr = irregular_arr_for_interval(interval_idx);
+    cortex_m::interrupt::free(|cs| {
+        if let Some(tim3) = TIM3_DEV.borrow(cs).borrow_mut().as_mut() {
+            tim3.arr().write(|w| unsafe { w.arr().bits(arr) });
+            tim3.ccr1()
+                .write(|w| unsafe { w.ccr().bits(midpoint_ccr(arr)) });
+        }
+    });
+}
+
+#[cfg(not(feature = "irregular-timing"))]
+fn configure_next_stimulus_interval(_interval_idx: usize) {}
+
+const fn midpoint_ccr(arr: u16) -> u16 {
+    (arr + 1) / 2
+}
+
+#[cfg(feature = "irregular-timing")]
+const fn irregular_arr_for_interval(interval_idx: usize) -> u16 {
+    const MIN_ARR: u16 = 9;
+    const SPAN: u32 = 10;
+
+    let idx = interval_idx as u32;
+    let mixed = idx
+        .wrapping_mul(37)
+        .wrapping_add(idx.rotate_left(3))
+        .wrapping_add(11);
+    MIN_ARR + ((mixed ^ (mixed >> 4)) % SPAN) as u16
 }
 
 fn init_tim2_capture() {

@@ -11,6 +11,9 @@ description = "NUCLEO-F446RE replay artifact capture MVP (TIM2 + USART2, PAC onl
 debug-irq-count = []
 # Diagnostic-only repeated post-capture artifact emission loop.
 debug-repeat-dump = []
+# Alternate bounded self-stimulus workload: deterministic irregular timing
+# stimulus, with the same UART state line and index,interval_us CSV contract.
+irregular-timing = []
 # Demo-only execution divergence injector: perturbs one captured frame sample.
 # Disabled by default and never part of normative baseline capture.
 demo-divergence = []
