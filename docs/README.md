@@ -112,6 +112,10 @@ Normative behavior is covered by the contract and spec documents listed below:
 - [docs/audits/README.md](audits/README.md): audit ledger index and runlog retention
 - [docs/audits/PRE_RELEASE_AUDIT.md](audits/PRE_RELEASE_AUDIT.md): release audit process
 
+## Design Notes
+
+- [docs/notes/power_characterization.md](notes/power_characterization.md): power curve to execution mapping note
+
 ## Roadmap
 
 - [docs/roadmap/witness_model_direction.md](roadmap/witness_model_direction.md): witness-model direction note
