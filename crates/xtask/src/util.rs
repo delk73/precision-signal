@@ -61,7 +61,7 @@ pub(crate) fn discover_repo_root(cwd: &Path) -> PathBuf {
     cwd.to_path_buf()
 }
 
-fn limited_ancestors<'a>(start: &'a Path, max_levels: usize) -> Vec<&'a Path> {
+fn limited_ancestors(start: &Path, max_levels: usize) -> Vec<&Path> {
     let mut dirs = Vec::new();
     let mut current = Some(start);
     for _ in 0..=max_levels {

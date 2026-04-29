@@ -1046,6 +1046,8 @@ tim2-smoke:
 	$(MAKE) debug-session
 
 check-workspace:
+	cargo fmt -- --check
+	cargo clippy --workspace --locked -- -D warnings
 	cargo check --workspace --locked
 
 $(AUDIT_BIN):

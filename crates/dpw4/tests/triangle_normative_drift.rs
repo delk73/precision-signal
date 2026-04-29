@@ -22,7 +22,7 @@ impl I256 {
     }
 
     fn add_i128(self, v: i128) -> Self {
-        let v_hi = (v >> 127) as i128;
+        let v_hi = v >> 127;
         let (lo, overflow) = self.lo.overflowing_add(v as u128);
         let mut hi = self.hi.wrapping_add(v_hi);
         if overflow {
@@ -95,7 +95,7 @@ fn mul_u128_u32_to_u256(x: u128, n: u32) -> U256 {
     let lo = lo0 | ((lo1 & 0xFFFF_FFFF_FFFF_FFFF) << 64);
     let hi = lo1 >> 64;
 
-    U256 { hi: hi as u128, lo }
+    U256 { hi, lo }
 }
 
 #[test]
@@ -143,7 +143,7 @@ fn test_triangle_normative_drift() {
         }
         sum_out = sum_out.wrapping_add(out as i128);
 
-        let z_i128 = z as i128;
+        let z_i128 = z;
 
         sum_z = sum_z.add_i128(z_i128);
         sum_window = sum_window.add_i128(z_i128);

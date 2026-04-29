@@ -23,6 +23,7 @@ jobs:
         with:
           toolchain: 1.91.1
           targets: thumbv7em-none-eabihf
+          components: rustfmt, clippy
 
       - name: Cache cargo/target
         # pinned commit from Swatinem/rust-cache v2 series
@@ -72,6 +73,17 @@ jobs:
           echo "$SECTIONS" | grep -Eq '\.vector_table|\.isr_vector'
           EP="$(readelf -h "$ELF" | awk '/Entry point address:/ {print $NF; exit}')"
           test "$EP" != "0x0"
+
+      - name: Embedded Firmware Build Oracle (irregular-timing)
+        run: |
+          cargo build -p replay-fw-f446 \
+            --target thumbv7em-none-eabihf \
+            --locked \
+            --features irregular-timing
+          if cargo build -p replay-fw-f446 --target thumbv7em-none-eabihf --locked --features irregular-timing,demo-divergence 2>/dev/null; then
+            echo "Expected mutually exclusive features to fail compilation, but build succeeded"
+            exit 1
+          fi
 
       - name: Replay Baseline Verify (phase8)
         run: |

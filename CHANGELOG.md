@@ -7,11 +7,21 @@
 
 ## [Unreleased]
 
+### Firmware
+
+- Added `irregular-timing` feature to `replay-fw-f446` for deterministic varying-interval stimulus.
+- Implemented `irregular_arr_for_interval` pseudo-random timing modulation to improve phase-drift visibility and characterization sensitivity.
+
 ### Documentation
 
-- Prepared bounded STM32 physical replay characterization documentation for
-  future power-floor evidence capture while preserving the existing
-  authoritative `precision` CLI replay surface.
+- Added `docs/notes/power_characterization.md` design note for mapping power profiles to execution outcomes.
+- Added **Design Notes** section to the main documentation index ([docs/README.md](docs/README.md)).
+- Captured extensive voltage sweep characterization results and hysteresis observations in `artifacts/power_source_ab/notes.txt`.
+
+### Internal
+
+- Cleaned up `dpw4` crate: removed redundant casts, optimized phase-generation loops with iterators, and adopted modern Rust idioms (`is_multiple_of`, `contains`).
+- Enforced compile-time isolation between `irregular-timing` and demo-divergence features.
 
 ## [1.7.0] - 2026-04-22
 
