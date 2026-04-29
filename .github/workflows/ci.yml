@@ -23,6 +23,7 @@ jobs:
         with:
           toolchain: 1.91.1
           targets: thumbv7em-none-eabihf
+          components: rustfmt, clippy
 
       - name: Cache cargo/target
         # pinned commit from Swatinem/rust-cache v2 series
