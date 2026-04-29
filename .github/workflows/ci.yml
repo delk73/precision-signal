@@ -74,6 +74,17 @@ jobs:
           EP="$(readelf -h "$ELF" | awk '/Entry point address:/ {print $NF; exit}')"
           test "$EP" != "0x0"
 
+      - name: Embedded Firmware Build Oracle (irregular-timing)
+        run: |
+          cargo build -p replay-fw-f446 \
+            --target thumbv7em-none-eabihf \
+            --locked \
+            --features irregular-timing
+          if cargo build -p replay-fw-f446 --target thumbv7em-none-eabihf --locked --features irregular-timing,demo-divergence 2>/dev/null; then
+            echo "Expected mutually exclusive features to fail compilation, but build succeeded"
+            exit 1
+          fi
+
       - name: Replay Baseline Verify (phase8)
         run: |
           PYTHONPATH=. python3 scripts/artifact_tool.py verify artifacts/baseline.bin --signal-model phase8
