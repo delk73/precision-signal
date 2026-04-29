@@ -288,22 +288,15 @@ impl ArtifactStaging {
         trace_json: &[u8],
         meta_json: &[u8],
     ) -> CliResult {
-        let published = match self.stage_and_publish_with_run_id(
-            run_id,
-            result_block,
-            trace_json,
-            meta_json,
-        ) {
-            Ok(published) => published,
-            Err(_) => return Ok(CliStatus::SystemError),
-        };
+        let published =
+            match self.stage_and_publish_with_run_id(run_id, result_block, trace_json, meta_json) {
+                Ok(published) => published,
+                Err(_) => return Ok(CliStatus::SystemError),
+            };
         self.emit_published_result(published)
     }
 
-    fn emit_published_result(
-        &self,
-        published: PublishedArtifact,
-    ) -> CliResult {
+    fn emit_published_result(&self, published: PublishedArtifact) -> CliResult {
         let emitted = published.result_block;
         emitted.write_to_stdout()?;
 
@@ -499,7 +492,12 @@ mod tests {
         let staging = ArtifactStaging::new(&root);
         let block = sample_result_block();
         let published = staging
-            .stage_and_publish_with_run_id("20260407T120000Z-0123456789abcdef", &block, b"{}", b"{}")
+            .stage_and_publish_with_run_id(
+                "20260407T120000Z-0123456789abcdef",
+                &block,
+                b"{}",
+                b"{}",
+            )
             .expect("publish should succeed");
 
         let result_bytes = fs::read(published.final_dir.join("result.txt")).expect("read result");
@@ -523,9 +521,16 @@ mod tests {
         let block = sample_result_block();
 
         let err = staging
-            .stage_and_publish_with_run_id("20260407T120000Z-aaaaaaaaaaaaaaaa", &block, b"{}", b"{}")
+            .stage_and_publish_with_run_id(
+                "20260407T120000Z-aaaaaaaaaaaaaaaa",
+                &block,
+                b"{}",
+                b"{}",
+            )
             .expect_err("collision must fail");
-        assert!(matches!(err, CliError::Io(io_err) if io_err.kind() == io::ErrorKind::AlreadyExists));
+        assert!(
+            matches!(err, CliError::Io(io_err) if io_err.kind() == io::ErrorKind::AlreadyExists)
+        );
         assert!(!root.join("20260407T120000Z-aaaaaaaaaaaaaaaa").exists());
 
         fs::remove_dir_all(root).expect("cleanup");
@@ -571,7 +576,12 @@ mod tests {
         };
 
         let published = staging
-            .stage_and_publish_with_run_id("20260407T120000Z-feedfacefeedface", &block, b"{}", b"{}")
+            .stage_and_publish_with_run_id(
+                "20260407T120000Z-feedfacefeedface",
+                &block,
+                b"{}",
+                b"{}",
+            )
             .expect("publish should succeed");
         assert_eq!(published.result_block.result, "FAIL");
         assert_eq!(

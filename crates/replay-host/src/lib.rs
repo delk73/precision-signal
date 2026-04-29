@@ -25,8 +25,7 @@ const IMPORT_TIMER_DELTA: u32 = 1000;
 const IMPORT_CAPTURE_BOUNDARY_ISR: u16 = 0;
 const EMPTY_SCHEMA: &[u8] = b"";
 const BUILD_HASH_INPUT: &[u8] = b"replay-host:import-interval-csv:v1";
-const CONFIG_HASH_INPUT: &[u8] =
-    b"source=index,interval_us;pad=zero;timer_delta=1000;irq=0x02";
+const CONFIG_HASH_INPUT: &[u8] = b"source=index,interval_us;pad=zero;timer_delta=1000;irq=0x02";
 const BOARD_ID: [u8; 16] = *b"interval-csv-run";
 const CLOCK_PROFILE: [u8; 16] = *b"offline-fixed-v1";
 const INTERVAL_CSV_HEADER: &str = "index,interval_us";
@@ -79,7 +78,10 @@ pub fn parse_interval_csv(text: &str) -> Result<IntervalCapture, String> {
             .parse::<u32>()
             .map_err(|err| format!("invalid interval at row {} ({err})", expected_index + 1))?;
         if interval == 0 {
-            return Err(format!("interval must be > 0 at row {}", expected_index + 1));
+            return Err(format!(
+                "interval must be > 0 at row {}",
+                expected_index + 1
+            ));
         }
         intervals.push(interval);
     }
