@@ -11,9 +11,11 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").expect("OUT_DIR must be set"));
     let dest = out_dir.join("build_info.rs");
 
-    let git_hash = command_output("git", &["rev-parse", "HEAD"]).unwrap_or_else(|| "unknown".to_string());
+    let git_hash =
+        command_output("git", &["rev-parse", "HEAD"]).unwrap_or_else(|| "unknown".to_string());
     let build_time = reproducible_build_time().unwrap_or_else(|| "unknown".to_string());
-    let rust_version = command_output("rustc", &["--version"]).unwrap_or_else(|| "unknown".to_string());
+    let rust_version =
+        command_output("rustc", &["--version"]).unwrap_or_else(|| "unknown".to_string());
     let features = collect_features();
 
     let generated = format!(
@@ -46,7 +48,10 @@ fn collect_features() -> String {
     features.sort();
     features.dedup();
 
-    let quoted: Vec<String> = features.into_iter().map(|feature| format!("{feature:?}")).collect();
+    let quoted: Vec<String> = features
+        .into_iter()
+        .map(|feature| format!("{feature:?}"))
+        .collect();
     format!("[{}]", quoted.join(", "))
 }
 

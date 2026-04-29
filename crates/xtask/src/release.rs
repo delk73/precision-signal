@@ -207,20 +207,18 @@ pub(crate) fn run_internal(args: Vec<String>, repo_root: &Path) -> Result<RunOut
                 }
             }
 
-            if image.as_ref().is_some() {
-                if !Path::new(&input_path).exists() {
-                    let fail = single_check_report(
-                        Status::Fail,
-                        "cli.image_file_missing",
-                        &format!("image file does not exist: {input_path}"),
-                        Some("provide a valid --image path"),
-                    );
-                    return Ok(RunOutcome {
-                        report: fail,
-                        json,
-                        verbose,
-                    });
-                }
+            if image.as_ref().is_some() && !Path::new(&input_path).exists() {
+                let fail = single_check_report(
+                    Status::Fail,
+                    "cli.image_file_missing",
+                    &format!("image file does not exist: {input_path}"),
+                    Some("provide a valid --image path"),
+                );
+                return Ok(RunOutcome {
+                    report: fail,
+                    json,
+                    verbose,
+                });
             }
 
             let mut plan = flash_plan(&board, &input_path, &board_name);

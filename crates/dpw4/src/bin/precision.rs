@@ -24,7 +24,10 @@ fn main() {
             common::exit_with_result(precision_app::run(args));
         }
         Some(command) if !command.starts_with('-') => {
-            eprint!("unknown command\n{}", precision_app::minimal_usage_summary());
+            eprint!(
+                "unknown command\n{}",
+                precision_app::minimal_usage_summary()
+            );
             std::process::exit(2);
         }
         Some(_) => {

@@ -66,7 +66,10 @@ pub(crate) fn run_validate(args: ValidateArgs) -> CliStatus {
     let lock_version = read_dpw4_version_from_lock(Path::new("Cargo.lock"));
     let version_details = match (&workspace_version, &lock_version) {
         (Ok(ws), Ok(lock)) if ws == lock => {
-            emit_validate_line(&format!("PASS version_consistency: workspace={} lock={}", ws, lock));
+            emit_validate_line(&format!(
+                "PASS version_consistency: workspace={} lock={}",
+                ws, lock
+            ));
             CheckResult {
                 name: "version_consistency",
                 status: CheckStatus::Pass,

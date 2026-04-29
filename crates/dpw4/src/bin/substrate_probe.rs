@@ -16,15 +16,15 @@ fn parse_probe_args() -> Result<(Option<String>, String), CliError> {
     while let Some(arg) = args.next() {
         match arg.as_str() {
             "--force-id" => {
-                let value = args.next().ok_or_else(|| {
-                    CliError::User("--force-id requires a value".to_string())
-                })?;
+                let value = args
+                    .next()
+                    .ok_or_else(|| CliError::User("--force-id requires a value".to_string()))?;
                 force_id = Some(value);
             }
             "--target" => {
-                target = args.next().ok_or_else(|| {
-                    CliError::User("--target requires a value".to_string())
-                })?;
+                target = args
+                    .next()
+                    .ok_or_else(|| CliError::User("--target requires a value".to_string()))?;
             }
             "--help" | "-h" => {
                 return Err(CliError::User(
