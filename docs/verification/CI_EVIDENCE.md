@@ -10,7 +10,7 @@ pre-ejection repository identity (`precision-dpw`).
 
 Use:
 
-- [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md) for the release contract
+- [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md) for the release contract
 - `make gate` for the canonical operator-facing release gate
 - `docs/verification/releases/<version>/` for retained release evidence
 - [docs/verification/releases/1.2.2/kani_evidence.md](releases/1.2.2/kani_evidence.md) for fresh local Kani evidence at `1.2.2`

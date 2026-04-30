@@ -5,7 +5,7 @@ Precision Signal is a deterministic execution validation system centered on
 replay, operated through the `precision` CLI against an attached STM32 target
 over UART.
 Exact operator-surface classification lives in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
-Normative verification governance remains in [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md).
+Normative verification governance remains in [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md).
 This file is descriptive only and does not define release classification.
 
 ## Repository Surfaces

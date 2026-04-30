@@ -13,7 +13,7 @@ active authority path before reading supporting material here.
 
 ## Active Authority Path
 
-- [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md): release-readiness authority and verification contract
+- [VERIFICATION_GUIDE.md](./VERIFICATION_GUIDE.md): release-readiness authority and verification contract
 - [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md): release-surface classification and routing
 - [docs/authority/cli_contract.md](authority/cli_contract.md): sole active CLI contract authority
 - [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](replay/INTERVAL_CAPTURE_CONTRACT_v1.md): sole active STM32 capture contract authority
@@ -88,6 +88,7 @@ Normative behavior is covered by the contract and spec documents listed below:
 - [docs/governance/DESIGN_AXIOMS.md](governance/DESIGN_AXIOMS.md): normative design principles
 - [docs/governance/ARTIFACT_POLICY.md](governance/ARTIFACT_POLICY.md): artifact retention policy and bounded support classification
 - [docs/governance/DEBT.md](governance/DEBT.md): tracked design debt
+- [docs/CONTRIBUTING.md](CONTRIBUTING.md): contributor guidelines and authority hierarchy
 
 ## Hardware
 
@@ -100,6 +101,7 @@ Normative behavior is covered by the contract and spec documents listed below:
 ## Performance
 
 - [docs/architecture/performance/README.md](architecture/performance/README.md): retained performance background and benchmarking index
+- [docs/BENCHMARK_GUIDE.md](BENCHMARK_GUIDE.md): historical performance benchmark guide
 
 ## Debug
 

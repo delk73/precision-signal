@@ -70,7 +70,7 @@ Expected:
 - both output directories exist
 - `diff -rq` exits `0`
 - repeated runs produce identical artifact sets
-- `saw_20_headroom.det.csv` hash matches the pinned value in [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md)
+- `saw_20_headroom.det.csv` hash matches the pinned value in [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
 - `long_run_0_1hz_headers.bin` exists for downstream header audit
 
 Observed:

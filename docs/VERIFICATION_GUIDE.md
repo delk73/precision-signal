@@ -12,7 +12,7 @@ This document is the canonical release contract for `precision-signal`.
 
 Release readiness for a retained repository release record requires:
 
-- retained Kani evidence from the manual preflight `bash verify_kani.sh` to exist under `docs/verification/releases/1.7.0/`
+- retained Kani evidence from the manual preflight `bash verify_kani.sh` to exist under [docs/verification/releases/1.7.0/](verification/releases/1.7.0/)
 - the canonical `1.7.0` release-record orchestration `make release-1.7.0` to pass
 - the retained release evidence bundle to live under `docs/verification/releases/<version>/`
 - the canonical operator-facing release gate `make gate` to pass within the retained release-record orchestration
@@ -26,7 +26,7 @@ For release `1.7.0`, run the pre-tag path in this order:
 Embedded checks for `1.7.0`: `make release-1.7.0` requires existing
 `kani_evidence.txt`, reruns `make gate`, reruns `make doc-link-check`, and
 runs `make release-bundle-check VERSION=1.7.0` while recording retained outputs
-under `docs/verification/releases/1.7.0/`. Those checks remain required for the
+under [docs/verification/releases/1.7.0/](verification/releases/1.7.0/). Those checks remain required for the
 release record, but they are satisfied inside the orchestration rather than as
 additional mandatory operator invocations in the minimal pre-tag path.
 
@@ -49,22 +49,22 @@ For release-surface questions, use this guide as the source of truth for:
 
 For release `1.7.0`, reviewers should traverse this path: `bash verify_kani.sh`
 for the manual once-per-release preflight, `make release-1.7.0` for the
-canonical retained-record orchestration, [docs/replay/tooling.md](docs/replay/tooling.md)
-for released replay-tooling boundaries, and `docs/verification/releases/1.7.0/`
+canonical retained-record orchestration, [docs/replay/tooling.md](replay/tooling.md)
+for released replay-tooling boundaries, and [docs/verification/releases/1.7.0/](verification/releases/1.7.0/)
 for the retained release evidence bundle. Historical retained evidence remains explicit under
-`docs/verification/releases/`.
+[docs/verification/releases/](verification/releases/).
 
 Pre-split historical evidence may still refer to `precision` as the validation
 binary; the current validation entrypoint is `sig-util -- validate`, which implements `make gate`.
 
 The rest of the release-adjacent documentation is supporting only:
 
-- `README.md`: entry routing
-- `docs/RELEASE_SURFACE.md`: release-surface classification and routing
-- `docs/verification/build_reproducibility.md`: supporting explanation for pinned builds and dual-build identity checks
-- `docs/verification/CI_EVIDENCE.md`: historical CI evidence, not the release contract
-- `docs/verification/hardware_procedures.md`: manual hardware support procedures, not release authority
-- retained files under `docs/verification/releases/<version>/`: evidence for a specific release once generated
+- [docs/README.md](README.md): entry routing
+- [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md): release-surface classification and routing
+- [docs/verification/build_reproducibility.md](verification/build_reproducibility.md): supporting explanation for pinned builds and dual-build identity checks
+- [docs/verification/CI_EVIDENCE.md](verification/CI_EVIDENCE.md): historical CI evidence, not the release contract
+- [docs/verification/hardware_procedures.md](verification/hardware_procedures.md): manual hardware support procedures, not release authority
+- retained files under [docs/verification/releases/](verification/releases/): evidence for a specific release once generated
 
 ---
 
@@ -156,7 +156,7 @@ KEEP_LOGS=1 bash verify_kani.sh
   for Tier-1, with additional manifest-defined Tier-2 harnesses when
   `RUN_HEAVY=1`.
 - **Status**: Each per-harness log must contain `VERIFICATION:- SUCCESSFUL` and must not contain `** N of M failed` where `N > 0`.
-- **Implication**: Provides panic-safety and invariant evidence for the kernels covered by these harnesses and their assumptions. The active release-scoped proof boundary and exclusions must be read from `docs/verification/releases/1.7.0/`.
+- **Implication**: Provides panic-safety and invariant evidence for the kernels covered by these harnesses and their assumptions. The active release-scoped proof boundary and exclusions must be read from [docs/verification/releases/1.7.0/](verification/releases/1.7.0/).
 
 ### 3.4 Harness-to-Crate Mapping
 | Harness | Crate | Tier |
@@ -202,7 +202,7 @@ KEEP_LOGS=1 bash verify_kani.sh
 - **"dereference failure ... Status: SUCCESS" lines**: These indicate Kani proved the failing path unreachable under harness constraints; they are successful checks, not proof failures.
 
 ### 3.6 Release-Scoped Correctness and Limits
-- The active release (`1.7.0`) retains its release-scoped correctness claims and limits under `docs/verification/releases/1.7.0/`.
+- The active release (`1.7.0`) retains its release-scoped correctness claims and limits under [docs/verification/releases/1.7.0/](verification/releases/1.7.0/).
 - That retained `1.7.0` bundle is a narrowed, non-firmware release record for the primary precision CLI surface only, scoped to `crates/dpw4/src/bin/common/mod.rs`, `crates/dpw4/src/bin/precision/mod.rs`, and `crates/dpw4/tests/precision_authoritative_surface.rs`, within the explicit limits documented in the `1.7.0` release directory.
 - That claim is exercised-path and release-scoped, not global.
 - Heavy Tier-2 proofs remain optional unless the active release bundle explicitly retains a heavy proof run. If omitted, the retained release bundle must state the exclusion and the remaining release-claim boundary explicitly.
@@ -327,8 +327,8 @@ For a retained repository release record under
 `docs/verification/releases/<version>/`, the required evidence set is:
 
 - Non-firmware retained release bundle:
-  - `README.md`
-  - `index.md`
+  - [README.md](README.md)
+  - [index.md](verification/releases/1.7.0/index.md)
   - `cargo_check_dpw4_thumb_locked.txt`
   - `kani_evidence.txt`
   - `make_demo_evidence_package.txt`
@@ -337,7 +337,7 @@ For a retained repository release record under
   - `make_replay_tests.txt`
   - `release_reproducibility.txt`
 - Firmware-including retained release bundle:
-  - `firmware_release_evidence.md`
+  - [firmware_release_evidence.md](verification/releases/1.2.2/firmware_release_evidence.md)
   - `sha256_summary.txt`
   - `hash_check.txt`
   - `replay_manifest_v1.txt` for the active RPL0 `version = 1` capture path
@@ -405,7 +405,7 @@ Providing bit-level transparency into the internal state of the oscillator.
 ```bash
 cargo run -p dpw4 --features cli --bin precision -- artifacts --out docs/verification
 ```
-**Traces Produced** (in `docs/verification/`):
+**Traces Produced** (in [docs/verification/](verification/)):
 - **Normative for `sig-util validate` determinism gate**:
   - `saw_20_headroom.det.csv`
   - `pulse_relational_8k.det.csv`

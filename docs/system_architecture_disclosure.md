@@ -6,7 +6,7 @@ This document records the architecture implemented in the
 `precision-signal` repository.
 
 Use [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md) for release classification,
-[VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md) for verification authority, and
+[VERIFICATION_GUIDE.md](./VERIFICATION_GUIDE.md) for verification authority, and
 [docs/replay/tooling.md](replay/tooling.md) for replay-tooling boundaries.
 
 Precision Signal is a deterministic execution validation system centered on replay, operated through the `precision` CLI against an attached STM32 target over UART.
@@ -90,4 +90,4 @@ not classify release status.
 See:
 - [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md)
 - [docs/replay/tooling.md](replay/tooling.md)
-- [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
+- [VERIFICATION_GUIDE.md](./VERIFICATION_GUIDE.md)

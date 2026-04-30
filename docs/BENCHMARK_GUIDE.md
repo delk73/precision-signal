@@ -6,13 +6,13 @@
 
 This guide is retained historical performance background only.
 It is not part of the active authority path, does not define release claims,
-and remains behind the active routing. Use [docs/README.md](docs/README.md)
-and [docs/architecture/performance/README.md](docs/architecture/performance/README.md)
+and remains behind the active routing. Use [README.md](README.md)
+and [architecture/performance/README.md](architecture/performance/README.md)
 for routing.
 
 ## Overview
 
-This guide documents the **performance characteristics** of the Reference Baseline engine on reference hardware. These metrics are **advisory**—they characterize computational cost but are not normative requirements for conformance (see `VERIFICATION_GUIDE.md` for normative tests).
+This guide documents the **performance characteristics** of the Reference Baseline engine on reference hardware. These metrics are **advisory**—they characterize computational cost but are not normative requirements for conformance (see [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md) for normative tests).
 
 ---
 
@@ -240,7 +240,7 @@ These benchmarks are **not** part of the normative Reference Baseline requiremen
 2. **Regression Detection:** Ensure optimizations don't degrade performance.
 3. **Architectural Insight:** Quantify the "Cost of Geometry" for spatial synthesis.
 
-For **correctness verification**, see `VERIFICATION_GUIDE.md`.
+For **correctness verification**, see [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md).
 
 ---
 

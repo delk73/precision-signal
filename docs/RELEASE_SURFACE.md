@@ -7,11 +7,11 @@ Normative behavior still comes from:
 
 - [docs/MATH_CONTRACT.md](MATH_CONTRACT.md)
 - [docs/spec/rpl0_artifact_contract.md](spec/rpl0_artifact_contract.md)
-- [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
+- [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md)
 
 For release decisions, use:
 
-- contract: [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
+- contract: [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md)
 - canonical operator path: `make gate`
 - retained release records: [docs/verification/releases/](verification/releases/)
 - active workspace/package version: `1.7.0`
@@ -39,7 +39,7 @@ Canonical For Retained Release `1.7.0`
 - the narrowed primary precision CLI surface retained for `1.7.0`; read the
   exact release boundary, limits, and retained evidence under
   [docs/verification/releases/1.7.0/](verification/releases/1.7.0/) and
-  [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
+  [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md)
 - authority and retained-evidence routing under
   [docs/verification/releases/](verification/releases/)
 

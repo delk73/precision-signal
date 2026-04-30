@@ -5,7 +5,7 @@ and historical verification references.
 
 Use the active authority path first:
 
-- [VERIFICATION_GUIDE.md](../../../VERIFICATION_GUIDE.md): release contract
+- [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md): release contract
 - [docs/RELEASE_SURFACE.md](../../RELEASE_SURFACE.md): release-surface
   classification and routing
 - [docs/authority/cli_contract.md](../../authority/cli_contract.md): sole
@@ -47,5 +47,5 @@ Active retained release record: `1.7.0`
 - [Release 1.3.0](1.3.0/): tag/changelog entry exists, but no retained release bundle was committed; explanatory note only, with no reconstructed historical evidence
 
 Release-scoped verification policy and packaging rules live in
-[`VERIFICATION_GUIDE.md`](../../../VERIFICATION_GUIDE.md) and
+[`VERIFICATION_GUIDE.md`](../../VERIFICATION_GUIDE.md) and
 [`docs/RELEASE_SURFACE.md`](../../RELEASE_SURFACE.md).

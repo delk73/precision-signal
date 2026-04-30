@@ -2,7 +2,7 @@
 
 This matrix is a reference demo artifact.
 Release status is classified in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
-Verification authority is defined in [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md).
+Verification authority is defined in [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md).
 Demo pages must not introduce new capability claims beyond what is already
 evidenced elsewhere.
 

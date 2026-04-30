@@ -4,10 +4,10 @@
 
 # Authority Hierarchy
 
-- Precedence: `VERIFICATION_GUIDE.md` > `docs/RELEASE_SURFACE.md` > retained release records > this file
-- Treat `VERIFICATION_GUIDE.md` as the canonical release contract.
-- Treat `docs/RELEASE_SURFACE.md` as the release-classification anchor.
-- Treat retained evidence under `docs/verification/releases/` as release-scoped record material.
+- Precedence: [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md) > [RELEASE_SURFACE.md](RELEASE_SURFACE.md) > retained release records > this file
+- Treat [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md) as the canonical release contract.
+- Treat [RELEASE_SURFACE.md](RELEASE_SURFACE.md) as the release-classification anchor.
+- Treat retained evidence under [verification/releases/](verification/releases/) as release-scoped record material.
 - Do not let this file override those authorities.
 
 # Required Commands
@@ -43,4 +43,4 @@
 - If wording, evidence placement, or tool classification is uncertain, choose the narrower interpretation.
 - If a document could be read as broadening the active release claim, rewrite it or stop.
 - If a retained bundle says more than the retained record proves, narrow it.
-- If uncertain which document controls, defer to `VERIFICATION_GUIDE.md`, then `docs/RELEASE_SURFACE.md`, then the retained release record.
+- If uncertain which document controls, defer to [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md), then [RELEASE_SURFACE.md](RELEASE_SURFACE.md), then the retained release record.

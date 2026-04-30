@@ -1,7 +1,7 @@
 # Build Reproducibility
 
 This document is descriptive. The normative release and conformance governance is
-defined in [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md).
+defined in [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md).
 
 Use this file for supporting build-identity detail only. It does not define
 release admissibility and it does not replace the canonical release path
@@ -62,7 +62,7 @@ RELEASE_EVIDENCE_DIR=docs/verification/releases/<version>/ bash verify_release_r
 
 ## Related Evidence
 
-- [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md)
+- [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
 - `docs/verification/releases/<version>/`
 - [docs/audits/delta-bd_build-determinism.md](../audits/delta-bd_build-determinism.md)
 - [docs/verification/CI_EVIDENCE.md](CI_EVIDENCE.md)

@@ -1,7 +1,7 @@
 # Verification Artifact Sets
 
 This document describes the major verification evidence sets used by the
-repository. Normative status and governance remain in [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md).
+repository. Normative status and governance remain in [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md).
 
 ## Determinism Validation Artifacts
 
@@ -24,7 +24,7 @@ Normative identity is defined over raw `S32LE` sample bytes serialized with
 
 - raw little-endian sample bytes are the canonical hashing surface
 - derived containers such as CSV and WAV are advisory transport formats
-- hash-regeneration policy is governed by [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md)
+- hash-regeneration policy is governed by [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
 
 ## Formal Verification
 
