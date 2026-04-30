@@ -35,8 +35,8 @@ and tiered `atan2` shards.
 Reference commands:
 
 ```bash
-bash verify_kani.sh
-RUN_HEAVY=1 bash verify_kani.sh
+bash scripts/verify_kani.sh
+RUN_HEAVY=1 bash scripts/verify_kani.sh
 ```
 
 Per-harness logs are retained under `kani_logs/<package>__<harness>.log`.

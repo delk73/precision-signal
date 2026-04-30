@@ -116,4 +116,3 @@ Normative behavior is covered by the contract and spec documents listed below:
 
 ## Roadmap
 
-- [docs/roadmap/witness_model_direction.md](roadmap/witness_model_direction.md): witness-model direction note
