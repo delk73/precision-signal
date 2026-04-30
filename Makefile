@@ -218,7 +218,7 @@ release-1.7.0:
 	echo "--- [GATE 3/4] Documentation Integrity ---" && \
 	$(MAKE) --no-print-directory doc-link-check > "$$REL_DIR/make_doc_link_check.txt" 2>&1 && \
 	echo "--- [GATE 4/4] Reproducibility Record ---" && \
-	RELEASE_EVIDENCE_DIR="$$REL_DIR" bash verify_release_repro.sh > "$$REL_DIR/release_reproducibility.txt" 2>&1 && \
+	RELEASE_EVIDENCE_DIR="$$REL_DIR" bash scripts/verify_release_repro.sh > "$$REL_DIR/release_reproducibility.txt" 2>&1 && \
 	echo "--- [AUDIT] Bundle Coherence Check ---" && \
 	$(MAKE) --no-print-directory release-bundle-check VERSION=1.7.0 > "$$REL_DIR/make_release_bundle_check.txt" 2>&1
 
@@ -416,7 +416,7 @@ fw-gate:
 	@test "$(FW_GATE_RESET_MODE)" = "manual" || { echo "FW_GATE_RESET_MODE must be manual for firmware gate"; exit 1; }
 	$(MAKE) check-workspace
 	$(MAKE) test
-	bash verify_kani.sh
+	bash scripts/verify_kani.sh
 	$(MAKE) gate
 	$(MAKE) fw
 	$(MAKE) fw-bin
@@ -502,7 +502,7 @@ release-bundle:
 	  exit 1; \
 	fi; \
 	echo "[release-bundle] 2/6 kani_evidence.txt"; \
-	if ! NO_COLOR=1 bash verify_kani.sh > "$$REL_DIR/kani_evidence.txt" 2>&1; then \
+	if ! NO_COLOR=1 bash scripts/verify_kani.sh > "$$REL_DIR/kani_evidence.txt" 2>&1; then \
 	  echo "[release-bundle] FAIL phase=2 file=$$REL_DIR/kani_evidence.txt"; \
 	  exit 1; \
 	fi; \
@@ -512,7 +512,7 @@ release-bundle:
 	  exit 1; \
 	fi; \
 	echo "[release-bundle] 4/6 release_reproducibility.txt"; \
-	if ! RELEASE_EVIDENCE_DIR="$$REL_DIR" bash verify_release_repro.sh > "$$REL_DIR/release_reproducibility.txt" 2>&1; then \
+	if ! RELEASE_EVIDENCE_DIR="$$REL_DIR" bash scripts/verify_release_repro.sh > "$$REL_DIR/release_reproducibility.txt" 2>&1; then \
 	  echo "[release-bundle] FAIL phase=4 file=$$REL_DIR/release_reproducibility.txt"; \
 	  exit 1; \
 	fi; \
@@ -1138,3 +1138,12 @@ stream-purity:
 
 clean:
 	cargo clean -p $(FW_PKG) -p dpw4
+
+kani-gate:
+	bash scripts/verify_kani.sh
+
+kani-gate-tier2:
+	RUN_HEAVY=1 bash scripts/verify_kani.sh
+
+verify-repro:
+	bash scripts/verify_release_repro.sh
