@@ -5,7 +5,7 @@
 > Source of truth: git history is authoritative; this changelog is an index.
 > Release policy: `[Unreleased]` contains next-cut scope only.
 
-## [Unreleased]
+## [1.8.0] - 2026-04-29
 
 ### Firmware
 
@@ -22,6 +22,12 @@
 
 - Cleaned up `dpw4` crate: removed redundant casts, optimized phase-generation loops with iterators, and adopted modern Rust idioms (`is_multiple_of`, `contains`).
 - Enforced compile-time isolation between `irregular-timing` and demo-divergence features.
+
+### Notes
+
+- Feature-gated firmware addition only; `irregular-timing` is not default.
+- No change to released CLI surface, artifact format, or correctness claims.
+- `replay-fw-f446` remains classified as experimental.
 
 ## [1.7.0] - 2026-04-22
 

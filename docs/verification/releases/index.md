@@ -15,11 +15,10 @@ Use the active authority path first:
 
 ## Active Retained Release Record
 
-Active retained release record: `1.7.0`
+Active retained release record: `1.8.0`
 
-- [Release 1.7.0](1.7.0/): narrowed primary precision non-firmware release
-  bundle
-- [Release 1.7.0 index.md](1.7.0/index.md): primary human-readable release
+- [Release 1.8.0](1.8.0/): firmware-inclusive release bundle
+- [Release 1.8.0 index.md](1.8.0/index.md): primary human-readable release
   summary and retained file inventory
 
 ## Historical Verification References
@@ -33,6 +32,7 @@ Active retained release record: `1.7.0`
 
 ## Historical Retained Release Evidence
 
+- [Release 1.7.0](1.7.0/): narrowed primary precision non-firmware release bundle
 - [Release 1.5.0](1.5.0/): bounded Rust replay release bundle
 - [Release 1.4.0](1.4.0/): prior verification-depth release bundle
 - [Release 1.3.1](1.3.1/): prior patch-release retained bundle

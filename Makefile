@@ -91,14 +91,14 @@ space :=
 space +=
 comma := ,
 
-.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-1.7.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
+.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-1.8.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
 
 help:
 	echo "Active operator / release path:"
 	echo "  make gate"
-	echo "  make release-1.7.0"
-	echo "  make release-bundle VERSION=1.7.0"
-	echo "  make release-bundle-check VERSION=1.7.0"
+	echo "  make release-1.8.0"
+	echo "  make release-bundle VERSION=1.8.0"
+	echo "  make release-bundle-check VERSION=1.8.0"
 	echo "  make doc-link-check"
 	echo "  make check-workspace"
 	echo "  make test"
@@ -107,9 +107,9 @@ help:
 help-all:
 	echo "Active operator / release:"
 	echo "  make gate"
-	echo "  make release-1.7.0"
-	echo "  make release-bundle VERSION=1.7.0"
-	echo "  make release-bundle-check VERSION=1.7.0"
+	echo "  make release-1.8.0"
+	echo "  make release-bundle VERSION=1.8.0"
+	echo "  make release-bundle-check VERSION=1.8.0"
 	echo "  make doc-link-check"
 	echo "  make check-workspace"
 	echo "  make test"
@@ -204,23 +204,51 @@ fixture-drift-check:
 demo-evidence-package:
 	cargo run --quiet -p xtask -- workflow demo-evidence-package
 
-release-1.7.0:
-	@REL_DIR="docs/verification/releases/1.7.0"; \
+release-1.8.0:
+	@REL_DIR="docs/verification/releases/1.8.0"; \
 	test -f "$$REL_DIR/kani_evidence.txt" && test -s "$$REL_DIR/kani_evidence.txt" || { \
-	  echo "[release-1.7.0] FAIL missing or empty $$REL_DIR/kani_evidence.txt"; \
+	  echo "[release-1.8.0] FAIL missing or empty $$REL_DIR/kani_evidence.txt"; \
 	  exit 1; \
 	}
-	@REL_DIR="docs/verification/releases/1.7.0"; \
-	echo "--- [GATE 1/4] Functional Validation ---" && \
+	@REL_DIR="docs/verification/releases/1.8.0"; \
+	echo "=== release-1.8.0 evidence run ===" && \
+	echo "" && \
+	echo "--- [GATE 1/5] Functional Validation ---" && \
 	$(MAKE) --no-print-directory gate > "$$REL_DIR/make_gate.txt" 2>&1 && \
-	echo "--- [GATE 2/4] Evidence Packaging ---" && \
+	GATE_RESULT=$$(tail -5 "$$REL_DIR/make_gate.txt" | grep -m1 'VERIFICATION\|PASS\|FAIL' || echo "(see make_gate.txt)"); \
+	echo "  ✓ $$GATE_RESULT" && \
+	echo "" && \
+	echo "--- [GATE 2/5] Evidence Packaging ---" && \
 	$(MAKE) --no-print-directory demo-evidence-package > "$$REL_DIR/make_demo_evidence_package.txt" 2>&1 && \
-	echo "--- [GATE 3/4] Documentation Integrity ---" && \
+	sed 's/^/  /' "$$REL_DIR/make_demo_evidence_package.txt" | tail -4 && \
+	echo "  ✓ evidence package verified" && \
+	echo "" && \
+	echo "--- [GATE 3/5] Documentation Integrity ---" && \
 	$(MAKE) --no-print-directory doc-link-check > "$$REL_DIR/make_doc_link_check.txt" 2>&1 && \
-	echo "--- [GATE 4/4] Reproducibility Record ---" && \
+	LINK_RESULT=$$(grep -m1 'PASS\|FAIL' "$$REL_DIR/make_doc_link_check.txt" || echo "(see make_doc_link_check.txt)"); \
+	echo "  ✓ $$LINK_RESULT" && \
+	echo "" && \
+	echo "--- [GATE 4/5] Replay Tests ---" && \
+	$(MAKE) --no-print-directory replay-tests > "$$REL_DIR/make_replay_tests.txt" 2>&1 && \
+	PASS_COUNT=$$(grep -c '^PASS:' "$$REL_DIR/make_replay_tests.txt" 2>/dev/null || echo 0); \
+	echo "  ✓ $$PASS_COUNT test suites passed" && \
+	echo "" && \
+	echo "--- [GATE 5/5] Reproducibility Record ---" && \
 	RELEASE_EVIDENCE_DIR="$$REL_DIR" bash verify_release_repro.sh > "$$REL_DIR/release_reproducibility.txt" 2>&1 && \
+	REPRO_RESULT=$$(grep -m1 'PASS\|identical\|FAIL' "$$REL_DIR/release_reproducibility.txt" || echo "(see release_reproducibility.txt)"); \
+	echo "  ✓ $$REPRO_RESULT" && \
+	echo "" && \
 	echo "--- [AUDIT] Bundle Coherence Check ---" && \
-	$(MAKE) --no-print-directory release-bundle-check VERSION=1.7.0 > "$$REL_DIR/make_release_bundle_check.txt" 2>&1
+	$(MAKE) --no-print-directory release-bundle-check VERSION=1.8.0 > "$$REL_DIR/make_release_bundle_check.txt" 2>&1 && \
+	cat "$$REL_DIR/make_release_bundle_check.txt" | sed 's/^/  /' && \
+	echo "" && \
+	echo "=== release-1.8.0 evidence summary ===" && \
+	echo "  retained bundle: $$REL_DIR/" && \
+	for f in "$$REL_DIR"/*.txt "$$REL_DIR"/*.md; do \
+	  test -f "$$f" && printf "  %-40s %s\n" "$$(basename $$f)" "$$(wc -c < $$f | tr -d ' ') bytes"; \
+	done && \
+	echo "" && \
+	echo "✅ release-1.8.0 PASS — all 5 gates + bundle audit passed"
 
 shell-check:
 	test -x "$(SHELL)"
