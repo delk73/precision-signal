@@ -15,9 +15,9 @@
 //! 16-bit words are processed as **Little-Endian** (`u16::from_le_bytes`)
 //! for cross-platform determinism (x86/ARM compatibility).
 
-#[cfg(any(test, feature = "verification-runtime"))]
+#[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
 use sha2::{Digest, Sha256};
-#[cfg(any(test, feature = "verification-runtime"))]
+#[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
 use std::io::{self, Read, Seek, SeekFrom};
 
 /// Fletcher-32 validation error.
@@ -75,13 +75,10 @@ pub const fn fletcher32(data: &[u8]) -> u32 {
 /// Size of the metadata portion of the header (excludes checksum field).
 pub const HEADER_METADATA_SIZE: usize = crate::HEADER_CHECKSUM_OFFSET;
 
-/// Compute the canonical SHA-256 hash of an artifact payload.
-///
-/// The first [`crate::header::OriginHeader::SIZE`] bytes are always skipped so
-/// run-specific identity metadata does not affect the mathematical payload hash.
-#[cfg(any(test, feature = "verification-runtime"))]
-pub fn compute_payload_hash<R: Read + Seek>(reader: &mut R) -> io::Result<[u8; 32]> {
-    reader.seek(SeekFrom::Start(crate::header::OriginHeader::SIZE as u64))?;
+/// Compute a SHA-256 digest for a stream after skipping an initial prefix.
+#[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
+pub fn compute_stream_hash<R: Read + Seek>(reader: &mut R, offset: u64) -> io::Result<[u8; 32]> {
+    reader.seek(SeekFrom::Start(offset))?;
 
     let mut hasher = Sha256::new();
     let mut buffer = [0u8; 8192];
@@ -97,11 +94,22 @@ pub fn compute_payload_hash<R: Read + Seek>(reader: &mut R) -> io::Result<[u8; 3
     Ok(hasher.finalize().into())
 }
 
+/// Compute the canonical SHA-256 hash of an artifact payload.
+///
+/// The first [`crate::header::OriginHeader::SIZE`] bytes are always skipped so
+/// run-specific identity metadata does not affect the mathematical payload hash.
+#[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
+pub fn compute_payload_hash<R: Read + Seek>(reader: &mut R) -> io::Result<[u8; 32]> {
+    compute_stream_hash(reader, crate::header::OriginHeader::SIZE as u64)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::OriginHeader;
+    use sha2::{Digest, Sha256};
     use std::io::Cursor;
+    use std::vec;
 
     #[test]
     fn test_empty_input() {
@@ -173,6 +181,19 @@ mod tests {
             checksum_a, checksum_b,
             "Word swap must change checksum (triangle property)"
         );
+    }
+
+    #[test]
+    fn test_stream_hash_with_custom_offset() {
+        let payload = b"payload-only";
+        let mut artifact = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE];
+        artifact.extend_from_slice(payload);
+
+        let digest = compute_stream_hash(&mut Cursor::new(artifact), 5)
+            .expect("stream hash should compute with custom offset");
+        let expected: [u8; 32] = Sha256::digest(payload).into();
+
+        assert_eq!(digest, expected, "custom offset must hash only the tail payload");
     }
 
     #[test]

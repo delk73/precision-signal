@@ -214,8 +214,47 @@ fn precision_record_publishes_real_artifact_and_stdout_matches_result_file() {
     );
     assert_stdout_has_exactly_seven_lines(&stdout_bytes);
 
+    let meta = read_json(&artifact_dir.join("meta.json"));
+    assert!(
+        meta.get("transient_rpl0_payload_sha256").is_some(),
+        "record output must name the transient payload hash explicitly"
+    );
+    assert!(
+        meta.get("transient_rpl0_sha256").is_none(),
+        "record output must not emit the ambiguous legacy field name"
+    );
+
     let result_txt = fs::read(artifact_dir.join("result.txt")).expect("result.txt must exist");
     assert_eq!(result_txt, stdout_bytes);
+
+    fs::remove_dir_all(&temp_root).expect("temp root cleanup");
+}
+
+#[test]
+fn precision_replay_accepts_legacy_transient_rpl0_sha256_field() {
+    let temp_root = unique_temp_root("precision-replay-legacy-transient-hash");
+    let artifact_rel = make_record_artifact(&temp_root);
+    let meta_path = temp_root.join(&artifact_rel).join("meta.json");
+    let mut meta = read_json(&meta_path);
+
+    let payload_hash = meta
+        .as_object_mut()
+        .and_then(|obj| obj.remove("transient_rpl0_payload_sha256"))
+        .expect("new payload hash field must exist in meta.json");
+    meta["transient_rpl0_sha256"] = payload_hash;
+    write_json(&meta_path, &meta);
+
+    let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["replay", &artifact_rel, "--mode", "runtime_mode"])
+        .output()
+        .expect("precision replay should run");
+
+    assert!(
+        replay.status.success(),
+        "stderr: {}",
+        String::from_utf8_lossy(&replay.stderr)
+    );
 
     fs::remove_dir_all(&temp_root).expect("temp root cleanup");
 }

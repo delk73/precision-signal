@@ -1,13 +1,13 @@
 use crate::common;
 use clap::{Args, CommandFactory, Parser, Subcommand, ValueEnum};
 use common::{ArtifactStaging, CliError, CliResult, ResultBlock};
-use dpw4::{DpwGain, Oscillator, Scalar};
+use dpw4::{compute_stream_hash, DpwGain, Oscillator, Scalar};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use std::ffi::OsString;
 use std::fs;
-use std::io::Write;
+use std::io::{Cursor, Write};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -129,8 +129,11 @@ struct MetaArtifact {
     pid: u32,
     source_kind: String,
     signal_input_count: usize,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    transient_rpl0_sha256: Option<String>,
+    #[serde(
+        alias = "transient_rpl0_sha256",
+        skip_serializing_if = "Option::is_none"
+    )]
+    transient_rpl0_payload_sha256: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     secondary_target: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -160,7 +163,7 @@ struct FirstDivergence {
 struct RecordCapture {
     intervals: Vec<u32>,
     source_kind: String,
-    transient_rpl0_sha256: String,
+    transient_rpl0_payload_sha256: String,
 }
 
 pub(crate) fn is_authoritative_command(command: &str) -> bool {
@@ -233,7 +236,7 @@ fn run_record(args: CommandArgs) -> CliResult {
         pid: std::process::id(),
         source_kind: capture.source_kind,
         signal_input_count: capture.intervals.len(),
-        transient_rpl0_sha256: Some(capture.transient_rpl0_sha256),
+        transient_rpl0_payload_sha256: Some(capture.transient_rpl0_payload_sha256),
         secondary_target: None,
         comparison_performed: Some(false),
     };
@@ -280,7 +283,7 @@ fn run_replay(args: CommandArgs) -> CliResult {
         pid: std::process::id(),
         source_kind: "authoritative_artifact".to_string(),
         signal_input_count: trace.signal_inputs.len(),
-        transient_rpl0_sha256: None,
+        transient_rpl0_payload_sha256: None,
         secondary_target: None,
         comparison_performed: Some(true),
     };
@@ -327,7 +330,7 @@ fn run_diff(args: DiffArgs) -> CliResult {
         pid: std::process::id(),
         source_kind: "authoritative_artifact_pair".to_string(),
         signal_input_count: 0,
-        transient_rpl0_sha256: None,
+        transient_rpl0_payload_sha256: None,
         secondary_target: Some(args.target_b.clone()),
         comparison_performed: Some(true),
     };
@@ -368,7 +371,7 @@ fn run_envelope(args: CommandArgs) -> CliResult {
         pid: std::process::id(),
         source_kind: "authoritative_artifact".to_string(),
         signal_input_count: loaded.trace.signal_inputs.len(),
-        transient_rpl0_sha256: None,
+        transient_rpl0_payload_sha256: None,
         secondary_target: None,
         comparison_performed: Some(true),
     };
@@ -400,7 +403,7 @@ fn publish_mock_result(command: &str, target: String, mode: &str) -> CliResult {
         pid: std::process::id(),
         source_kind: "mock".to_string(),
         signal_input_count: 0,
-        transient_rpl0_sha256: None,
+        transient_rpl0_payload_sha256: None,
         secondary_target: None,
         comparison_performed: Some(false),
     };
@@ -727,10 +730,10 @@ fn validate_loaded_artifact(
     }
     validate_comparison_summary(target, trace.comparison.as_ref())?;
     validate_replay_payload_consistency(target, result, trace, meta)?;
-    if let Some(hash) = &meta.transient_rpl0_sha256 {
+    if let Some(hash) = &meta.transient_rpl0_payload_sha256 {
         if hash.len() != 64 || !hash.bytes().all(|b| b.is_ascii_hexdigit()) {
             return Err(CliError::User(format!(
-                "invalid transient_rpl0_sha256 in meta for {target}"
+                "invalid transient_rpl0_payload_sha256 in meta for {target}"
             )));
         }
     }
@@ -1302,7 +1305,10 @@ fn acquire_record_capture(target: &str) -> Result<RecordCapture, CliError> {
     };
 
     let transient_rpl0 = build_transient_rpl0(&intervals);
-    let transient_rpl0_sha256 = hex::encode(Sha256::digest(&transient_rpl0));
+    let transient_rpl0_payload_sha256 = hex::encode(
+        compute_stream_hash(&mut Cursor::new(transient_rpl0.as_slice()), TRANSIENT_HEADER_SIZE as u64)
+            .map_err(|err| CliError::Integrity(format!("transient payload hash failed: {err}")))?,
+    );
     let source_kind = if target.starts_with("fixture://") {
         "fixture".to_string()
     } else if target.ends_with(".csv") || Path::new(target).is_file() {
@@ -1314,7 +1320,7 @@ fn acquire_record_capture(target: &str) -> Result<RecordCapture, CliError> {
     Ok(RecordCapture {
         intervals,
         source_kind,
-        transient_rpl0_sha256,
+        transient_rpl0_payload_sha256,
     })
 }
 

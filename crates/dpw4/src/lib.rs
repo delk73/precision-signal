@@ -12,7 +12,7 @@
 //! The egress width is elevated to 32-bit to preserve the dynamic range of the
 //! i128 differentiator core.
 
-#[cfg(any(test, feature = "verification-runtime"))]
+#[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
 extern crate std;
 
 #[cfg(any(feature = "verification-runtime", kani))]
@@ -72,7 +72,9 @@ pub use header::OriginHeader;
 
 pub mod checksum;
 pub use checksum::fletcher32;
-#[cfg(any(test, feature = "verification-runtime"))]
+#[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
+pub use checksum::compute_stream_hash;
+#[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
 pub use checksum::compute_payload_hash;
 
 pub mod goldens;
