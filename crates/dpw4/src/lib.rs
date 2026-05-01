@@ -72,6 +72,8 @@ pub use header::OriginHeader;
 
 pub mod checksum;
 pub use checksum::fletcher32;
+#[cfg(any(test, feature = "verification-runtime"))]
+pub use checksum::compute_payload_hash;
 
 pub mod goldens;
 
