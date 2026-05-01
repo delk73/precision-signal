@@ -28,6 +28,13 @@ authors = ["Dan Elkins <dan.elkins@gmail.com>"]
 license = "MIT"
 
 [workspace.dependencies]
+# Core arithmetic for bit-exact signal paths
+fixed = "=1.30.0"
+
+# Serialization logic used across CLI and artifacts
+serde = "1.0"
+serde_json = "1.0"
+
 dpw4 = { path = "crates/dpw4" }
 geom-signal = { path = "crates/geom-signal" }
 geom-spatial = { path = "crates/geom-spatial" }

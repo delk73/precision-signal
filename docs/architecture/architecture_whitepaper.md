@@ -31,7 +31,7 @@ over UART.
 
 This document is architectural, not a release classifier. Command-surface
 classification is routed to [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md); verification authority is
-routed to [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md); released replay operator tooling is
+routed to [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md); released replay operator tooling is
 routed to [docs/replay/tooling.md](../replay/tooling.md). Experimental workspace components and
 [docs/wip/](../wip/) material are present in the workspace but are not classified as released
 unless promoted by [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
@@ -808,7 +808,7 @@ The architecture differs from the above in a specific combination:
 
 This section enumerates current implementation surfaces. Release-surface
 classification is delegated to [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md); verification authority
-is delegated to [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md). The Rust replay engine remains
+is delegated to [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md). The Rust replay engine remains
 present in the workspace but is not classified as released unless
 promoted by [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
 
@@ -828,7 +828,7 @@ promoted by [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
 | Hash-locked reference outputs (6 scenarios) | Stable | `crates/dpw4/src/bin/precision.rs` |
 | Deterministic build verification | Stable | `verify_release_repro.sh` |
 | Multi-tier validation gate | Stable | `sig-util validate` CLI |
-| Bare-metal capture firmware (STM32F446RE) | Implemented; current release-surface classification for `replay-fw-f446` is routed to [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md). The active workspace/package version is `1.6.0`, while the latest retained patch-release evidence lives under [docs/verification/releases/1.6.0/](../verification/releases/1.6.0/) and the latest retained hardware-backed release evidence remains under [docs/verification/releases/1.2.2/](../verification/releases/1.2.2/). | `crates/replay-fw-f446/` |
+| Bare-metal capture firmware (STM32F446RE) | Implemented; release-surface classification for `replay-fw-f446` is routed to [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md). Retained release evidence for this path is documented under [docs/verification/releases/](../verification/releases/). | `crates/replay-fw-f446/` |
 | Artifact parsing and comparison tools | Stable | `scripts/` Python tooling |
 | Demo divergence ladder (Demo V1-Demo V5) | Stable | `scripts/generate_demo_v*_fixtures.py` |
 | Normative divergence semantics | Stable | [docs/replay/DIVERGENCE_SEMANTICS.md](../replay/DIVERGENCE_SEMANTICS.md) |
@@ -838,7 +838,7 @@ promoted by [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
 The workspace contains crates at different maturity levels, but this document
 does not classify release maturity. For current release-surface questions, use
 [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md). For verification-admissibility questions, use
-[VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md).
+[VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md).
 
 | Crate | Role |
 |-------|------|
@@ -1028,7 +1028,7 @@ that produced valid artifacts.
 | 24 | Repository contains 34+ Kani harnesses in source across `geom-signal`, `dpw4`, and `replay-core` | `crates/geom-signal/src/verification.rs`; `crates/dpw4/src/verification.rs`; `crates/dpw4/src/i256.rs`; `crates/replay-core/src/verification.rs` | supported |
 | 25 | Normative Kani runner executes a narrower manifest-defined subset; Tier-1 excludes `proof_atan_shafer_safety` and Tier-2 adds atan2 shard proofs plus `proof_i256_mul_u32_matches_spec` when `RUN_HEAVY=1` | `verify_kani.sh` HARNESS_MANIFEST; `verify_kani_tier2.sh` | supported |
 | 26 | Six normative scenarios have frozen SHA-256 hashes | `crates/dpw4/src/bin/precision.rs` line 181+ | supported |
-| 27 | Hash regeneration requires semantic version bump | [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md) governance policy | supported |
+| 27 | Hash regeneration requires semantic version bump | [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md) governance policy | supported |
 | 28 | Deterministic build verified by dual-build SHA-256 comparison | `verify_release_repro.sh` | supported |
 | 29 | Toolchain pinned to rustc 1.91.1 | `rust-toolchain.toml` | supported |
 | 30 | sig-util validate runs multi-tier verification pipeline | `crates/dpw4/src/bin/sig_util/validate.rs` `run_validate()` | supported |

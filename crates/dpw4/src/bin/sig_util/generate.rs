@@ -9,7 +9,9 @@ use std::io::{self, Write};
 
 pub(crate) fn run_generate(args: GenerateArgs) -> Result<(), CliError> {
     if args.seconds == Some(0) {
-        return Err(CliError::User("--seconds must be greater than 0".to_string()));
+        return Err(CliError::User(
+            "--seconds must be greater than 0".to_string(),
+        ));
     }
 
     if args.container_wav && args.seconds.is_none() {
@@ -45,9 +47,9 @@ pub(crate) fn run_generate(args: GenerateArgs) -> Result<(), CliError> {
     let mut handle = common::open_output(&args.out)?;
 
     if args.container_wav {
-        let seconds = args.seconds.ok_or_else(|| {
-            CliError::User("--container-wav requires --seconds".to_string())
-        })?;
+        let seconds = args
+            .seconds
+            .ok_or_else(|| CliError::User("--container-wav requires --seconds".to_string()))?;
         let total_samples = args.rate as u64 * seconds;
         let data_bytes = total_samples * 4;
         write_wav_header(&mut handle, args.rate, data_bytes as u32)?;

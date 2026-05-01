@@ -4,7 +4,7 @@
 
 This page is a reference demonstration artifact. Release status is classified
 in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md); verification questions route to
-[VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md). Demo pages must not introduce new capability claims
+[VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md). Demo pages must not introduce new capability claims
 beyond what is already evidenced elsewhere. This page shows that divergence
 classification works on artifacts captured from two separate STM32 executions.
 

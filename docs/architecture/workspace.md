@@ -8,7 +8,7 @@ This repository is the multi-crate workspace that implements that system.
 
 This page is descriptive only.
 Release status is classified in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
-Verification authority is defined in [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md).
+Verification authority is defined in [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md).
 Replay-tooling boundary routing lives in [docs/replay/tooling.md](../replay/tooling.md).
 The canonical packaged proof route for the completed replay pipeline is
 [docs/demos/demo_evidence_packaging.md](../demos/demo_evidence_packaging.md).

@@ -24,7 +24,7 @@ Use these documents in this order:
 
 | Path | Role |
 | --- | --- |
-| [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md) | release-readiness authority and verification contract |
+| [VERIFICATION_GUIDE.md](docs/VERIFICATION_GUIDE.md) | release-readiness authority and verification contract |
 | [docs/RELEASE_SURFACE.md](docs/RELEASE_SURFACE.md) | release-surface classification and routing |
 | [docs/authority/cli_contract.md](docs/authority/cli_contract.md) | sole active CLI contract authority |
 | [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md) | sole active STM32 capture contract authority |

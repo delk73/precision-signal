@@ -75,8 +75,8 @@ pub fn first_divergence0(a: &[u64], b: &[u64]) -> Option<usize> {
 /// If both parse successfully, returns:
 ///   - Ok(None) if replay hash streams are identical,
 ///   - Ok(Some(idx)) where `idx` is the first differing frame index.
-/// If lengths differ but common prefix hashes are equal,
-/// divergence is reported at `min_len`.
+///     If lengths differ but common prefix hashes are equal,
+///     divergence is reported at `min_len`.
 pub fn diff_artifacts0(a_bytes: &[u8], b_bytes: &[u8]) -> Result<Option<usize>, ParseError> {
     let a_frames = parse_replay_frames_legacy0(a_bytes)?;
     let b_frames = parse_replay_frames_legacy0(b_bytes)?;

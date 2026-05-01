@@ -2,7 +2,7 @@
 
 This document is support/reference guidance for replay tooling and local replay
 validation. It is not active CLI authority and it does not define the active
-`1.6.0` operator surface.
+operator surface.
 
 Use:
 
@@ -30,11 +30,10 @@ with one bounded historical `replay-host diff` slice retained under
 
 - [scripts/artifact_tool.py](../../scripts/artifact_tool.py): historically
   released replay-facing support tool for capture, inspection, verification,
-  hashing, and compare workflows; retained as support/reference tooling for
-  `1.6.0`
+  hashing, and compare workflows; retained as support/reference tooling
 - [scripts/artifact_diff.py](../../scripts/artifact_diff.py): historically
   released replay-facing divergence-localization support tool for demo and
-  diagnosis; retained as support/reference tooling for `1.6.0`
+  diagnosis; retained as support/reference tooling
 
 ## Historical Rust Replay Slice
 
@@ -75,7 +74,7 @@ Limitations:
   retained `artifacts/rpl0/` proof corpus
 - no schema-aware replay semantics are provided by the Rust path
 - the Python tooling layer remains historical support/reference tooling and is
-  not part of the canonical `1.6.0` operator surface
+  not part of the canonical operator surface
 
 ## Example Commands
 

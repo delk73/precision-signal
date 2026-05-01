@@ -6,12 +6,12 @@ This document records the architecture implemented in the
 `precision-signal` repository.
 
 Use [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md) for release classification,
-[VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md) for verification authority, and
+[VERIFICATION_GUIDE.md](./VERIFICATION_GUIDE.md) for verification authority, and
 [docs/replay/tooling.md](replay/tooling.md) for replay-tooling boundaries.
 
 Precision Signal is a deterministic execution validation system centered on replay, operated through the `precision` CLI against an attached STM32 target over UART.
 
-The system captures execution artifacts, analyzes divergence between independent executions, and provides a replay-tooling layer that includes historically released Python support tooling retained as support/reference material for `1.6.0`.
+The system captures execution artifacts, analyzes divergence between independent executions, and provides a replay-tooling layer that includes historically released Python support tooling retained as support/reference material.
 
 ## Core Concepts
 
@@ -24,9 +24,7 @@ Deterministic Replay
 
 The Python tooling layer (`scripts/artifact_tool.py`
 and `scripts/artifact_diff.py`) remains historically
-released replay-facing support tooling, but for the
-retained `1.6.0` release it is support/reference tooling
-and is not part of the canonical `1.6.0` operator
+released replay-facing support tooling and is not part of the canonical
 surface or active operator authority. Rust replay
 (`crates/replay-host`) is experimental and limited to
 legacy-frame replay boundaries documented in
@@ -58,9 +56,9 @@ Execution
 Artifacts encode execution events in a canonical format.
 Historically released Python tooling provides artifact
 inspection, verification, hashing, compare workflows, and
-divergence localization, but for `1.6.0` it is retained as
+divergence localization, but it is retained as
 support/reference tooling rather than part of the
-canonical `1.6.0` operator surface or active operator
+canonical operator surface or active operator
 authority. Experimental Rust
 replay remains limited to the legacy-frame scope documented in
 [docs/replay/tooling.md](replay/tooling.md).
@@ -90,4 +88,4 @@ not classify release status.
 See:
 - [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md)
 - [docs/replay/tooling.md](replay/tooling.md)
-- [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
+- [VERIFICATION_GUIDE.md](./VERIFICATION_GUIDE.md)

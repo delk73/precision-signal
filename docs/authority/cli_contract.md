@@ -5,13 +5,6 @@ This file is the sole authority for the CLI schema and the related operational c
 No other file is authoritative for the schema or operational contract.
 All downstream implementation and documentation must conform exactly to this contract.
 
-This document is formally reopened for the 1.6.0 pre-implementation amendment pass.
-The amendments in this revision lock the authoritative Result Block schema, exit
-precedence against staging failure, LF-only emission behavior, Safe ID format,
-single-shot collision handling, and POSIX same-filesystem publication
-assumptions. Once the 1.6.0 transition is accepted, this document returns to
-frozen status under Section 17.
-
 
 ## 2. Command Set
 The command set is fixed and consists of exactly `record`, `replay`, `diff`, and `envelope`.
@@ -183,10 +176,3 @@ The canonical example path is exactly `examples/accumulator.json`.
 The following fields are excluded from determinism checks: `ARTIFACT`, `run_id`, `created_at`, `hostname`, `pid`.
 The following fields are included in determinism checks: `COMMAND`, `TARGET`, `MODE`, `RESULT`, `EQUIVALENCE`, `FIRST_DIVERGENCE`.
 Volatile artifact identity and metadata are excluded from semantic stability.
-
-## 17. Freeze and Reopen Rule
-Once accepted, Chunk 0 is frozen.
-Downstream chunks must not modify the contract silently.
-Any change to invocation, process termination semantics, stream separation, or result emission conditions requires formal reopen of Chunk 0.
-Any change to commands, result block, field semantics, enum values, artifact layout, `run_id`, publication rule, canonical example, or stability scope requires formal reopen of Chunk 0.
-Formal reopen must include reason, impacted invariant, and downstream chunks affected.

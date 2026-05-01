@@ -9,7 +9,7 @@ description = "High-precision fixed-point math library for deterministic signal 
 verification = []
 
 [dependencies]
-fixed = { version = "=1.30.0", features = ["num-traits"] }
+fixed = { workspace = true, features = ["num-traits"] }
 
 [dev-dependencies]
 proptest = "1.4"

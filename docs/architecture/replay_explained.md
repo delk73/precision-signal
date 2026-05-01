@@ -10,7 +10,7 @@ over UART.
 Maturity and verification authority are routed elsewhere:
 
 - current release-surface classification: [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md)
-- canonical verification contract: [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md)
+- canonical verification contract: [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
 - replay tooling boundary: [docs/replay/tooling.md](../replay/tooling.md)
 
 This document stays within the replay explanation layer. It does not define
@@ -189,4 +189,4 @@ Its purpose is simple:
 
 For artifact format, arithmetic behavior, and verification governance, defer to
 the normative documents already called out in [README.md](../../README.md) and
-[VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md).
+[VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md).

@@ -1,7 +1,7 @@
 # Build Reproducibility
 
 This document is descriptive. The normative release and conformance governance is
-defined in [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md).
+defined in [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md).
 
 Use this file for supporting build-identity detail only. It does not define
 release admissibility and it does not replace the canonical release path
@@ -41,12 +41,12 @@ cargo run --release -p dpw4 --features cli --bin sig-util -- validate --mode qui
 Supporting release-binary identity check:
 
 ```bash
-bash verify_release_repro.sh
+bash scripts/verify_release_repro.sh
 ```
 
 `make gate` is the canonical release gate.
 The cargo invocation above is the underlying implementation.
-`bash verify_release_repro.sh` is a supporting same-machine dual-build identity
+`bash scripts/verify_release_repro.sh` is a supporting same-machine dual-build identity
 check for the `sig-util` release binary.
 It freezes `SOURCE_DATE_EPOCH` to the current `HEAD` commit timestamp unless
 the caller explicitly provides the variable.
@@ -57,12 +57,12 @@ If its result is retained as part of a release record, archive it in the
 canonical retained release-evidence location:
 
 ```bash
-RELEASE_EVIDENCE_DIR=docs/verification/releases/<version>/ bash verify_release_repro.sh
+RELEASE_EVIDENCE_DIR=docs/verification/releases/<version>/ bash scripts/verify_release_repro.sh
 ```
 
 ## Related Evidence
 
-- [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md)
+- [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
 - `docs/verification/releases/<version>/`
 - [docs/audits/delta-bd_build-determinism.md](../audits/delta-bd_build-determinism.md)
 - [docs/verification/CI_EVIDENCE.md](CI_EVIDENCE.md)

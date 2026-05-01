@@ -13,7 +13,7 @@ mod validate;
 mod verify;
 
 const NON_AUTHORITATIVE_WARNING: &str =
-    "NON-AUTHORITATIVE: This utility exists outside the 1.6.0 high-integrity contract.";
+    "NON-AUTHORITATIVE: This utility exists outside the active high-integrity contract.";
 
 #[derive(Parser)]
 #[command(name = "sig-util")]

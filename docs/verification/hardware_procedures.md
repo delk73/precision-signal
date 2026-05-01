@@ -6,9 +6,9 @@ It is non-authoritative supporting material only. It does not define the
 release surface, canonical verification policy, or release-scoped correctness
 claims.
 
-## Active 1.6.0 Firmware Gate
+## Manual Firmware Gate
 
-Current validated `1.6.0` firmware release gating is manual-reset,
+Current validated firmware release gating is manual-reset,
 human-in-the-loop; automated reset is not the validated release path unless it
 is separately proven and recorded.
 
@@ -23,7 +23,7 @@ Canonical operator sequence:
 make fw-capture-check SERIAL=/dev/ttyACM0
 make fw-repeat-check SERIAL=/dev/ttyACM0 REPLAY_REPEAT_RUNS=3
 make firmware-release-check SERIAL=/dev/ttyACM0
-make fw-release-archive VERSION=1.6.0 SERIAL=/dev/ttyACM0
+make fw-release-archive VERSION=<release> SERIAL=/dev/ttyACM0
 ```
 
 Expected success markers:
@@ -34,7 +34,7 @@ Expected success markers:
 - repeated imported artifact hashes are identical
 
 Retained evidence written by the archive step:
-- retained under [docs/verification/releases/1.6.0/](releases/1.6.0/) when the hardware archive workflow is executed
+- retained under the corresponding `docs/verification/releases/<release>/` bundle when the hardware archive workflow is executed
 
 ## Active Single-Run Capture
 

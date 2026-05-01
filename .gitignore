@@ -1,4 +1,9 @@
-/target*
+/target/
+/target_a/
+/target_b/
+/kani_logs/
+/.pytest_cache/
+/replay_runs/
 .audit_stdout
 
 **/*.rs.bk
@@ -37,7 +42,6 @@ artifacts/demo_evidence/_generated/
 
 # replay experiment captures
 artifacts/phase_*/
-kani_logs/*
 .vscode/settings.json
 st-util.log
 scripts/__pycache__/
@@ -54,6 +58,5 @@ artifacts/stability_envelope/*/cycle_*
 
 __pycache__/
 *.pyc
-artifacts/replay_runs
 .codex
 meta/*

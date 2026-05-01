@@ -5,7 +5,7 @@ and historical verification references.
 
 Use the active authority path first:
 
-- [VERIFICATION_GUIDE.md](../../../VERIFICATION_GUIDE.md): release contract
+- [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md): release contract
 - [docs/RELEASE_SURFACE.md](../../RELEASE_SURFACE.md): release-surface
   classification and routing
 - [docs/authority/cli_contract.md](../../authority/cli_contract.md): sole
@@ -24,7 +24,7 @@ Active retained release record: `1.7.0`
 
 ## Historical Verification References
 
-- [docs/verification/CLI_SURFACE_EVIDENCE.md](../CLI_SURFACE_EVIDENCE.md):
+- [docs/archive/verification/CLI_SURFACE_EVIDENCE.md](../../archive/verification/CLI_SURFACE_EVIDENCE.md):
   retained historical CLI promotion evidence
 - [docs/verification/CI_EVIDENCE.md](../CI_EVIDENCE.md): retained historical CI
   evidence
@@ -35,6 +35,8 @@ Active retained release record: `1.7.0`
 
 ## Historical Retained Release Evidence
 
+- [Release 1.6.0](1.6.0/): narrowed primary precision CLI release bundle with
+  bounded supporting firmware evidence
 - [Release 1.5.0](1.5.0/): bounded Rust replay release bundle
 - [Release 1.4.0](1.4.0/): prior verification-depth release bundle
 - [Release 1.3.1](1.3.1/): prior patch-release retained bundle
@@ -47,5 +49,5 @@ Active retained release record: `1.7.0`
 - [Release 1.3.0](1.3.0/): tag/changelog entry exists, but no retained release bundle was committed; explanatory note only, with no reconstructed historical evidence
 
 Release-scoped verification policy and packaging rules live in
-[`VERIFICATION_GUIDE.md`](../../../VERIFICATION_GUIDE.md) and
+[`VERIFICATION_GUIDE.md`](../../VERIFICATION_GUIDE.md) and
 [`docs/RELEASE_SURFACE.md`](../../RELEASE_SURFACE.md).

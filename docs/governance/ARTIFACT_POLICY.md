@@ -2,7 +2,7 @@
 
 - Define which artifacts may be retained in this repository and which artifacts are transient.
 - Reduce contributor ambiguity without changing the release contract, retained-bundle authority, or current repository contents.
-- Defer release evidence requirements to [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md) and retained bundle contents under [docs/verification/releases](../verification/releases/).
+- Defer release evidence requirements to [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md) and retained bundle contents under [docs/verification/releases](../verification/releases/).
 
 # Definitions
 
@@ -36,7 +36,7 @@
 - Do not copy forward artifacts from one release bundle into another unless the active task explicitly requires it and the authority documents support it.
 - Do not broaden release meaning by retaining extra artifacts without explicit authority.
 - If an artifact can be regenerated and is not required as retained evidence or documented support material, treat it as transient.
-- If authority and repository placement disagree, defer to [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md), then [docs/verification/releases](../verification/releases/), then release-classification routing in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
+- If authority and repository placement disagree, defer to [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md), then [docs/verification/releases](../verification/releases/), then release-classification routing in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
 
 # Contributor Responsibilities
 
@@ -53,4 +53,4 @@
 - This document does not create new enforcement, automation, CI behavior, or storage mechanisms.
 - This document does not redefine release evidence requirements.
 - This document does not expand the release surface or change release classification.
-- This document does not replace [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md), [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md), or versioned retained release bundles.
+- This document does not replace [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md), [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md), or versioned retained release bundles.

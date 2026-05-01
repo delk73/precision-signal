@@ -23,6 +23,7 @@ jobs:
         with:
           toolchain: 1.91.1
           targets: thumbv7em-none-eabihf
+          components: rustfmt, clippy
 
       - name: Cache cargo/target
         # pinned commit from Swatinem/rust-cache v2 series
@@ -118,7 +119,7 @@ jobs:
           sha256sum target/release/precision
 
       - name: Dual-Build Repro Canary
-        run: bash verify_release_repro.sh
+        run: bash scripts/verify_release_repro.sh
 
       - name: Forensic Audit
         run: cargo test --locked -p dpw4 --test forensic_audit

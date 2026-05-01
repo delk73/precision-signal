@@ -7,6 +7,8 @@
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-04-22
+
 ### Replay Authority Hardening + STM32 Operator Path
 
 - Hardened authoritative `precision replay` input boundary:
@@ -32,6 +34,10 @@
 - de-emphasized historical verification and replay surfaces from the active reading path while preserving retained access through the release-record landing and historical references
 - reduced human-facing duplication in the retained `1.6.0` release bundle routing so one primary summary page remains for readers while keeping GitHub Pages compatibility
 - compressed default `make help` to the active operator/release path and moved demo, firmware, and historical/support workflows behind `help-all` and grouped help targets as presentation-only routing cleanup
+- genericized stale version-specific wording across descriptive and support docs so the active release contract is named once in the authority path rather than repeated in secondary documents
+- removed formal reopen/freeze governance language from the CLI contract while keeping `docs/authority/cli_contract.md` as the sole CLI authority
+- archived historical CLI surface promotion evidence under `docs/archive/verification/CLI_SURFACE_EVIDENCE.md` and removed it from active verification routing
+- restored the `1.6.0` retained release entry in `docs/verification/releases/index.md` to keep the historical release chain continuous
 
 ### Notes
 

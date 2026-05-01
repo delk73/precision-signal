@@ -332,12 +332,7 @@ fn run_diff(args: DiffArgs) -> CliResult {
         comparison_performed: Some(true),
     };
 
-    let block = result_block_from_divergence(
-        "diff",
-        diff_target,
-        args.mode.as_str(),
-        divergence,
-    );
+    let block = result_block_from_divergence("diff", diff_target, args.mode.as_str(), divergence);
     publish_json_result(block, trace_json, &meta)
 }
 
@@ -421,7 +416,11 @@ fn publish_mock_result(command: &str, target: String, mode: &str) -> CliResult {
     publish_json_result(block, trace_json, &meta)
 }
 
-fn publish_result(result_block: ResultBlock, trace: &TraceArtifact, meta: &MetaArtifact) -> CliResult {
+fn publish_result(
+    result_block: ResultBlock,
+    trace: &TraceArtifact,
+    meta: &MetaArtifact,
+) -> CliResult {
     let trace_json = serde_json::to_vec_pretty(trace)
         .map_err(|err| CliError::Integrity(format!("trace serialization failed: {err}")))?;
     let meta_json = serde_json::to_vec_pretty(meta)
@@ -491,10 +490,16 @@ fn load_authoritative_artifact(
     let meta_bytes = fs::read(&meta_path)?;
     let result = parse_published_result_block(target, base, &result_bytes)?;
     let trace: TraceArtifact = serde_json::from_slice(&trace_bytes).map_err(|err| {
-        CliError::User(format!("invalid authoritative trace at {}: {err}", trace_path.display()))
+        CliError::User(format!(
+            "invalid authoritative trace at {}: {err}",
+            trace_path.display()
+        ))
     })?;
     let meta: MetaArtifact = serde_json::from_slice(&meta_bytes).map_err(|err| {
-        CliError::User(format!("invalid authoritative meta at {}: {err}", meta_path.display()))
+        CliError::User(format!(
+            "invalid authoritative meta at {}: {err}",
+            meta_path.display()
+        ))
     })?;
     validate_loaded_artifact(target, &result, &trace, &meta, purpose)?;
     Ok(LoadedArtifact { trace })
@@ -642,7 +647,9 @@ fn extract_i64_node_values(trace: &SemanticTrace, node_id: &str) -> Result<Vec<i
     let mut out = Vec::with_capacity(node.values.len());
     for value in &node.values {
         let Some(parsed) = value.as_i64() else {
-            return Err(CliError::User(format!("node {node_id} contains non-integer values")));
+            return Err(CliError::User(format!(
+                "node {node_id} contains non-integer values"
+            )));
         };
         out.push(parsed);
     }
@@ -686,7 +693,10 @@ fn validate_loaded_artifact(
             meta.schema
         )));
     }
-    if !matches!(meta.command.as_str(), "record" | "replay" | "diff" | "envelope") {
+    if !matches!(
+        meta.command.as_str(),
+        "record" | "replay" | "diff" | "envelope"
+    ) {
         return Err(CliError::User(format!(
             "invalid meta command for {target}: {}",
             meta.command
@@ -734,9 +744,9 @@ fn validate_loaded_artifact(
 
 fn validate_authoritative_artifact_dir(base: &Path, target: &str) -> Result<(), CliError> {
     let metadata = fs::metadata(base).map_err(|err| match err.kind() {
-        std::io::ErrorKind::NotFound => {
-            CliError::User(format!("authoritative artifact directory not found for {target}"))
-        }
+        std::io::ErrorKind::NotFound => CliError::User(format!(
+            "authoritative artifact directory not found for {target}"
+        )),
         _ => CliError::Io(err),
     })?;
     if !metadata.is_dir() {
@@ -857,7 +867,8 @@ fn validate_result_block_invariants(
         "PASS" => equivalence == "exact" && first_divergence == "none",
         "FAIL" if mode == "mock" => equivalence == "diverged" && first_divergence == "none",
         "FAIL" => {
-            equivalence == "diverged" && parse_first_divergence_text(target, first_divergence).is_ok()
+            equivalence == "diverged"
+                && parse_first_divergence_text(target, first_divergence).is_ok()
         }
         _ => false,
     };
@@ -884,11 +895,14 @@ fn validate_result_artifact_path(
             "invalid result.txt ARTIFACT path for {target}: {artifact}"
         )));
     }
-    let dir_name = base.file_name().and_then(|name| name.to_str()).ok_or_else(|| {
-        CliError::User(format!(
-            "invalid authoritative artifact directory name for {target}"
-        ))
-    })?;
+    let dir_name = base
+        .file_name()
+        .and_then(|name| name.to_str())
+        .ok_or_else(|| {
+            CliError::User(format!(
+                "invalid authoritative artifact directory name for {target}"
+            ))
+        })?;
     if dir_name != run_id {
         return Err(CliError::User(format!(
             "result.txt ARTIFACT path does not match directory name for {target}: {artifact}"
@@ -1003,32 +1017,32 @@ fn validate_replay_payload_consistency(
             ))),
         },
         "replay" | "envelope" => match (&trace.replay_trace, &trace.comparison) {
-        (Some(replay_trace), Some(comparison)) => {
-            let actual_divergence = compare_traces(&trace.captured_trace, replay_trace);
-            let actual_equivalence = if actual_divergence.is_none() {
-                "exact"
-            } else {
-                "diverged"
-            };
-            if comparison.equivalence != actual_equivalence {
-                return Err(CliError::User(format!(
-                    "inconsistent comparison equivalence for {target}: {} vs {}",
-                    comparison.equivalence, actual_equivalence
-                )));
+            (Some(replay_trace), Some(comparison)) => {
+                let actual_divergence = compare_traces(&trace.captured_trace, replay_trace);
+                let actual_equivalence = if actual_divergence.is_none() {
+                    "exact"
+                } else {
+                    "diverged"
+                };
+                if comparison.equivalence != actual_equivalence {
+                    return Err(CliError::User(format!(
+                        "inconsistent comparison equivalence for {target}: {} vs {}",
+                        comparison.equivalence, actual_equivalence
+                    )));
+                }
+                if comparison.first_divergence != actual_divergence {
+                    return Err(CliError::User(format!(
+                        "inconsistent comparison first_divergence for {target}"
+                    )));
+                }
+                if result.command == "replay" {
+                    validate_result_matches_comparison(target, result, Some(comparison))?;
+                }
+                Ok(())
             }
-            if comparison.first_divergence != actual_divergence {
-                return Err(CliError::User(format!(
-                    "inconsistent comparison first_divergence for {target}"
-                )));
-            }
-            if result.command == "replay" {
-                validate_result_matches_comparison(target, result, Some(comparison))?;
-            }
-            Ok(())
-        }
-        _ => Err(CliError::User(format!(
-            "incomplete replay comparison payload for {target}"
-        ))),
+            _ => Err(CliError::User(format!(
+                "incomplete replay comparison payload for {target}"
+            ))),
         },
         "diff" => Ok(()),
         _ => Ok(()),
@@ -1075,24 +1089,32 @@ fn parse_first_divergence_text(target: &str, text: &str) -> Result<FirstDivergen
         .next()
         .and_then(|part| part.strip_prefix("step="))
         .ok_or_else(|| {
-            CliError::User(format!("invalid result.txt FIRST_DIVERGENCE for {target}: {text}"))
+            CliError::User(format!(
+                "invalid result.txt FIRST_DIVERGENCE for {target}: {text}"
+            ))
         })?
         .parse::<u64>()
         .map_err(|_| {
-            CliError::User(format!("invalid result.txt FIRST_DIVERGENCE for {target}: {text}"))
+            CliError::User(format!(
+                "invalid result.txt FIRST_DIVERGENCE for {target}: {text}"
+            ))
         })?;
     let node = parts
         .next()
         .and_then(|part| part.strip_prefix("node="))
         .ok_or_else(|| {
-            CliError::User(format!("invalid result.txt FIRST_DIVERGENCE for {target}: {text}"))
+            CliError::User(format!(
+                "invalid result.txt FIRST_DIVERGENCE for {target}: {text}"
+            ))
         })?
         .to_string();
     let cause = parts
         .next()
         .and_then(|part| part.strip_prefix("cause="))
         .ok_or_else(|| {
-            CliError::User(format!("invalid result.txt FIRST_DIVERGENCE for {target}: {text}"))
+            CliError::User(format!(
+                "invalid result.txt FIRST_DIVERGENCE for {target}: {text}"
+            ))
         })?
         .to_string();
     if parts.next().is_some() {
@@ -1198,7 +1220,10 @@ fn validate_diff_compatibility(
     trace: &TraceArtifact,
     meta: &MetaArtifact,
 ) -> Result<(), CliError> {
-    if !matches!(meta.command.as_str(), "record" | "replay" | "envelope" | "diff") {
+    if !matches!(
+        meta.command.as_str(),
+        "record" | "replay" | "envelope" | "diff"
+    ) {
         return Err(CliError::User(format!(
             "artifact incompatible with diff for {target}: command {}",
             meta.command
@@ -1237,7 +1262,12 @@ fn require_node(
     target: &str,
     command: &str,
 ) -> Result<(), CliError> {
-    if trace.captured_trace.nodes.iter().any(|node| node.id == node_id) {
+    if trace
+        .captured_trace
+        .nodes
+        .iter()
+        .any(|node| node.id == node_id)
+    {
         Ok(())
     } else {
         Err(CliError::User(format!(
@@ -1266,8 +1296,7 @@ fn acquire_record_capture(target: &str) -> Result<RecordCapture, CliError> {
     let intervals = if target.starts_with("fixture://") {
         fixture_intervals()
     } else if target.ends_with(".csv") || Path::new(target).is_file() {
-        parse_interval_csv_text(&fs::read_to_string(target)?)
-            .map_err(CliError::User)?
+        parse_interval_csv_text(&fs::read_to_string(target)?).map_err(CliError::User)?
     } else {
         capture_serial_intervals(target)?
     };
@@ -1309,7 +1338,9 @@ fn capture_serial_intervals(target: &str) -> Result<Vec<u32>, CliError> {
 
     if !output.status.success() {
         let _ = fs::remove_file(&temp_csv);
-        return Err(CliError::User(format!("serial capture failed for {target}")));
+        return Err(CliError::User(format!(
+            "serial capture failed for {target}"
+        )));
     }
 
     let csv_text = fs::read_to_string(&temp_csv)?;
@@ -1353,7 +1384,10 @@ fn parse_interval_csv_text(text: &str) -> Result<Vec<u32>, String> {
             .parse::<u32>()
             .map_err(|err| format!("invalid interval at row {} ({err})", expected_index + 1))?;
         if interval == 0 {
-            return Err(format!("interval must be > 0 at row {}", expected_index + 1));
+            return Err(format!(
+                "interval must be > 0 at row {}",
+                expected_index + 1
+            ));
         }
         intervals.push(interval);
     }
@@ -1414,10 +1448,8 @@ fn build_transient_rpl0(intervals: &[u32]) -> Vec<u8> {
 }
 
 fn mix_trace_hash(acc: u64, step: u64, interval: u64, sample: i64) -> u64 {
-    let mut x = acc
-        ^ step.rotate_left(7)
-        ^ interval.rotate_left(17)
-        ^ (sample as u64).rotate_left(29);
+    let mut x =
+        acc ^ step.rotate_left(7) ^ interval.rotate_left(17) ^ (sample as u64).rotate_left(29);
     x ^= x >> 30;
     x = x.wrapping_mul(0xbf58_476d_1ce4_e5b9);
     x ^= x >> 27;
@@ -1436,9 +1468,7 @@ fn repo_root() -> Result<PathBuf, CliError> {
     let root = std::env::var_os("PRECISION_REPO_ROOT")
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."));
-    root
-        .canonicalize()
-        .map_err(CliError::Io)
+    root.canonicalize().map_err(CliError::Io)
 }
 
 fn serial_capture_temp_path() -> Result<PathBuf, CliError> {
