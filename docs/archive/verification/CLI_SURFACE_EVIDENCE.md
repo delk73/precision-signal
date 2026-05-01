@@ -1,16 +1,15 @@
 # CLI Surface Evidence
 
-This file is retained historical CLI promotion evidence only.
-It is not the active CLI contract, it is not the active `1.6.0` operator
-authority, and it does not outrank
-[docs/authority/cli_contract.md](../authority/cli_contract.md).
+This file is archived historical CLI promotion evidence only.
+It is not the active CLI contract, it is not active operator authority, and it
+does not outrank [docs/authority/cli_contract.md](../../authority/cli_contract.md).
 
 Use:
 
-- [docs/authority/cli_contract.md](../authority/cli_contract.md) for the sole
+- [docs/authority/cli_contract.md](../../authority/cli_contract.md) for the sole
   active CLI contract authority
-- [docs/verification/releases/index.md](releases/index.md) for historical
-  verification and release-record routing
+- [docs/verification/releases/index.md](../../verification/releases/index.md)
+  for historical verification and release-record routing
 
 This document records the minimal operator-path evidence used to promote safe
 CLI surfaces from Reference to Release.
@@ -70,7 +69,7 @@ Expected:
 - both output directories exist
 - `diff -rq` exits `0`
 - repeated runs produce identical artifact sets
-- `saw_20_headroom.det.csv` hash matches the pinned value in [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
+- `saw_20_headroom.det.csv` hash matches the pinned value in [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md)
 - `long_run_0_1hz_headers.bin` exists for downstream header audit
 
 Observed:

@@ -56,7 +56,6 @@ core arithmetic contract.
 Historical verification material remains preserved behind
 [docs/verification/releases/index.md](releases/index.md).
 
-- [docs/verification/CLI_SURFACE_EVIDENCE.md](CLI_SURFACE_EVIDENCE.md): retained historical CLI promotion evidence
 - [docs/verification/CI_EVIDENCE.md](CI_EVIDENCE.md): retained historical CI evidence
 - [docs/verification/FIRMWARE_CAPTURE_EVIDENCE.md](FIRMWARE_CAPTURE_EVIDENCE.md): retained historical firmware capture evidence
 - [docs/verification/D-03_TriangleDPW4_Audit.md](D-03_TriangleDPW4_Audit.md): retained TriangleDPW4 audit note

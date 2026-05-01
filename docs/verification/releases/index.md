@@ -24,7 +24,7 @@ Active retained release record: `1.7.0`
 
 ## Historical Verification References
 
-- [docs/verification/CLI_SURFACE_EVIDENCE.md](../CLI_SURFACE_EVIDENCE.md):
+- [docs/archive/verification/CLI_SURFACE_EVIDENCE.md](../../archive/verification/CLI_SURFACE_EVIDENCE.md):
   retained historical CLI promotion evidence
 - [docs/verification/CI_EVIDENCE.md](../CI_EVIDENCE.md): retained historical CI
   evidence
@@ -35,6 +35,8 @@ Active retained release record: `1.7.0`
 
 ## Historical Retained Release Evidence
 
+- [Release 1.6.0](1.6.0/): narrowed primary precision CLI release bundle with
+  bounded supporting firmware evidence
 - [Release 1.5.0](1.5.0/): bounded Rust replay release bundle
 - [Release 1.4.0](1.4.0/): prior verification-depth release bundle
 - [Release 1.3.1](1.3.1/): prior patch-release retained bundle

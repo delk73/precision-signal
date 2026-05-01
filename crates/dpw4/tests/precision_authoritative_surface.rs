@@ -1214,7 +1214,7 @@ fn sig_util_help_starts_with_non_authoritative_warning() {
     let help = String::from_utf8_lossy(&output.stdout);
 
     assert!(help.starts_with(
-        "NON-AUTHORITATIVE: This utility exists outside the 1.6.0 high-integrity contract."
+        "NON-AUTHORITATIVE: This utility exists outside the active high-integrity contract."
     ));
 }
 
