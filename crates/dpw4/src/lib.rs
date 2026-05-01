@@ -67,6 +67,9 @@ pub use constants::*;
 
 pub(crate) mod i256;
 
+pub mod header;      // New: Artifact Identity
+pub use header::OriginHeader;
+
 pub mod checksum;
 pub use checksum::fletcher32;
 
