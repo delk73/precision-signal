@@ -193,7 +193,10 @@ mod tests {
             .expect("stream hash should compute with custom offset");
         let expected: [u8; 32] = Sha256::digest(payload).into();
 
-        assert_eq!(digest, expected, "custom offset must hash only the tail payload");
+        assert_eq!(
+            digest, expected,
+            "custom offset must hash only the tail payload"
+        );
     }
 
     #[test]
@@ -214,6 +217,9 @@ mod tests {
         let digest_b = compute_payload_hash(&mut Cursor::new(artifact_b))
             .expect("payload hash should compute for artifact B");
 
-        assert_eq!(digest_a, digest_b, "origin header must be masked from payload hash");
+        assert_eq!(
+            digest_a, digest_b,
+            "origin header must be masked from payload hash"
+        );
     }
 }

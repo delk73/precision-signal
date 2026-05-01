@@ -67,15 +67,15 @@ pub use constants::*;
 
 pub(crate) mod i256;
 
-pub mod header;      // New: Artifact Identity
+pub mod header; // New: Artifact Identity
 pub use header::OriginHeader;
 
 pub mod checksum;
-pub use checksum::fletcher32;
-#[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
-pub use checksum::compute_stream_hash;
 #[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
 pub use checksum::compute_payload_hash;
+#[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
+pub use checksum::compute_stream_hash;
+pub use checksum::fletcher32;
 
 pub mod goldens;
 

@@ -1,17 +1,17 @@
 //! Artifact Identity Header (v.next)
-//! 
-//! Defines the 128-byte prefix for .rpl artifacts to reconcile 
+//!
+//! Defines the 128-byte prefix for .rpl artifacts to reconcile
 //! execution identity with mathematical determinism.
 
 /// Fixed-size binary header (128 bytes) containing run-specific metadata.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct OriginHeader {
-    pub magic: [u8; 4],         // 0x52 0x50 0x4C 0x30 ('RPL0')
-    pub schema_version: u32,    // Math schema versioning
-    pub git_commit: [u8; 20],   // SHA-1 Git hash
-    pub run_id: [u8; 16] ,      // UUID or Timestamp-entropy
-    pub timestamp: i64,         // Unix epoch
-    pub reserved: [u8; 76],     // Padding to 128 bytes
+    pub magic: [u8; 4],       // 0x52 0x50 0x4C 0x30 ('RPL0')
+    pub schema_version: u32,  // Math schema versioning
+    pub git_commit: [u8; 20], // SHA-1 Git hash
+    pub run_id: [u8; 16],     // UUID or Timestamp-entropy
+    pub timestamp: i64,       // Unix epoch
+    pub reserved: [u8; 76],   // Padding to 128 bytes
 }
 
 impl OriginHeader {
@@ -86,14 +86,14 @@ mod tests {
         let git = [0xAA; 20];
         let run = [0xBB; 16];
         let timestamp = 1714560000; // Example Unix epoch
-        
+
         let header = OriginHeader::new(1, git, run, timestamp);
         let bytes = header.to_bytes();
-        
+
         // Verify magic bytes and size
         assert_eq!(&bytes[0..4], b"RPL0");
         assert_eq!(bytes.len(), 128);
-        
+
         // Verify deserialization parity
         let restored = OriginHeader::from_bytes(&bytes).expect("Failed to parse header bytes");
         assert_eq!(header.schema_version, restored.schema_version);

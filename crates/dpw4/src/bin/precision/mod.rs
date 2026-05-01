@@ -1306,8 +1306,11 @@ fn acquire_record_capture(target: &str) -> Result<RecordCapture, CliError> {
 
     let transient_rpl0 = build_transient_rpl0(&intervals);
     let transient_rpl0_payload_sha256 = hex::encode(
-        compute_stream_hash(&mut Cursor::new(transient_rpl0.as_slice()), TRANSIENT_HEADER_SIZE as u64)
-            .map_err(|err| CliError::Integrity(format!("transient payload hash failed: {err}")))?,
+        compute_stream_hash(
+            &mut Cursor::new(transient_rpl0.as_slice()),
+            TRANSIENT_HEADER_SIZE as u64,
+        )
+        .map_err(|err| CliError::Integrity(format!("transient payload hash failed: {err}")))?,
     );
     let source_kind = if target.starts_with("fixture://") {
         "fixture".to_string()
