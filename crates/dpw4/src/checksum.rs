@@ -213,8 +213,8 @@ mod tests {
     fn test_stream_hash_rejects_offset_past_eof() {
         let mut reader = Cursor::new(b"abc".to_vec());
 
-        let error = compute_stream_hash(&mut reader, 4)
-            .expect_err("offsets past EOF must be rejected");
+        let error =
+            compute_stream_hash(&mut reader, 4).expect_err("offsets past EOF must be rejected");
 
         assert_eq!(error.kind(), io::ErrorKind::UnexpectedEof);
     }
