@@ -3,7 +3,11 @@
 //! Defines the 128-byte prefix for .rpl artifacts to reconcile
 //! execution identity with mathematical determinism.
 
-/// Fixed-size binary header (128 bytes) containing run-specific metadata.
+/// Run-specific artifact identity metadata.
+///
+/// The authoritative serialized wire format is 128 bytes and is defined by
+/// [`OriginHeader::to_bytes`] and [`OriginHeader::from_bytes`]. The Rust struct
+/// layout itself is not the serialization contract.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct OriginHeader {
     pub magic: [u8; 4],       // 0x52 0x50 0x4C 0x30 ('RPL0')

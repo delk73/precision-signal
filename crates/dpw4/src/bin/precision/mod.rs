@@ -615,7 +615,8 @@ fn load_meta_artifact(
                 ))
             }),
         _ => Err(CliError::User(format!(
-            "invalid meta schema for {target}: expected {META_SCHEMA_V1} or {META_SCHEMA_V2}, got {}",
+            "invalid meta schema at {} for {target}: expected {META_SCHEMA_V1} or {META_SCHEMA_V2}, got {}",
+            meta_path.display(),
             header.schema
         ))),
     }
