@@ -294,6 +294,30 @@ fn precision_replay_rejects_v2_legacy_transient_rpl0_sha256_field() {
 }
 
 #[test]
+fn precision_replay_rejects_v1_payload_sha256_field() {
+    let temp_root = unique_temp_root("precision-replay-v1-payload-hash");
+    let artifact_rel = make_record_artifact(&temp_root);
+    let meta_path = temp_root.join(&artifact_rel).join("meta.json");
+    let mut meta = read_json(&meta_path);
+
+    meta["schema"] = Value::from("precision.meta.v1");
+    write_json(&meta_path, &meta);
+
+    let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["replay", &artifact_rel, "--mode", "runtime_mode"])
+        .output()
+        .expect("precision replay should run");
+
+    assert_eq!(replay.status.code(), Some(2));
+    assert!(replay.stdout.is_empty());
+    let stderr = String::from_utf8(replay.stderr).expect("stderr must be utf8");
+    assert!(stderr.contains("ERROR: invalid authoritative meta"));
+
+    fs::remove_dir_all(&temp_root).expect("temp root cleanup");
+}
+
+#[test]
 fn precision_replay_passes_for_known_good_capture() {
     let temp_root = unique_temp_root("precision-replay-pass");
 
