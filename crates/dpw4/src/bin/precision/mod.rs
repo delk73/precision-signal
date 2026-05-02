@@ -14,7 +14,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 const INTERVAL_ROW_COUNT: usize = 138;
 const TRACE_SCHEMA: &str = "precision.trace.v1";
-const META_SCHEMA: &str = "precision.meta.v1";
+const META_SCHEMA_V1: &str = "precision.meta.v1";
+const META_SCHEMA_V2: &str = "precision.meta.v2";
+const META_SCHEMA: &str = META_SCHEMA_V2;
 const TRANSIENT_FRAME_COUNT: usize = 10_000;
 const TRANSIENT_FRAME_SIZE: usize = 16;
 const TRANSIENT_HEADER_SIZE: usize = 0x98;
@@ -118,8 +120,16 @@ struct ComparisonSummary {
     first_divergence: Option<FirstDivergence>,
 }
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum MetaSchemaVersion {
+    V1,
+    V2,
+}
+
+#[derive(Clone, Debug, Serialize)]
 struct MetaArtifact {
+    #[serde(skip)]
+    schema_version: MetaSchemaVersion,
     schema: String,
     command: String,
     target: String,
@@ -129,15 +139,97 @@ struct MetaArtifact {
     pid: u32,
     source_kind: String,
     signal_input_count: usize,
-    #[serde(
-        alias = "transient_rpl0_sha256",
-        skip_serializing_if = "Option::is_none"
-    )]
+    #[serde(skip_serializing_if = "Option::is_none")]
     transient_rpl0_payload_sha256: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     secondary_target: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     comparison_performed: Option<bool>,
+}
+
+#[derive(Deserialize)]
+struct MetaSchemaHeader {
+    schema: String,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct MetaArtifactV1 {
+    schema: String,
+    command: String,
+    target: String,
+    mode: String,
+    created_at_unix_s: u64,
+    hostname: Option<String>,
+    pid: u32,
+    source_kind: String,
+    signal_input_count: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    transient_rpl0_sha256: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    secondary_target: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    comparison_performed: Option<bool>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct MetaArtifactV2 {
+    schema: String,
+    command: String,
+    target: String,
+    mode: String,
+    created_at_unix_s: u64,
+    hostname: Option<String>,
+    pid: u32,
+    source_kind: String,
+    signal_input_count: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    transient_rpl0_payload_sha256: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    secondary_target: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    comparison_performed: Option<bool>,
+}
+
+impl From<MetaArtifactV1> for MetaArtifact {
+    fn from(meta: MetaArtifactV1) -> Self {
+        Self {
+            schema_version: MetaSchemaVersion::V1,
+            schema: meta.schema,
+            command: meta.command,
+            target: meta.target,
+            mode: meta.mode,
+            created_at_unix_s: meta.created_at_unix_s,
+            hostname: meta.hostname,
+            pid: meta.pid,
+            source_kind: meta.source_kind,
+            signal_input_count: meta.signal_input_count,
+            transient_rpl0_payload_sha256: meta.transient_rpl0_sha256,
+            secondary_target: meta.secondary_target,
+            comparison_performed: meta.comparison_performed,
+        }
+    }
+}
+
+impl From<MetaArtifactV2> for MetaArtifact {
+    fn from(meta: MetaArtifactV2) -> Self {
+        Self {
+            schema_version: MetaSchemaVersion::V2,
+            schema: meta.schema,
+            command: meta.command,
+            target: meta.target,
+            mode: meta.mode,
+            created_at_unix_s: meta.created_at_unix_s,
+            hostname: meta.hostname,
+            pid: meta.pid,
+            source_kind: meta.source_kind,
+            signal_input_count: meta.signal_input_count,
+            transient_rpl0_payload_sha256: meta.transient_rpl0_payload_sha256,
+            secondary_target: meta.secondary_target,
+            comparison_performed: meta.comparison_performed,
+        }
+    }
 }
 
 #[derive(Clone, Debug)]
@@ -227,6 +319,7 @@ fn run_record(args: CommandArgs) -> CliResult {
         comparison: None,
     };
     let meta = MetaArtifact {
+        schema_version: MetaSchemaVersion::V2,
         schema: META_SCHEMA.to_string(),
         command: "record".to_string(),
         target: args.target.clone(),
@@ -274,6 +367,7 @@ fn run_replay(args: CommandArgs) -> CliResult {
         comparison: Some(comparison),
     };
     let meta = MetaArtifact {
+        schema_version: MetaSchemaVersion::V2,
         schema: META_SCHEMA.to_string(),
         command: "replay".to_string(),
         target: args.target.clone(),
@@ -321,6 +415,7 @@ fn run_diff(args: DiffArgs) -> CliResult {
         "right_target": args.target_b
     });
     let meta = MetaArtifact {
+        schema_version: MetaSchemaVersion::V2,
         schema: META_SCHEMA.to_string(),
         command: "diff".to_string(),
         target: diff_target.clone(),
@@ -362,6 +457,7 @@ fn run_envelope(args: CommandArgs) -> CliResult {
         }
     });
     let meta = MetaArtifact {
+        schema_version: MetaSchemaVersion::V2,
         schema: META_SCHEMA.to_string(),
         command: "envelope".to_string(),
         target: args.target.clone(),
@@ -394,6 +490,7 @@ fn publish_mock_result(command: &str, target: String, mode: &str) -> CliResult {
         }
     });
     let meta = MetaArtifact {
+        schema_version: MetaSchemaVersion::V2,
         schema: META_SCHEMA.to_string(),
         command: command.to_string(),
         target: target.clone(),
@@ -498,14 +595,45 @@ fn load_authoritative_artifact(
             trace_path.display()
         ))
     })?;
-    let meta: MetaArtifact = serde_json::from_slice(&meta_bytes).map_err(|err| {
+    let meta = load_meta_artifact(target, &meta_path, &meta_bytes)?;
+    validate_loaded_artifact(target, &result, &trace, &meta, purpose)?;
+    Ok(LoadedArtifact { trace })
+}
+
+fn load_meta_artifact(
+    target: &str,
+    meta_path: &Path,
+    meta_bytes: &[u8],
+) -> Result<MetaArtifact, CliError> {
+    let header: MetaSchemaHeader = serde_json::from_slice(meta_bytes).map_err(|err| {
         CliError::User(format!(
             "invalid authoritative meta at {}: {err}",
             meta_path.display()
         ))
     })?;
-    validate_loaded_artifact(target, &result, &trace, &meta, purpose)?;
-    Ok(LoadedArtifact { trace })
+
+    match header.schema.as_str() {
+        META_SCHEMA_V1 => serde_json::from_slice::<MetaArtifactV1>(meta_bytes)
+            .map(Into::into)
+            .map_err(|err| {
+                CliError::User(format!(
+                    "invalid authoritative meta at {}: {err}",
+                    meta_path.display()
+                ))
+            }),
+        META_SCHEMA_V2 => serde_json::from_slice::<MetaArtifactV2>(meta_bytes)
+            .map(Into::into)
+            .map_err(|err| {
+                CliError::User(format!(
+                    "invalid authoritative meta at {}: {err}",
+                    meta_path.display()
+                ))
+            }),
+        _ => Err(CliError::User(format!(
+            "invalid meta schema for {target}: expected {META_SCHEMA_V1} or {META_SCHEMA_V2}, got {}",
+            header.schema
+        ))),
+    }
 }
 
 fn synthesize_semantic_trace(intervals: &[u32]) -> SemanticTrace {
@@ -690,9 +818,12 @@ fn validate_loaded_artifact(
             trace.schema
         )));
     }
-    if meta.schema != META_SCHEMA {
+    if !matches!(
+        meta.schema_version,
+        MetaSchemaVersion::V1 | MetaSchemaVersion::V2
+    ) {
         return Err(CliError::User(format!(
-            "invalid meta schema for {target}: expected {META_SCHEMA}, got {}",
+            "invalid meta schema for {target}: expected {META_SCHEMA_V1} or {META_SCHEMA_V2}, got {}",
             meta.schema
         )));
     }
@@ -921,6 +1052,11 @@ fn validate_command_shape(
 ) -> Result<(), CliError> {
     match meta.command.as_str() {
         "record" => {
+            if meta.transient_rpl0_payload_sha256.is_none() {
+                return Err(CliError::User(format!(
+                    "record artifact missing transient payload hash for {target}"
+                )));
+            }
             if meta.comparison_performed != Some(false) {
                 return Err(CliError::User(format!(
                     "invalid meta comparison_performed for record artifact {target}"
@@ -938,6 +1074,11 @@ fn validate_command_shape(
             }
         }
         "replay" => {
+            if meta.transient_rpl0_payload_sha256.is_some() {
+                return Err(CliError::User(format!(
+                    "replay artifact must not contain transient payload hash for {target}"
+                )));
+            }
             if meta.source_kind != "authoritative_artifact" {
                 return Err(CliError::User(format!(
                     "invalid meta source_kind for replay artifact {target}: {}",
@@ -961,6 +1102,11 @@ fn validate_command_shape(
             }
         }
         "diff" => {
+            if meta.transient_rpl0_payload_sha256.is_some() {
+                return Err(CliError::User(format!(
+                    "diff artifact must not contain transient payload hash for {target}"
+                )));
+            }
             if meta.source_kind != "authoritative_artifact_pair" {
                 return Err(CliError::User(format!(
                     "invalid meta source_kind for diff artifact {target}: {}",
@@ -984,6 +1130,11 @@ fn validate_command_shape(
             }
         }
         "envelope" => {
+            if meta.transient_rpl0_payload_sha256.is_some() {
+                return Err(CliError::User(format!(
+                    "envelope artifact must not contain transient payload hash for {target}"
+                )));
+            }
             if meta.source_kind != "authoritative_artifact" {
                 return Err(CliError::User(format!(
                     "invalid meta source_kind for envelope artifact {target}: {}",
