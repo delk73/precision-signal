@@ -221,8 +221,12 @@ fn precision_record_publishes_real_artifact_and_stdout_matches_result_file() {
         "record output must emit the v2 meta schema"
     );
     assert!(
-        meta.get("transient_rpl0_payload_sha256").is_some(),
-        "record output must name the transient payload hash explicitly"
+        matches!(
+            meta.get("transient_rpl0_payload_sha256")
+                .and_then(Value::as_str),
+            Some(hash) if hash.len() == 64 && hash.chars().all(|c| c.is_ascii_hexdigit())
+        ),
+        "record output must emit transient_rpl0_payload_sha256 as a 64-character hex string"
     );
     assert!(
         meta.get("transient_rpl0_sha256").is_none(),
