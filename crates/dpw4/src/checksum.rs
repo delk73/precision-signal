@@ -18,6 +18,8 @@
 #[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
 use sha2::{Digest, Sha256};
 #[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
+use std::format;
+#[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
 use std::io::{self, Read, Seek, SeekFrom};
 
 /// Fletcher-32 validation error.
@@ -78,6 +80,14 @@ pub const HEADER_METADATA_SIZE: usize = crate::HEADER_CHECKSUM_OFFSET;
 /// Compute a SHA-256 digest for a stream after skipping an initial prefix.
 #[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
 pub fn compute_stream_hash<R: Read + Seek>(reader: &mut R, offset: u64) -> io::Result<[u8; 32]> {
+    let stream_len = reader.seek(SeekFrom::End(0))?;
+    if offset > stream_len {
+        return Err(io::Error::new(
+            io::ErrorKind::UnexpectedEof,
+            format!("hash offset {offset} exceeds stream length {stream_len}"),
+        ));
+    }
+
     reader.seek(SeekFrom::Start(offset))?;
 
     let mut hasher = Sha256::new();
@@ -197,6 +207,16 @@ mod tests {
             digest, expected,
             "custom offset must hash only the tail payload"
         );
+    }
+
+    #[test]
+    fn test_stream_hash_rejects_offset_past_eof() {
+        let mut reader = Cursor::new(b"abc".to_vec());
+
+        let error = compute_stream_hash(&mut reader, 4)
+            .expect_err("offsets past EOF must be rejected");
+
+        assert_eq!(error.kind(), io::ErrorKind::UnexpectedEof);
     }
 
     #[test]
