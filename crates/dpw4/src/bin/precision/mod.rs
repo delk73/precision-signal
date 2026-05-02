@@ -120,16 +120,8 @@ struct ComparisonSummary {
     first_divergence: Option<FirstDivergence>,
 }
 
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-enum MetaSchemaVersion {
-    V1,
-    V2,
-}
-
 #[derive(Clone, Debug, Serialize)]
 struct MetaArtifact {
-    #[serde(skip)]
-    schema_version: MetaSchemaVersion,
     schema: String,
     command: String,
     target: String,
@@ -195,7 +187,6 @@ struct MetaArtifactV2 {
 impl From<MetaArtifactV1> for MetaArtifact {
     fn from(meta: MetaArtifactV1) -> Self {
         Self {
-            schema_version: MetaSchemaVersion::V1,
             schema: meta.schema,
             command: meta.command,
             target: meta.target,
@@ -215,7 +206,6 @@ impl From<MetaArtifactV1> for MetaArtifact {
 impl From<MetaArtifactV2> for MetaArtifact {
     fn from(meta: MetaArtifactV2) -> Self {
         Self {
-            schema_version: MetaSchemaVersion::V2,
             schema: meta.schema,
             command: meta.command,
             target: meta.target,
@@ -319,7 +309,6 @@ fn run_record(args: CommandArgs) -> CliResult {
         comparison: None,
     };
     let meta = MetaArtifact {
-        schema_version: MetaSchemaVersion::V2,
         schema: META_SCHEMA.to_string(),
         command: "record".to_string(),
         target: args.target.clone(),
@@ -367,7 +356,6 @@ fn run_replay(args: CommandArgs) -> CliResult {
         comparison: Some(comparison),
     };
     let meta = MetaArtifact {
-        schema_version: MetaSchemaVersion::V2,
         schema: META_SCHEMA.to_string(),
         command: "replay".to_string(),
         target: args.target.clone(),
@@ -415,7 +403,6 @@ fn run_diff(args: DiffArgs) -> CliResult {
         "right_target": args.target_b
     });
     let meta = MetaArtifact {
-        schema_version: MetaSchemaVersion::V2,
         schema: META_SCHEMA.to_string(),
         command: "diff".to_string(),
         target: diff_target.clone(),
@@ -457,7 +444,6 @@ fn run_envelope(args: CommandArgs) -> CliResult {
         }
     });
     let meta = MetaArtifact {
-        schema_version: MetaSchemaVersion::V2,
         schema: META_SCHEMA.to_string(),
         command: "envelope".to_string(),
         target: args.target.clone(),
@@ -490,7 +476,6 @@ fn publish_mock_result(command: &str, target: String, mode: &str) -> CliResult {
         }
     });
     let meta = MetaArtifact {
-        schema_version: MetaSchemaVersion::V2,
         schema: META_SCHEMA.to_string(),
         command: command.to_string(),
         target: target.clone(),
@@ -816,15 +801,6 @@ fn validate_loaded_artifact(
         return Err(CliError::User(format!(
             "invalid trace schema for {target}: expected {TRACE_SCHEMA}, got {}",
             trace.schema
-        )));
-    }
-    if !matches!(
-        meta.schema_version,
-        MetaSchemaVersion::V1 | MetaSchemaVersion::V2
-    ) {
-        return Err(CliError::User(format!(
-            "invalid meta schema for {target}: expected {META_SCHEMA_V1} or {META_SCHEMA_V2}, got {}",
-            meta.schema
         )));
     }
     if !matches!(

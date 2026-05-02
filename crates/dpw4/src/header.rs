@@ -38,7 +38,7 @@ impl OriginHeader {
         buf[8..28].copy_from_slice(&self.git_commit);
         buf[28..44].copy_from_slice(&self.run_id);
         buf[44..52].copy_from_slice(&self.timestamp.to_le_bytes());
-        // bytes 52..128 remain zeroed (reserved)
+        buf[52..Self::SIZE].copy_from_slice(&self.reserved);
         buf
     }
 
@@ -60,13 +60,16 @@ impl OriginHeader {
         let mut run_id = [0u8; 16];
         run_id.copy_from_slice(&bytes[28..44]);
 
+        let mut reserved = [0u8; 76];
+        reserved.copy_from_slice(&bytes[52..Self::SIZE]);
+
         Some(Self {
             magic,
             schema_version: u32::from_le_bytes(bytes[4..8].try_into().ok()?),
             git_commit,
             run_id,
             timestamp: i64::from_le_bytes(bytes[44..52].try_into().ok()?),
-            reserved: [0u8; 76], // We do not currently track reserved data
+            reserved,
         })
     }
 }
@@ -76,9 +79,10 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_header_size_and_alignment() {
-        // Ensure the struct size is exactly 128 bytes
-        assert_eq!(core::mem::size_of::<OriginHeader>(), 128);
+    fn test_header_wire_size() {
+        let header = OriginHeader::new(1, [0xAA; 20], [0xBB; 16], 1_714_560_000);
+
+        assert_eq!(header.to_bytes().len(), OriginHeader::SIZE);
     }
 
     #[test]
@@ -100,6 +104,23 @@ mod tests {
         assert_eq!(header.git_commit, restored.git_commit);
         assert_eq!(header.run_id, restored.run_id);
         assert_eq!(header.timestamp, restored.timestamp);
+        assert_eq!(header.reserved, restored.reserved);
+    }
+
+    #[test]
+    fn test_reserved_bytes_round_trip() {
+        let mut bytes = [0u8; OriginHeader::SIZE];
+        bytes[0..4].copy_from_slice(b"RPL0");
+        bytes[4..8].copy_from_slice(&7u32.to_le_bytes());
+        bytes[8..28].copy_from_slice(&[0xAA; 20]);
+        bytes[28..44].copy_from_slice(&[0xBB; 16]);
+        bytes[44..52].copy_from_slice(&1_714_560_000i64.to_le_bytes());
+        bytes[52..OriginHeader::SIZE].fill(0xCC);
+
+        let restored = OriginHeader::from_bytes(&bytes).expect("Failed to parse header bytes");
+
+        assert_eq!(restored.reserved, [0xCC; 76]);
+        assert_eq!(restored.to_bytes(), bytes);
     }
 
     #[test]
