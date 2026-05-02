@@ -15,6 +15,11 @@
 //! 16-bit words are processed as **Little-Endian** (`u16::from_le_bytes`)
 //! for cross-platform determinism (x86/ARM compatibility).
 
+#[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
+use sha2::{Digest, Sha256};
+#[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
+use std::io::{self, Read, Seek, SeekFrom};
+
 /// Fletcher-32 validation error.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ChecksumError {
@@ -70,9 +75,52 @@ pub const fn fletcher32(data: &[u8]) -> u32 {
 /// Size of the metadata portion of the header (excludes checksum field).
 pub const HEADER_METADATA_SIZE: usize = crate::HEADER_CHECKSUM_OFFSET;
 
+/// Compute a SHA-256 digest for a stream after skipping an initial prefix.
+///
+/// On success, the reader is consumed from `offset` to EOF and will be left at
+/// the end of the stream.
+#[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
+pub fn compute_stream_hash<R: Read + Seek>(reader: &mut R, offset: u64) -> io::Result<[u8; 32]> {
+    let stream_len = reader.seek(SeekFrom::End(0))?;
+    if offset > stream_len {
+        return Err(io::Error::new(
+            io::ErrorKind::UnexpectedEof,
+            std::format!("hash offset {offset} exceeds stream length {stream_len}"),
+        ));
+    }
+
+    reader.seek(SeekFrom::Start(offset))?;
+
+    let mut hasher = Sha256::new();
+    let mut buffer = [0u8; 8192];
+
+    loop {
+        let bytes_read = reader.read(&mut buffer)?;
+        if bytes_read == 0 {
+            break;
+        }
+        hasher.update(&buffer[..bytes_read]);
+    }
+
+    Ok(hasher.finalize().into())
+}
+
+/// Compute the canonical SHA-256 hash of an artifact payload.
+///
+/// The first [`crate::header::OriginHeader::SIZE`] bytes are always skipped so
+/// run-specific identity metadata does not affect the mathematical payload hash.
+#[cfg(any(test, feature = "verification-runtime", feature = "cli"))]
+pub fn compute_payload_hash<R: Read + Seek>(reader: &mut R) -> io::Result<[u8; 32]> {
+    compute_stream_hash(reader, crate::header::OriginHeader::SIZE as u64)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::OriginHeader;
+    use sha2::{Digest, Sha256};
+    use std::io::Cursor;
+    use std::vec;
 
     #[test]
     fn test_empty_input() {
@@ -143,6 +191,56 @@ mod tests {
         assert_ne!(
             checksum_a, checksum_b,
             "Word swap must change checksum (triangle property)"
+        );
+    }
+
+    #[test]
+    fn test_stream_hash_with_custom_offset() {
+        let payload = b"payload-only";
+        let mut artifact = vec![0xAA, 0xBB, 0xCC, 0xDD, 0xEE];
+        artifact.extend_from_slice(payload);
+
+        let digest = compute_stream_hash(&mut Cursor::new(artifact), 5)
+            .expect("stream hash should compute with custom offset");
+        let expected: [u8; 32] = Sha256::digest(payload).into();
+
+        assert_eq!(
+            digest, expected,
+            "custom offset must hash only the tail payload"
+        );
+    }
+
+    #[test]
+    fn test_stream_hash_rejects_offset_past_eof() {
+        let mut reader = Cursor::new(b"abc".to_vec());
+
+        let error =
+            compute_stream_hash(&mut reader, 4).expect_err("offsets past EOF must be rejected");
+
+        assert_eq!(error.kind(), io::ErrorKind::UnexpectedEof);
+    }
+
+    #[test]
+    fn test_payload_hash_determinism() {
+        let payload = b"same mathematical payload across unique headers";
+
+        let header_a = OriginHeader::new(1, [0x11; 20], [0x22; 16], 1_714_560_000);
+        let header_b = OriginHeader::new(1, [0x33; 20], [0x44; 16], 1_714_560_123);
+
+        let mut artifact_a = header_a.to_bytes().to_vec();
+        artifact_a.extend_from_slice(payload);
+
+        let mut artifact_b = header_b.to_bytes().to_vec();
+        artifact_b.extend_from_slice(payload);
+
+        let digest_a = compute_payload_hash(&mut Cursor::new(artifact_a))
+            .expect("payload hash should compute for artifact A");
+        let digest_b = compute_payload_hash(&mut Cursor::new(artifact_b))
+            .expect("payload hash should compute for artifact B");
+
+        assert_eq!(
+            digest_a, digest_b,
+            "origin header must be masked from payload hash"
         );
     }
 }

@@ -176,3 +176,22 @@ The canonical example path is exactly `examples/accumulator.json`.
 The following fields are excluded from determinism checks: `ARTIFACT`, `run_id`, `created_at`, `hostname`, `pid`.
 The following fields are included in determinism checks: `COMMAND`, `TARGET`, `MODE`, `RESULT`, `EQUIVALENCE`, `FIRST_DIVERGENCE`.
 Volatile artifact identity and metadata are excluded from semantic stability.
+
+## 17. Meta Schema Contract
+The authoritative `meta.json` file is schema-tagged.
+No untagged metadata form is valid.
+
+Retained legacy artifacts may use:
+
+- `schema = "precision.meta.v1"`
+- `transient_rpl0_sha256`
+
+Current emitted artifacts use:
+
+- `schema = "precision.meta.v2"`
+- `transient_rpl0_payload_sha256`
+
+The schema string is the only authoritative metadata version discriminator.
+No separate numeric `version` field is valid.
+Loaders must dispatch by `schema` before interpreting transient hash fields.
+`precision.meta.v1` and `precision.meta.v2` are distinct contracts and must not be silently collapsed into one schema shape.

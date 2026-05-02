@@ -7,6 +7,15 @@
 
 ## [Unreleased]
 
+### Added
+
+- canonical streaming payload SHA-256 helpers in `dpw4`, including the strict `OriginHeader`-masked `compute_payload_hash` path and offset-based stream hashing for artifact payload identity
+
+### Changed
+
+- formalized authoritative `precision` metadata as `precision.meta.v2`, with `transient_rpl0_payload_sha256` as the current contract field
+- retained explicit read compatibility for `precision.meta.v1` artifacts that still use `transient_rpl0_sha256`, while rejecting legacy field spelling under `precision.meta.v2`
+
 ## [1.7.0] - 2026-04-22
 
 ### Replay Authority Hardening + STM32 Operator Path

@@ -37,7 +37,7 @@ float-ingest = []
 cli = ["dep:clap", "dep:libm", "dep:sha2", "dep:hex", "dep:getrandom", "dep:serde", "dep:serde_json", "verification-runtime"]
 verification = []
 audit = []
-verification-runtime = []
+verification-runtime = ["dep:sha2"]
 
 [[bin]]
 name = "precision"
