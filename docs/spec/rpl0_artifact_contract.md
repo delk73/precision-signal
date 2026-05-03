@@ -6,14 +6,19 @@
 This document defines the normative binary artifact format for the RPL0 `version = 1` header path.
 It is sufficient to implement a compliant parser and deterministic artifact hasher without guessing.
 
+This contract governs the portable replay binary format.
+It does not govern the authoritative published `precision` provenance artifact
+directory (`result.txt`, `trace.json`, `meta.json`), which is defined in
+[docs/authority/cli_contract.md](../authority/cli_contract.md).
+
 ## Versioning Terminology
 
-- `RPL0` identifies the artifact format.
+- `RPL0` identifies the portable replay format.
 - `vX.Y.Z` identifies the software release.
-- The `version` field in the header selects the parsing path and is part of the artifact format.
+- The `version` field in the header selects the parsing path and is part of the portable replay format.
 - The term "current release surface" refers to the set of capabilities classified as Release in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
-- Document revisions are editorial and do not version the artifact format.
-- Software release versions do not imply artifact format changes.
+- Document revisions are editorial and do not version the portable replay format.
+- Software release versions do not imply portable replay format changes.
 
 ## Scope and non-goals
 
