@@ -66,7 +66,7 @@ not part of the current release surface
 
 - `replay-fw-f446` (active STM32 self-stimulus interval CSV contract is explicit in [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](replay/INTERVAL_CAPTURE_CONTRACT_v1.md), but the current path is not promoted as released operator tooling)
 - `replay-host` commands other than `diff`
-- broader `replay-host` capability outside the exact `artifacts/rpl0/` proof corpus and accepted artifact class retained under [docs/verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md](verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md)
+- broader `replay-host` capability outside the exact `artifacts/rpl0/` proof corpus and accepted RPL input class retained under [docs/verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md](verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md)
 - schema-aware Rust replay semantics
 - `substrate_probe`, `make conformance-audit`, and `make kill-switch-audit`
   (retained audit/probe workflow support, not canonical `1.7.0` operator

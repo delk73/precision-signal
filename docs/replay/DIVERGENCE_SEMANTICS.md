@@ -7,13 +7,13 @@
 
 - Document revision labels editorial history for this explanation contract.
 - Release versions identify the shipped software release.
-- Artifact/header versions remain part of the artifact contract and do not version this explanation document.
+- RPL/header versions remain part of the portable replay format contract and do not version this explanation document.
 
 This document defines the normative explanation contract emitted by
 `scripts/artifact_diff.py`.
 
 It freezes the deterministic divergence semantics used by the replay demo
-ladder. It does not change artifact format, fixture generation, capture logic,
+ladder. It does not change the portable replay format, fixture generation, capture logic,
 or comparison algorithms.
 
 This contract belongs to the released execution-analysis surface only. Other
@@ -37,8 +37,8 @@ perturbation
 -> captured evidence
 ```
 
-`artifact_diff.py` operates only on compared artifact bytes and supported
-artifact fields. It does not infer cause, physical source, or nondeterministic
+`artifact_diff.py` operates only on compared RPL bytes and supported
+RPL fields. It does not infer cause, physical source, or nondeterministic
 behavior.
 
 ## Stable Output Fields
@@ -56,9 +56,9 @@ The stable explanation contract consists of these emitted fields:
 Field meaning:
 
 - `first_divergence_frame`: the first frame index at which supported divergence
-  is observed. Value is `none` only when artifacts are identical.
+  is observed. Value is `none` only when compared RPL files are identical.
 - `primary_region`: one supported region selected by fixed precedence from
-  `all_regions_at_first_divergence`, or `none` when artifacts are identical.
+  `all_regions_at_first_divergence`, or `none` when compared RPL files are identical.
 - `all_regions_at_first_divergence`: ordered list of all supported regions
   present at the first divergent frame.
 - `region_summary`: `none` when no divergence exists, the single region name
@@ -66,10 +66,10 @@ Field meaning:
   one supported region differs first.
 - `shape_class`: sample-payload divergence shape label, or `none` when the
   first divergence does not include `sample_payload`.
-- `evolution_class`: post-divergence trajectory label, or `none` when artifacts
+- `evolution_class`: post-divergence trajectory label, or `none` when compared RPL files
   are identical.
 - `timeline_summary`: deterministic summary sentence derived from
-  `evolution_class`, or `none` when artifacts are identical.
+  `evolution_class`, or `none` when compared RPL files are identical.
 
 `artifact_diff.py` may also emit implementation-detail lines such as
 `reconvergence_summary`. Those lines are derivative helpers, not additional

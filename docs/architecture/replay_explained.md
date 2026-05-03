@@ -1,7 +1,7 @@
 # Replay Explained
 
 This document gives a single system narrative for the replay explanation layer.
-It describes deterministic replay artifacts, how divergence is captured, and
+It describes deterministic replay evidence, how divergence is captured, and
 how the explanation ladder is derived without adding new replay capabilities.
 Precision Signal is a deterministic execution validation system centered on
 replay, operated through the `precision` CLI against an attached STM32 target
@@ -48,7 +48,7 @@ descriptions.
 
 The explanation surface is intentionally narrow. It answers:
 
-- did two artifacts diverge
+- did two RPL files diverge
 - where did divergence first appear
 - what shape did the first sample divergence take
 - which supported region differed first
@@ -71,7 +71,7 @@ There are two evidence sources:
 
 The Demo V2 pair anchors the ladder with a reproducible first-divergence case.
 Later demos build on that base to show additional explanation depth without
-changing the artifact contract.
+changing the portable replay format contract.
 
 Deterministic capture matters because the explanation layer is only useful if
 the same input pair always yields the same explanation fields. The repository
@@ -89,7 +89,7 @@ Detection proceeds in a strict sequence:
 2. Compare header/schema and non-frame prefix bytes.
 3. If header/schema differs, anchor first divergence at frame `0`.
 4. Otherwise scan frames in order and stop at the first supported divergence.
-5. If no supported divergence exists, report identical artifacts.
+5. If no supported divergence exists, report identical RPL files.
 
 The supported explanation regions are fixed:
 
@@ -190,6 +190,6 @@ Its purpose is simple:
 - rerun the explanation ladder end to end
 - confirm the frozen explanation outputs remain unchanged
 
-For artifact format, arithmetic behavior, and verification governance, defer to
+For portable replay format rules, arithmetic behavior, and verification governance, defer to
 the normative documents already called out in [README.md](../../README.md) and
 [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md).

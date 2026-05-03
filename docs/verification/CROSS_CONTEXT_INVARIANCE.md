@@ -1,12 +1,12 @@
 # Cross-Context Invariance
 
 This document records an external validation check showing that identical RPL0
-artifacts produce identical replay outputs and divergence classification across
+files produce identical replay outputs and divergence classification across
 multiple execution contexts.
 
 ## Scope
 
-- Artifact format: existing RPL0 v1 container artifacts with legacy
+- Portable replay format: existing RPL0 v1 container files with legacy
   `EventFrame0` replay semantics
 - Here, `v1` refers to RPL0 format version 1 container framing, not a replay-semantics revision.
 - External target: existing synthetic fixture generator
@@ -15,7 +15,7 @@ multiple execution contexts.
   `scripts/artifact_tool.py`, `scripts/artifact_diff.py`
 - Comparison-only context: experimental Rust `replay-host`
 
-No DSP math, artifact schema, or release-surface behavior changed.
+No DSP math, RPL schema interpretation, or release-surface behavior changed.
 
 ## Test Setup
 
@@ -42,16 +42,16 @@ Note: Fixtures use legacy EventFrame0 semantics (version: 0) within RPL0 contain
 
 `PASS`
 
-- Same artifact bytes were produced in both contexts.
-- Same artifact bytes produced the same canonical hash output in both contexts.
-- Same artifact bytes produced the same replay hash progression in both contexts.
+- Same RPL bytes were produced in both contexts.
+- Same RPL bytes produced the same canonical hash output in both contexts.
+- Same RPL bytes produced the same replay hash progression in both contexts.
 - Python divergence classification output matched exactly across both contexts.
 - Experimental Rust `replay-host` reported the same first-divergence frame for
   the same pairs in both contexts.
 - No context-dependent replay or classification behavior was observed.
 
-Note: Verification failures on perturbed artifacts are expected due to intentional divergence.
-They do not indicate artifact corruption and are part of the test design.
+Note: Verification failures on perturbed RPL files are expected due to intentional divergence.
+They do not indicate RPL corruption and are part of the test design.
 
 ## Bounded Note
 
