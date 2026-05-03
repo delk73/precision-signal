@@ -14,12 +14,19 @@ Use:
 - [docs/verification/releases/index.md](../verification/releases/index.md) for
   historical release records and retained verification material
 
+Terminology used in this document:
+
+- `artifact` refers to the authoritative published `precision` provenance
+  artifact only when contrasting it with replay tooling inputs
+- `RPL` refers to the portable replay binary format, including `.rpl` files,
+  parser behavior, and portable replay validation
+
 Replay uses a two-stage model: Stage 1 is the interval CSV capture contract for
 firmware, defined in
 [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md).
-Stage 2 is the RPL0 replay artifact format for replay and diff, defined in
+Stage 2 is the RPL0 portable replay format for replay and diff, defined in
 [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md). These
-are separate contracts, not one unified artifact format.
+are separate contracts, not one unified format.
 
 The Python tooling layer (`artifact_tool.py`, `artifact_diff.py`) is retained as
 historical support/reference tooling. Rust replay remains mostly experimental,
@@ -48,7 +55,7 @@ cargo run -q -p replay-host -- diff artifacts/rpl0/run_20260331T150000Z.import1.
 Retained scope:
 
 - the retained `artifacts/rpl0/` proof corpus only
-- the exact accepted artifact class mechanically demonstrated by that corpus and
+- the exact accepted RPL input class mechanically demonstrated by that corpus and
   retained under [docs/verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md](../verification/releases/1.5.0/RUST_REPLAY_DIFF_SCOPE.md)
 - current replay behavior under the existing RPL0/EventFrame0 implementation
   boundary already present in code
@@ -58,7 +65,7 @@ Retained scope:
 - `replay-host import-interval-csv`
 - `replay-host validate-interval-csv`
 - any broader `replay-host` capability outside the retained `artifacts/rpl0/`
-  proof corpus and accepted artifact class
+  proof corpus and accepted RPL input class
 - schema-aware Rust replay semantics
 - `replay-fw-f446`
 
