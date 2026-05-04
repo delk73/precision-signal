@@ -11,8 +11,9 @@ directory under `artifacts/<run_id>/`.
 That published artifact contains `result.txt`, `trace.json`, and `meta.json`.
 `RPL` refers to the portable replay binary format governed separately by
 [docs/spec/rpl0_format_contract.md](../spec/rpl0_format_contract.md).
-`precision.meta.v1` and `precision.meta.v2` version provenance metadata for
-published `precision` artifacts. They do not version the RPL container.
+`precision.meta.v1` and `precision.meta.v2` are published artifact `meta.json`
+schema versions for `precision` provenance metadata. They do not version the
+RPL container.
 
 
 ## 2. Command Set

@@ -1,7 +1,7 @@
 # Divergence Semantics
 
 **Document revision:** 1.4.0  
-**Applies to:** release 1.4.0 (content unchanged)
+**Applies to:** release 1.4.0
 
 ## Versioning Terminology
 

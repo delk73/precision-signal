@@ -18,7 +18,7 @@ Scope: parser structure checks, canonical hash behavior, and RPL file comparison
   - `make parser-tests`
 - Toolchain CLI regression suites:
   - `make replay-tool-tests`
-- Full replay artifact/toolchain local gate:
+- Full RPL/toolchain local gate:
   - `make replay-tests`
 
 Reference direct commands:
@@ -31,7 +31,7 @@ Reference direct commands:
 
 ## CI Gates
 
-Replay artifact/toolchain coverage in CI is enforced by:
+RPL/toolchain coverage in CI is enforced by:
 
 - `Replay Baseline Verify (phase8)`
   - `python3 scripts/artifact_tool.py verify artifacts/baseline.bin --signal-model phase8`
@@ -46,7 +46,7 @@ Replay artifact/toolchain coverage in CI is enforced by:
 
 ## Intended Operator Workflow
 
-Use this sequence when validating a captured artifact:
+Use this sequence when validating a captured RPL file:
 
 1. Verify structural validity (strict):
    - `python3 scripts/artifact_tool.py verify <artifact.bin> --signal-model phase8`
@@ -61,7 +61,7 @@ For local pre-commit replay validation, run:
 
 ## Stability Status
 
-Replay artifact/toolchain hardening is closed for this sprint:
+RPL/toolchain hardening is closed for this sprint:
 
 - Parser traceability matrix is in place ([docs/replay/RPL0_PARSER_TRACEABILITY.md](RPL0_PARSER_TRACEABILITY.md)).
 - Parser coverage includes adversarial, acceptance-space, and mutation boundary suites.

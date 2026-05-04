@@ -50,7 +50,7 @@ unless promoted by [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
 | **State hash** | A 64-bit value computed from accumulated replay state after each frame via the SplitMix64 finalizer. |
 | **Hash stream** | The ordered sequence of state hashes produced by replaying an RPL file. |
 | **Divergence** | The first frame index at which two hash streams differ. |
-| **RPL boundary** | The serialization contract separating runtime capture from offline analysis. The RPL file is the sole artifact that crosses this boundary. |
+| **RPL boundary** | The serialization contract separating runtime capture from offline analysis. The RPL file is the sole representation that crosses this boundary. |
 | **DPW4** | 4th-order Differentiated Polynomial Waveform synthesis; the reference oscillator used to generate deterministic test signals. |
 | **Scalar** | 128-bit fixed-point type (`I64F64`) used throughout the math core. |
 | **CORDIC** | Coordinate Rotation Digital Computer; iterative trigonometric algorithm used for sine/cosine. |

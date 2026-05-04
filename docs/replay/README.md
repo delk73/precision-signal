@@ -18,8 +18,8 @@ Terminology used in this folder:
   directory under `artifacts/<run_id>/`
 - `RPL` means the portable replay binary format used by `.rpl` files and the
   support/reference replay tooling
-- `precision.meta.v1` and `precision.meta.v2` version provenance metadata, not
-  the RPL container
+- `precision.meta.v1` and `precision.meta.v2` are provenance metadata schema
+  versions for published artifacts, not RPL container versions
 
 Current authoritative `precision replay` consumes the published artifact
 directory emitted by the CLI result block (`ARTIFACT: artifacts/<run_id>`).
