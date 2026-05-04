@@ -1,12 +1,12 @@
-# RPL0 Artifact Contract (Normative)
+# RPL0 Format Contract (Normative)
 
 **Document revision:** 1.4.0  
 **Applies to:** release 1.7.0 (content unchanged)
 
-This document defines the normative binary artifact format for the RPL0 `version = 1` header path.
-It is sufficient to implement a compliant parser and deterministic artifact hasher without guessing.
+This document defines the normative RPL format for the RPL0 `version = 1` header path.
+It is sufficient to implement a compliant parser and deterministic RPL hasher without guessing.
 
-This contract governs the portable replay artifact format.
+This contract governs the portable RPL format.
 It does not govern the authoritative published `precision` provenance artifact
 directory (`result.txt`, `trace.json`, `meta.json`), which is defined in
 [docs/authority/cli_contract.md](../authority/cli_contract.md).
@@ -22,26 +22,26 @@ directory (`result.txt`, `trace.json`, `meta.json`), which is defined in
 
 ## Scope and non-goals
 
-This contract defines artifact-level structure only:
+This contract defines RPL file-level structure only:
 
 - Header encoding and validation
 - Schema block placement and integrity
 - Frame data placement and framing
-- Canonical artifact hash definition
+- Canonical RPL identity hash definition
 - Forward-compatibility behavior via `header_len`
 
-This contract does not define frame payload semantics. Frame payload bytes are opaque to the artifact format.
+This contract does not define frame payload semantics. Frame payload bytes are opaque to the RPL format.
 
 This contract does not change firmware capture logic.
 
 ## Hard invariants
 
 1. `FRAME_SIZE` is fixed at `16` bytes.
-2. Frame payload bytes are opaque to this artifact contract.
-3. Schema interpretation is artifact-level only.
-4. Artifact identity hash is deterministic: `SHA256(header + schema_block + frame_data)`.
+2. Frame payload bytes are opaque to this RPL format contract.
+3. Schema interpretation is RPL file-level only.
+4. RPL identity hash is deterministic: `SHA256(header + schema_block + frame_data)`.
 5. Unknown header fields are skippable using `header_len`.
-6. Backward-incompatible artifact layout changes require a header `version` increment.
+6. Backward-incompatible RPL layout changes require a header `version` increment.
 7. Firmware capture logic is out of scope and unchanged by this contract.
 
 ## Byte order
@@ -55,16 +55,16 @@ This dispatch rule is intentional, frozen, and part of the compatibility boundar
 
 - RPL0 v0 uses the legacy fixed header layout.
 - A compliant parser MUST first read a 32-bit little-endian value at offset `0x04`.
-- If that `u32` value equals `0`, the artifact MUST be interpreted as v0.
-- Otherwise, the artifact MUST be interpreted using the extended-header parsing path.
+- If that `u32` value equals `0`, the RPL file MUST be interpreted as v0.
+- Otherwise, the RPL file MUST be interpreted using the extended-header parsing path.
 - In the v1 parsing path, the 16-bit little-endian value at offset `0x04` MUST equal `1`.
 - Any other value is invalid and MUST cause parse failure.
 
 Changing this dispatch rule requires a format version break and corresponding compatibility update.
 
-## Artifact layout
+## RPL file layout
 
-Artifacts are encoded as:
+RPL files are encoded as:
 
 `[HEADER][SCHEMA BLOCK][FRAME DATA]`
 
@@ -83,7 +83,7 @@ For `version = 1`, the minimum header size is `0x98` (`152`) bytes.
 | `0x06` | 2 | `header_len` | `u16` | Full header size in bytes |
 | `0x08` | 4 | `frame_count` | `u32` | Number of frames in frame data |
 | `0x0C` | 2 | `frame_size` | `u16` | MUST be `16` for v1 |
-| `0x0E` | 2 | `flags` | `u16` | Artifact-level flags; opaque to framing |
+| `0x0E` | 2 | `flags` | `u16` | RPL-level flags; opaque to framing |
 | `0x10` | 4 | `schema_len` | `u32` | Schema block length in bytes |
 | `0x14` | 32 | `schema_hash` | `[u8;32]` | `SHA256(schema_block)` |
 | `0x34` | 32 | `build_hash` | `[u8;32]` | Producer build identity (opaque bytes) |
@@ -97,7 +97,7 @@ For `version = 1`, the minimum header size is `0x98` (`152`) bytes.
 
 - For `version = 1`, `header_len` MUST be `>= 0x98`.
 - In future compatible revisions, header extension fields MAY be appended after offset `0x98`; readers use `header_len` to skip unknown trailing header bytes.
-- A reader MUST reject artifacts where `header_len < 0x98`.
+- A reader MUST reject RPL files where `header_len < 0x98`.
 - Current producer implementations set `header_len = 0x98`.
 
 ### `capture_boundary` semantics
@@ -116,7 +116,7 @@ Readers SHOULD preserve/report unknown values without reinterpretation.
 - Length: `schema_len`
 - End offset: `schema_end = schema_offset + schema_len`
 
-The schema defines interpretation metadata for frame payload bytes (for example channel definitions, signal identifiers, numeric encoding, units, scaling, sensor type, and endian rules). The artifact format does not interpret frame payload itself.
+The schema defines interpretation metadata for frame payload bytes (for example channel definitions, signal identifiers, numeric encoding, units, scaling, sensor type, and endian rules). The RPL format does not interpret frame payload itself.
 
 Schema integrity field:
 
@@ -133,45 +133,45 @@ For `version = 1`:
 
 - `frame_size` MUST equal `16`.
 - `frame_count` MAY be `0`.
-- Frame bytes are opaque at artifact-format level.
+- Frame bytes are opaque at RPL format level.
 - Frame boundaries are located mechanically by fixed-width stepping:
   - `frame_n_offset = frames_offset + n * 16`, for `0 <= n < frame_count`.
 
-## Total artifact length rule
+## Total RPL file length rule
 
 Let:
 
 - `expected_len = header_len + schema_len + frame_count * frame_size`
 
-A compliant artifact MUST satisfy:
+A compliant RPL file MUST satisfy:
 
 - `file_len == expected_len`
 - Readers MUST compute `expected_len` using integer arithmetic that rejects overflow.
 
 No trailing or missing bytes are allowed.
 
-## Canonical artifact identity hash
+## Canonical RPL identity hash
 
-The canonical deterministic artifact identity is:
+The canonical deterministic RPL file identity is:
 
-- `artifact_hash = SHA256(canonical artifact bytes: header + schema_block + frame_data)`
+- `rpl_hash = SHA256(canonical RPL bytes: header + schema_block + frame_data)`
 
 Where:
 
-- `header` is exactly the first `header_len` bytes from the artifact.
+- `header` is exactly the first `header_len` bytes from the RPL file.
 - `schema_block` is exactly the next `schema_len` bytes.
 - `frame_data` is exactly the remaining `frame_count * frame_size` bytes.
 
 ### Hash mode vs strict verification (normative tooling behavior)
 
 - Strict verification/compare paths MUST reject trailing bytes (`file_len` must equal computed canonical length).
-- Canonical hash mode MAY ignore trailing bytes and hash only the canonical artifact prefix
+- Canonical hash mode MAY ignore trailing bytes and hash only the canonical RPL prefix
   (`header + schema_block + frame_data`).
 - This behavior difference is intentional:
   - `verify`/`compare` enforce strict structural validity.
-  - `hash` computes portable artifact identity from the canonical prefix.
+  - `hash` computes portable RPL file identity from the canonical prefix.
 
-## Invalid artifact conditions (MUST reject)
+## Invalid RPL file conditions (MUST reject)
 
 A reader MUST reject when any of the following holds:
 
@@ -197,6 +197,6 @@ A reader MUST reject when any of the following holds:
 4. Compute `expected_len` and validate exact file length.
 5. Slice `schema_block` and validate `schema_hash`.
 6. Slice `frame_data` as `frame_count` contiguous `16`-byte frames.
-7. Compute canonical artifact hash over `[header][schema_block][frame_data]`.
+7. Compute canonical RPL hash over `[header][schema_block][frame_data]`.
 
 This procedure is sufficient to build a compliant parser and deterministic comparison pipeline.

@@ -86,7 +86,7 @@ Only these regions participate in the explanation contract:
 
 Region definitions:
 
-- `header_schema`: any difference in artifact header metadata or any byte before
+- `header_schema`: any difference in RPL header metadata or any byte before
   the frame stream starts. This includes version, frame size, frame count, and
   any non-frame prefix byte mismatch.
 - `timer_delta`: difference in the per-frame `timer_delta` field.

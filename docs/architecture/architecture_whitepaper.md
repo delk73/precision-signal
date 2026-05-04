@@ -8,17 +8,17 @@
 
 This document describes the architecture of the current replay-facing system
 implemented in the `precision-signal` repository. The system captures execution
-artifacts from physical hardware, encodes them in a canonical binary format,
-replays those artifacts through deterministic tooling, and performs structured
+data from physical hardware, encodes it as RPL files,
+replays those RPL files through deterministic tooling, and performs structured
 divergence analysis on the resulting hash streams.
 Precision Signal is a deterministic execution validation system centered on
 replay, operated through the `precision` CLI against an attached STM32 target
 over UART.
 
-The central architectural contribution is the **artifact boundary**: a
+The central architectural contribution is the **RPL boundary**: a
 well-defined serialization contract that separates runtime capture from offline
 analysis. This boundary enables execution comparison without execution
-reproduction. Two executions can be compared by replaying their artifacts
+reproduction. Two executions can be compared by replaying their RPL files
 independently; the original runtime conditions need not be recreated.
 
 The system is implemented across bare-metal firmware (STM32F446RE), a Rust
@@ -42,14 +42,15 @@ unless promoted by [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
 
 | Term | Definition |
 |------|-----------|
-| **Artifact** | A canonical binary file encoding a header, optional schema block, and a sequence of execution frames in the RPL0 wire format. Size is determined by header fields. |
-| **RPL0** | The versioned binary artifact format. Magic bytes: `RPL0`. Two format versions exist: format version 0 (fixed-layout, legacy) and format version 1 (variable-layout with schema). |
+| **RPL file** | A canonical binary file encoding a header, optional schema block, and a sequence of execution frames in the RPL0 wire format. Size is determined by header fields. |
+| **Provenance Artifact** | The authoritative published directory emitted by the `precision` CLI (`artifacts/<run_id>/`), containing `result.txt`, `trace.json`, and `meta.json`. |
+| **RPL0** | The versioned RPL format. Magic bytes: `RPL0`. Two format versions exist: format version 0 (fixed-layout, legacy) and format version 1 (variable-layout with schema). |
 | **Frame** | A 16-byte record capturing one interrupt-driven execution sample. |
-| **Replay** | Deterministic reconstruction of execution state from an artifact's frame stream. |
+| **Replay** | Deterministic reconstruction of execution state from an RPL file's frame stream. |
 | **State hash** | A 64-bit value computed from accumulated replay state after each frame via the SplitMix64 finalizer. |
-| **Hash stream** | The ordered sequence of state hashes produced by replaying an artifact. |
+| **Hash stream** | The ordered sequence of state hashes produced by replaying an RPL file. |
 | **Divergence** | The first frame index at which two hash streams differ. |
-| **Artifact boundary** | The serialization contract separating runtime capture from offline analysis. |
+| **RPL boundary** | The serialization contract separating runtime capture from offline analysis. The RPL file is the sole artifact that crosses this boundary. |
 | **DPW4** | 4th-order Differentiated Polynomial Waveform synthesis; the reference oscillator used to generate deterministic test signals. |
 | **Scalar** | 128-bit fixed-point type (`I64F64`) used throughout the math core. |
 | **CORDIC** | Coordinate Rotation Digital Computer; iterative trigonometric algorithm used for sine/cosine. |
@@ -87,32 +88,32 @@ Three requirements motivate the architecture:
 The system implements a four-stage pipeline:
 
 ```
-capture → artifact → replay → analysis
+capture → RPL file → replay → analysis
 ```
 
 ### Pipeline Diagram
 
 ```
 ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐    ┌──────────────────┐
-│     CAPTURE      │    │     ARTIFACT      │    │      REPLAY      │    │     ANALYSIS     │
-│                  │    │                   │    │                  │    │                  │
-│  STM32F446RE     │───>│  RPL0 binary      │───>│  State machine   │───>│  Hash stream     │
-│  TIM2 ISR        │    │  Header + Frames  │    │  SutState0       │    │  comparison      │
-│  Phase accum.    │    │  16B header       │    │  step0() per     │    │  Divergence      │
-│  USART2 emit     │    │  16B × N frames   │    │  frame           │    │  localization    │
-│                  │    │                   │    │  hash_state0()   │    │  Classification  │
+│     CAPTURE      │    │     RPL FILE     │    │      REPLAY      │    │     ANALYSIS     │
+│                  │    │                  │    │                  │    │                  │
+│  STM32F446RE     │───>│  RPL0 binary     │───>│  State machine   │───>│  Hash stream     │
+│  TIM2 ISR        │    │  Header + Frames │    │  SutState0       │    │  comparison      │
+│  Phase accum.    │    │  16B header      │    │  step0() per     │    │  Divergence      │
+│  USART2 emit     │    │  16B × N frames  │    │  frame           │    │  localization    │
+│                  │    │                  │    │  hash_state0()   │    │  Classification  │
 └──────────────────┘    └──────────────────┘    └──────────────────┘    └──────────────────┘
         │                        │                       │                       │
         │                        │                       │                       │
-   physical time            artifact boundary        deterministic           structured
+   physical time            RPL boundary            deterministic           structured
    ISR-driven               (wire contract)          state replay            explanation
 ```
 
-The **artifact boundary** is the architectural invariant. Everything to its left
+The **RPL boundary** is the architectural invariant. Everything to its left
 is runtime-dependent. Everything to its right is deterministic and reproducible
-from the artifact alone.
+from the RPL file alone.
 
-### Artifact Lifecycle
+### RPL File Lifecycle
 
 ```
           ┌─────────────────────┐
@@ -147,19 +148,19 @@ from the artifact alone.
 
 ### Architectural Contribution
 
-The artifact boundary enables:
+The RPL boundary enables:
 
 ```
 execution comparison without execution reproduction
 ```
 
-Given two artifacts A and B:
+Given two RPL files A and B:
 
 1. Replay A through the deterministic state machine. Produce hash stream H_A.
 2. Replay B through the deterministic state machine. Produce hash stream H_B.
 3. Compare H_A and H_B element-wise.
 
-The comparison requires only the artifacts. The original hardware, timing,
+The comparison requires only the RPL files. The original hardware, timing,
 clocking, and environmental conditions are not needed.
 
 ---
@@ -176,9 +177,50 @@ architecture-relevant properties are:
 - **Scalar type**: `I64F64` (128-bit fixed-point). All oscillator math
   operates on this type, avoiding floating-point nondeterminism.
 - **Trigonometry**: 64-iteration CORDIC for `sin`/`cos`; Shafer-Fink `atan`
-  with asymptotic clamping. No floating-point operations anywhere in the path.
+  with asymptotic clamping.
 - **Verification coverage**: Kani proofs cover `sqrt`, `sin_cos`, `atan_shafer`,
   and all four `atan2` quadrants (see Section 9.1).
+
+#### Why CORDIC
+
+CORDIC (Coordinate Rotation Digital Computer, Volder 1959) computes
+trigonometric functions using only integer addition, subtraction, and
+bit-shifts — no multiplication, no division, no lookup table of precomputed
+floats. The algorithm works by iteratively rotating a vector toward the target
+angle in small, precomputed steps, converging on `sin` and `cos` simultaneously.
+
+The requirement driving the choice is the same as for DPW: *identical output
+on every platform*. Sine and cosine must be computed without floating-point
+operations, because FPU results are not guaranteed to be bit-identical across
+compilers and architectures.
+
+The alternatives:
+
+- **`libm` `sin()`/`cos()`:** Floating-point. Output is not bit-identical
+  across platforms even for the same input. Ruled out for the same reason
+  as floating-point waveform synthesis.
+- **Precomputed lookup table:** Deterministic, but resolution is limited by
+  table size. Interpolating between entries reintroduces floating-point or
+  requires fixed-point interpolation logic of comparable complexity to CORDIC.
+  Also requires a large read-only table in memory, which is a constraint on
+  `no_std` embedded targets.
+- **Taylor series in fixed-point:** Deterministic and float-free, but
+  convergence is slow near the series boundaries (sin near ±π/2, cos near 0
+  for higher-order terms), requiring more terms and more multiplications for
+  the same accuracy. CORDIC converges uniformly across the full input range.
+- **CORDIC:** Fully integer (add, subtract, shift only). Convergence is
+  uniform — each iteration adds approximately one bit of precision regardless
+  of the input angle. 64 iterations on a 128-bit fixed-point type produces
+  accuracy well within the tolerance needed for hash-stable waveform output.
+  Works naturally in `no_std` with no heap allocation. The 32-entry arctangent
+  table it requires contains only small precomputed constants, not full-range
+  float data.
+
+The 64-iteration count is not arbitrary — it matches the 64-bit mantissa of the
+`I64F64` scalar type, so each iteration reduces the error by one bit and the
+algorithm terminates when no further precision is available. Kani formally
+verifies that the iteration loop cannot panic and that convergence bounds hold
+(see Section 9.1, `proof_sin_cos_no_panic`).
 
 Evidence:
 - `crates/geom-signal/src/lib.rs`: Scalar type alias (line 13)
@@ -196,10 +238,52 @@ architecture-relevant properties are:
   via a 3rd-order differentiator. Final output is i32 after gain scaling
   and 1-bit headroom saturation.
 - **Extended precision**: Triangle integration uses I256 (256-bit signed
-  integer with modular arithmetic) to prevent accumulator overflow.
+  integer) for intermediate arithmetic: subtracting two i128 differentiator
+  outputs can exceed i128 range, so I256 is used before clamping back to i128.
 - **Hash-locked outputs**: Six normative scenarios produce frozen SHA-256
   hashes. Golden byte-array hashes are independently verified in forensic
   audit tests (see Section 9.2).
+
+#### Why DPW4
+
+The system requires a reference signal that produces *identical integer output*
+given the same parameters on any platform, at any time. This is a stricter
+requirement than audio fidelity — it is a determinism requirement.
+
+The obvious alternatives fail it:
+
+- **Floating-point sine (e.g. `sin()` from libm):** FPU rounding behavior
+  varies across compilers, optimization levels, and CPU microarchitectures.
+  Two platforms computing the same sine call can produce different bit patterns,
+  which would register as divergence even in a correct system. Ruled out.
+- **Naive integer sawtooth (wrapping phase accumulator):** Perfectly
+  deterministic, but produces an infinitely steep discontinuity at each phase
+  wrap. In the frequency domain this is infinite harmonics — aliasing — whose
+  exact expression depends on the phase value at wrap time. Any phase offset
+  between two runs produces different aliasing patterns, making the signals
+  non-comparable by hash. Ruled out.
+- **CORDIC sine (used for the sine waveform shape):** Fully integer and
+  deterministic, but iterative convergence produces a fixed-point output with
+  bounded but non-zero approximation error. Suitable for sine output but not
+  for the core polynomial oscillator driving sawtooth, pulse, and triangle,
+  where the polynomial structure is needed for bandlimiting.
+
+DPW solves the aliasing problem by generating the waveform from a smooth
+polynomial evaluated at the wrapping phase, then differentiating it to recover
+the desired waveform shape. The polynomial has no discontinuities, so
+differentiation produces a bandlimited signal — no aliasing, regardless of
+phase alignment. The result is fully deterministic because all arithmetic is
+integer or fixed-point with no platform-dependent rounding.
+
+The "4th-order" means a 4th-degree polynomial is used before differentiation.
+Higher order gives better harmonic suppression; 4th-order was chosen as the
+practical minimum for a clean reference signal.
+
+One naming note: in the audio DSP literature, DPW canonically generates only
+sawtooth. This implementation extends the same polynomial core to pulse,
+triangle, and CORDIC-backed sine. The crate is named `dpw4` for the polynomial
+core order; the waveform shapes built on top are not all strictly "DPW" in the
+academic sense.
 
 Evidence:
 - `crates/dpw4/src/lib.rs`: `Dpw4State` (line 90), `compute_x2_q124()` (line 141), `tick_dpw4_raw()` (line 172), `apply_gain()` (line 287)
@@ -208,8 +292,17 @@ Evidence:
 
 ### Layer 3: Capture Firmware (`replay-fw-f446`, `replay-embed`)
 
+> **Implementation status — retained historical.** The firmware described in
+> this section (direct RPL0 emission over USART2) was the active path at
+> release 1.2.2 and is preserved in the `feat/1.2.2` branch and in
+> [docs/replay/FW_F446_CAPTURE_v1.md](../replay/FW_F446_CAPTURE_v1.md).
+> The active STM32 capture path is now the interval CSV contract documented in
+> [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](../replay/INTERVAL_CAPTURE_CONTRACT_v1.md).
+> `replay-fw-f446` is classified Experimental in
+> [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
+
 Bare-metal firmware on STM32F446RE capturing interrupt-driven execution
-samples into a fixed-size buffer and emitting them as an RPL0 artifact over
+samples into a fixed-size buffer and emitting them as an RPL0 file over
 USART2.
 
 - **Timer configuration**: TIM2 at 1 kHz update interrupt (PSC=15, ARR=999
@@ -217,8 +310,8 @@ USART2.
 - **ISR capture**: Phase accumulator advances by `STEP = 0x0100_0000` per
   interrupt. Sample is extracted as `(phase >> 24) as i32`. Stored into a
   static `[i32; 10_000]` buffer protected by Cortex-M critical sections.
-- **Artifact emission**: After 10,000 frames are captured, firmware disables
-  interrupts and emits the complete RPL0 artifact (16-byte header + 10,000
+- **RPL file emission**: After 10,000 frames are captured, firmware disables
+  interrupts and emits the complete RPL0 file (16-byte header + 10,000
   × 16-byte frames) over USART2 at 115200 baud.
 - **Demo perturbation modes**: Feature flags `demo-divergence` and
   `demo-persistent-divergence` inject controlled perturbations at frame 4096
@@ -231,7 +324,7 @@ Evidence:
 
 ### Layer 4: Replay Engine (`replay-host`, `replay-core`)
 
-A deterministic state machine replaying artifact frame streams and producing
+A deterministic state machine replaying RPL file frame streams and producing
 hash streams for comparison. This Rust replay path remains experimental: it
 supports RPL0 format version 0 replay, RPL0 format version 1 container parsing,
 and current replay only under the legacy 16-byte `EventFrame0` interpretation.
@@ -250,7 +343,7 @@ and current replay only under the legacy 16-byte `EventFrame0` interpretation.
 - **First-divergence detection** (`first_divergence0`): Linear scan comparing
   two hash vectors element-wise. Returns first mismatching index. Handles
   length differences by reporting divergence at `min(len_a, len_b)`.
-- **Artifact comparison** (`diff_artifacts0`): Parses both artifacts, replays
+- **RPL file comparison** (`diff_artifacts0`): Parses both RPL files, replays
   both, compares hash streams.
 
 Evidence:
@@ -259,17 +352,17 @@ Evidence:
 
 ### Layer 5: Divergence Analysis (`scripts/artifact_diff.py`)
 
-A deterministic analysis pipeline classifying divergence between two artifacts
+A deterministic analysis pipeline classifying divergence between two RPL files
 along four dimensions: localization, region, shape, and evolution.
 
 Described in detail in Section 7.
 
 ---
 
-## 4. Artifact Contract
+## 4. RPL Format Contract
 
-The artifact contract defines the binary wire format that constitutes the
-artifact boundary. Two layout versions exist: **RPL0 format version 0**
+The RPL format contract defines the binary wire format that constitutes the
+RPL boundary. Two layout versions exist: **RPL0 format version 0**
 (fixed-layout, legacy) and **RPL0 format version 1** (variable-layout with
 schema). They share the `RPL0` magic and the `EventFrame0` wire format but
 differ in header structure and validation rules. The released operator-facing
@@ -290,7 +383,7 @@ Offset    Size    Field            Encoding
 0x10      N×16    frame array      N × EventFrame0
 ```
 
-Total artifact size (RPL0 format version 0): 160,016 bytes (16 + 10,000 × 16).
+Total RPL file size (RPL0 format version 0): 160,016 bytes (16 + 10,000 × 16).
 
 ### RPL0 Format Version 1 Layout
 
@@ -370,7 +463,7 @@ Evidence:
 
 ### Identity Hashing
 
-Artifact identity is computed as SHA-256 over the canonical region only.
+RPL file identity is computed as SHA-256 over the canonical region only.
 Trailing bytes beyond `canonical_len` are excluded from the hash.
 
 - RPL0 format version 0: `canonical_len = HEADER_SIZE + frame_count × FRAME_SIZE`
@@ -413,13 +506,47 @@ After each state transition, a 64-bit hash is computed:
 The SplitMix64 finalizer provides strong avalanche-style diffusion: input
 bit changes propagate broadly across output bits.
 
+#### Why SplitMix64
+
+The state accumulation operations (`wrapping_add`, XOR, rotate) are deliberately
+simple and cheap — they do not mix bits well on their own. Without finalization,
+a one-unit change in `timer_delta` would produce a hash difference of exactly
+one, making the hash stream nearly identical to the raw frame data and defeating
+the purpose of hashing. A finalizer is required to make the comparison sensitive
+to any bit-level difference anywhere in any frame.
+
+SplitMix64 was chosen over the obvious alternatives for these reasons:
+
+- **Cryptographic hash (SHA-256, BLAKE3):** Would provide stronger guarantees
+  than needed, at ~10–100× the per-frame cost. Divergence detection requires
+  collision resistance only within a single run comparison, not against an
+  adversary.
+- **CRC-32 / CRC-64:** Designed for error detection, not diffusion. CRC is
+  linear over GF(2) — structured input patterns can produce structured output
+  patterns, weakening the sensitivity guarantee. Also not bijective: distinct
+  states can hash to the same value.
+- **Simple XOR fold:** No multiplication means no cross-bit mixing. High bits
+  cannot influence low bits, so a change confined to the upper half of a field
+  could produce a small, predictable output change.
+- **SplitMix64:** Bijective (no two distinct inputs produce the same output,
+  so no false divergence is possible), constant time, two arithmetic operations
+  per round, and the constants were derived by Steele, Lea, and Dowd via
+  exhaustive avalanche analysis (OOPSLA 2014). It is the standard finalizer used
+  in Java's `SplittableRandom`, murmur3, and many hash-table implementations.
+  It costs two multiplications and five XOR-shifts per frame — negligible
+  compared to the I/O cost of reading the frame stream.
+
+The net guarantee is: any single-bit difference anywhere in any frame produces
+an unpredictable, effectively random change in that frame's hash, making
+first-divergence detection both precise and reliable.
+
 ### Comparison
 
-Two artifacts are compared by generating their hash streams independently and
+Two RPL files are compared by generating their hash streams independently and
 scanning for the first mismatch. The comparison is:
 
 - O(n) in frame count.
-- Requires only the artifacts (not the original runtime).
+- Requires only the RPL files (not the original runtime).
 - Reports `None` for identical artifacts or `Some(index)` for the first
   divergent frame.
 
@@ -444,7 +571,7 @@ Evidence:
 
 ## 6. Divergence Analysis
 
-The divergence analysis pipeline operates on two artifacts and produces a
+The divergence analysis pipeline operates on two RPL files and produces a
 structured explanation of their differences. The pipeline is implemented in
 `scripts/artifact_diff.py` and governed by the normative contract in
 [DIVERGENCE_SEMANTICS.md](../replay/DIVERGENCE_SEMANTICS.md).
@@ -603,10 +730,10 @@ Evidence:
 ┌─────────────────────────┐         ┌─────────────────────────────────────┐
 │     CAPTURE NODE        │         │          ANALYSIS HOST              │
 │                         │         │                                     │
-│  STM32F446RE            │  USART2 │  Artifact storage                   │
+│  STM32F446RE            │  USART2 │  RPL file storage                   │
 │  ┌───────────────────┐  │ 115200  │  ┌─────────────────────────────┐   │
 │  │ TIM2 ISR          │  │ ──────> │  │ read_artifact.py            │   │
-│  │ Phase accumulator  │  │  serial │  │ Artifact A (.rpl)           │   │
+│  │ Phase accumulator  │  │  serial │  │ RPL file A (.rpl)           │   │
 │  │ Sample buffer      │  │         │  └─────────────────────────────┘   │
 │  │ dump_artifact()    │  │         │                                     │
 │  └───────────────────┘  │         │  Replay engine                      │
@@ -635,7 +762,7 @@ Evidence:
 ```
 
 The architecture separates capture (physical, ISR-driven, hardware-dependent)
-from analysis (deterministic, software-only, host-based). The artifact is the
+from analysis (deterministic, software-only, host-based). The RPL file is the
 sole coupling between these domains.
 
 ---
@@ -715,7 +842,7 @@ Additionally, golden byte-array hashes are stored for sawtooth and pulse
 waveforms in `crates/dpw4/src/goldens.rs` and enforced in forensic audit tests.
 
 Evidence:
-- `crates/dpw4/src/bin/precision.rs`: `NORMATIVE_DET_HASHES` (line 181+)
+- `crates/dpw4/src/bin/sig_util/artifacts.rs`: `NORMATIVE_DET_HASHES` (line 17)
 - `crates/dpw4/src/goldens.rs`: `SAW_GOLDEN_HASH` (line 13), `PULSE_GOLDEN_HASH` (line 19)
 - `crates/dpw4/tests/forensic_audit.rs`: golden lock tests (`test_golden_lock` line 5)
 
@@ -754,8 +881,8 @@ verification pipeline:
 Exit codes: 0 (all pass), 1 (error), 2 (integrity failure).
 
 Evidence:
-- `crates/dpw4/src/bin/precision.rs`: validation pipeline (`run_validate()` line 303+)
-- `crates/dpw4/src/checksum.rs`: Fletcher-32 implementation (`fletcher32_checked()` line 28)
+- `crates/dpw4/src/bin/sig_util/validate.rs`: validation pipeline (`run_validate()` line 39)
+- `crates/dpw4/src/checksum.rs`: Fletcher-32 implementation (`fletcher32_checked()` line 33)
 
 ---
 
@@ -816,7 +943,7 @@ promoted by [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
 
 | Component | Implementation Status | Implementation |
 |-----------|--------|---------------|
-| RPL0 artifact format definitions and Python reference inspection/parser tooling (legacy-header and extended-header paths) | Implemented; normative format defined in [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md) | `crates/replay-core/src/artifact.rs`, `scripts/inspect_artifact.py` |
+| RPL0 format definitions and Python reference inspection/parser tooling (legacy-header and extended-header paths) | Implemented; normative format defined in [docs/spec/rpl0_format_contract.md](../spec/rpl0_format_contract.md) | `crates/replay-core/src/artifact.rs`, `scripts/inspect_artifact.py` |
 | Rust replay engine artifact consumption | Implemented in an experimental crate for RPL0 format version 0 replay, RPL0 format version 1 container parsing, and current replay under the legacy 16-byte `EventFrame0` interpretation | `crates/replay-host/src/replay.rs`, `crates/replay-host/src/artifact.rs` |
 | First-divergence localization | Implemented; released workflows use Python comparison tooling, while Rust replay implementation remains experimental | `crates/replay-host/src/replay.rs`, `scripts/artifact_diff.py` |
 | Region attribution | Stable | `scripts/artifact_diff.py` |
@@ -1004,9 +1131,9 @@ that produced valid artifacts.
 |---|-----------------|----------|--------|
 | 1 | Artifacts follow RPL0 format with 4-byte magic "RPL0" | `crates/replay-core/src/artifact.rs` lines 4, 26 | supported |
 | 2 | EventFrame0 is 16 bytes with 6 fields (frame_idx, irq_id, flags, rsv, timer_delta, input_sample) | `crates/replay-core/src/artifact.rs` lines 39–48 | supported |
-| 3 | Header0 is 16 bytes with magic, version, frame_count, reserved | `crates/replay-core/src/artifact.rs` lines 26–31 | supported |
-| 4 | Compile-time size assertions enforce wire constants | `crates/replay-core/src/artifact.rs` lines 16–18 | supported |
-| 5 | v0 artifact size is exactly 160,016 bytes | `crates/replay-core/src/artifact.rs` line 13 | supported |
+| 3 | Header0 is 16 bytes with magic, version, frame_count, reserved | `crates/replay-core/src/artifact.rs` lines 51–55 | supported |
+| 4 | Compile-time size assertions enforce wire constants | `crates/replay-core/src/artifact.rs` lines 41–43 | supported |
+| 5 | v0 artifact size is exactly 160,016 bytes | `crates/replay-core/src/artifact.rs` line 14 | supported |
 | 6 | Encoding uses explicit field-by-field little-endian serialization | `crates/replay-core/src/artifact.rs` lines 53–74 | supported |
 | 7 | TIM2 configured at 1 kHz (PSC=15, ARR=999) | `crates/replay-fw-f446/src/fw.rs` line 182+ | supported |
 | 8 | ISR captures 10,000 frames via phase accumulator | `crates/replay-fw-f446/src/fw.rs` lines 95–149, constant `FRAME_COUNT=10_000` line 19 | supported |
@@ -1025,14 +1152,14 @@ that produced valid artifacts.
 | 21 | Shape classification has 3 classes: transient, persistent_offset, rate_divergence | `scripts/artifact_diff.py` `classify_sample_diffs()` line 69; [DIVERGENCE_SEMANTICS.md](../replay/DIVERGENCE_SEMANTICS.md) | supported |
 | 22 | Evolution classification has 4 classes: region_transition, self_healing, monotonic_growth, bounded_persistent | `scripts/artifact_diff.py` `classify_evolution()` line 150; [DIVERGENCE_SEMANTICS.md](../replay/DIVERGENCE_SEMANTICS.md) | supported |
 | 23 | Unsupported field differences cause FAIL exit (no silent fallback) | `scripts/artifact_diff.py` `fail()` line 36; `scripts/test_artifact_diff.py` line 47+ | supported |
-| 24 | Repository contains 34+ Kani harnesses in source across `geom-signal`, `dpw4`, and `replay-core` | `crates/geom-signal/src/verification.rs`; `crates/dpw4/src/verification.rs`; `crates/dpw4/src/i256.rs`; `crates/replay-core/src/verification.rs` | supported |
+| 24 | Repository contains 34+ Kani harnesses in source across `geom-signal`, `dpw4`, and `replay-core` | `crates/geom-signal/src/verification.rs`; `crates/dpw4/src/verification.rs`; `crates/dpw4/src/i256.rs`; `crates/replay-core/src/artifact.rs` (mod verification) | supported |
 | 25 | Normative Kani runner executes a narrower manifest-defined subset; Tier-1 excludes `proof_atan_shafer_safety` and Tier-2 adds atan2 shard proofs plus `proof_i256_mul_u32_matches_spec` when `RUN_HEAVY=1` | `verify_kani.sh` HARNESS_MANIFEST; `verify_kani_tier2.sh` | supported |
-| 26 | Six normative scenarios have frozen SHA-256 hashes | `crates/dpw4/src/bin/precision.rs` line 181+ | supported |
+| 26 | Six normative scenarios have frozen SHA-256 hashes | `crates/dpw4/src/bin/sig_util/artifacts.rs` line 17 | supported |
 | 27 | Hash regeneration requires semantic version bump | [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md) governance policy | supported |
 | 28 | Deterministic build verified by dual-build SHA-256 comparison | `verify_release_repro.sh` | supported |
 | 29 | Toolchain pinned to rustc 1.91.1 | `rust-toolchain.toml` | supported |
 | 30 | sig-util validate runs multi-tier verification pipeline | `crates/dpw4/src/bin/sig_util/validate.rs` `run_validate()` | supported |
-| 31 | Fletcher-32 checksum used for DP32 header integrity | `crates/dpw4/src/checksum.rs` `fletcher32_checked()` line 28 | supported |
+| 31 | Fletcher-32 checksum used for DP32 header integrity | `crates/dpw4/src/checksum.rs` `fletcher32_checked()` line 33 | supported |
 | 32 | v1 header includes schema_hash validated as SHA-256 of schema block | `scripts/inspect_artifact.py` v1 parsing at lines 170–210 | supported |
 | 33 | Artifact identity hash covers canonical region only (excludes trailing bytes) | `scripts/artifact_tool.py` `cmd_hash()` line 102 | supported |
 | 34 | Scalar type is I64F64 (128-bit fixed-point) | `crates/geom-signal/src/lib.rs` line 13 | supported |

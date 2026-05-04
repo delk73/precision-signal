@@ -1,16 +1,16 @@
-# Replay Artifact Validation Workflow
+# RPL Validation Workflow
 
-This document defines the operator-facing validation path for the replay artifact subsystem.
-Scope: parser structure checks, canonical hash behavior, and artifact comparison behavior.
+This document defines the operator-facing validation path for the RPL format subsystem.
+Scope: parser structure checks, canonical hash behavior, and RPL file comparison behavior.
 
 ## What Is Validated
 
 - Parser structure and boundary checks (`RPL0` magic, version dispatch, header/schema/frame bounds).
-- Canonical hashing behavior for the artifact prefix (`[header][schema][frame_data]`).
-- Artifact comparison behavior (identical artifacts, header mismatch, first frame divergence).
+- Canonical hashing behavior for the RPL prefix (`[header][schema][frame_data]`).
+- RPL file comparison behavior (identical files, header mismatch, first frame divergence).
 - Strict vs hash trailing-byte policy:
   - `verify` is strict and rejects trailing bytes.
-  - `hash` may ignore trailing bytes and hashes only the canonical prefix.
+  - `hash` may ignore trailing bytes and hashes only the canonical RPL prefix.
 
 ## Local Validation Commands
 

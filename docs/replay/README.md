@@ -54,7 +54,7 @@ not current authoritative replay inputs.
   path consumed by current authoritative `precision replay`
 - [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md): canonical STM32 self-stimulus interval CSV capture contract frozen for
   downstream import
-- [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md): normative portable RPL format authority (support/reference)
+- [docs/spec/rpl0_format_contract.md](../spec/rpl0_format_contract.md): normative portable RPL format authority (support/reference)
 - [docs/replay/tooling.md](tooling.md): support/reference replay tooling boundary and local validation guidance
 - [docs/replay/RPL0_PARSER_TRACEABILITY.md](RPL0_PARSER_TRACEABILITY.md): rule-level spec -> parser -> tests -> CI traceability matrix
 - [docs/replay/ARTIFACT_VALIDATION_WORKFLOW.md](ARTIFACT_VALIDATION_WORKFLOW.md): operator/local/CI validation workflow for artifact parser + toolchain

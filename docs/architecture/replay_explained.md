@@ -29,9 +29,18 @@ recorded-boundary validation first. `.rpl` RPL files and `replay-host` remain
 support/reference or historical material in this explanation layer; they are
 not part of the current authoritative `precision replay` path.
 
-## 1. Replay artifact model
+## 1. Replay Representation Model
 
-The replay subsystem works with two related but distinct replay representations.
+The replay subsystem works with two related but distinct representations.
+
+**Provenance Artifact**: The authoritative published directory emitted by the `precision` CLI
+(`artifacts/<run_id>/`). It contains `result.txt`, `trace.json`, and `meta.json` and is the
+authoritative evidence bundle. The active `precision replay` path consumes this directory.
+
+**RPL Container**: The portable binary file (`.rpl`) used for deterministic execution replay.
+It encodes a header, optional schema block, and an ordered frame stream. The Rust replay
+path and Python tooling operate on RPL files.
+
 The authoritative `precision` path publishes provenance artifact directories, while the
 portable replay layer uses RPL files and containers.
 
@@ -42,7 +51,7 @@ An RPL file contains:
 - per-frame fields used by comparison tooling
 
 The normative binary contract is defined in
-[docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md). The explanation layer sits above that format:
+[docs/spec/rpl0_format_contract.md](../spec/rpl0_format_contract.md). The explanation layer sits above that format:
 it interprets already-captured RPL files and emits deterministic divergence
 descriptions.
 

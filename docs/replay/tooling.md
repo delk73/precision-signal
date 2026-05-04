@@ -25,7 +25,7 @@ Replay uses a two-stage model: Stage 1 is the interval CSV capture contract for
 firmware, defined in
 [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md).
 Stage 2 is the RPL0 portable replay format for replay and diff, defined in
-[docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md). These
+[docs/spec/rpl0_format_contract.md](../spec/rpl0_format_contract.md). These
 are separate contracts, not one unified format.
 
 The Python tooling layer (`artifact_tool.py`, `artifact_diff.py`) is retained as

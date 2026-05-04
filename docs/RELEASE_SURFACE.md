@@ -6,7 +6,7 @@ It is not the release contract.
 Normative behavior still comes from:
 
 - [docs/MATH_CONTRACT.md](MATH_CONTRACT.md)
-- [docs/spec/rpl0_artifact_contract.md](spec/rpl0_artifact_contract.md)
+- [docs/spec/rpl0_format_contract.md](spec/rpl0_format_contract.md)
 - [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md)
 
 For release decisions, use:

@@ -10,7 +10,7 @@
 
 This document defines the normative wire format for the RPL0 artifact.
 It is the referenced wire-format specification for the capture contract in [docs/replay/FW_F446_CAPTURE_v0.md](FW_F446_CAPTURE_v0.md).
-For the stabilized artifact contract with schema extension block and fixed 16-byte opaque frames, see [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md).
+For the stabilized RPL format contract with schema extension block and fixed 16-byte opaque frames, see [docs/spec/rpl0_format_contract.md](../spec/rpl0_format_contract.md).
 
 ## Endianness
 All integer fields are encoded as little-endian bytes.
