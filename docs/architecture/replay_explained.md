@@ -32,7 +32,7 @@ not part of the current authoritative `precision replay` path.
 ## 1. Replay artifact model
 
 The replay subsystem works with two related but distinct replay representations.
-The authoritative `precision` path publishes provenance artifacts, while the
+The authoritative `precision` path publishes provenance artifact directories, while the
 portable replay layer uses RPL files and containers.
 
 An RPL file contains:

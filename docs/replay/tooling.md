@@ -17,7 +17,7 @@ Use:
 Terminology used in this document:
 
 - `artifact` refers to the authoritative published `precision` provenance
-  artifact only when contrasting it with replay tooling inputs
+  artifact directory
 - `RPL` refers to the portable replay binary format, including `.rpl` files,
   parser behavior, and portable replay validation
 

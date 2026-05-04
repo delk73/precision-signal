@@ -6,7 +6,7 @@
 This document defines the normative binary artifact format for the RPL0 `version = 1` header path.
 It is sufficient to implement a compliant parser and deterministic artifact hasher without guessing.
 
-This contract governs the portable replay binary format.
+This contract governs the portable replay artifact format.
 It does not govern the authoritative published `precision` provenance artifact
 directory (`result.txt`, `trace.json`, `meta.json`), which is defined in
 [docs/authority/cli_contract.md](../authority/cli_contract.md).
