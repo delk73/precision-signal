@@ -12,14 +12,23 @@ Use the active authority path first:
 - [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md)
 - [docs/verification/releases/index.md](../verification/releases/index.md)
 
+Terminology used in this folder:
+
+- `artifact` means the authoritative published `precision` provenance artifact
+  directory under `artifacts/<run_id>/`
+- `RPL` means the portable replay binary format used by `.rpl` files and the
+  support/reference replay tooling
+- `precision.meta.v1` and `precision.meta.v2` are provenance metadata schema
+  versions for published artifacts, not RPL container versions
+
 Current authoritative `precision replay` consumes the published artifact
 directory emitted by the CLI result block (`ARTIFACT: artifacts/<run_id>`).
-`.rpl` artifacts and `replay-host` are retained as support/reference material,
+`.rpl` RPL files and `replay-host` are retained as support/reference material,
 not current authoritative replay inputs.
 
 ## In Scope
 - Authoritative replay boundary over published `artifacts/<run_id>` directories
-- Legacy artifact wire contract for RPL0 format version 0 (`Header0`,
+- Legacy RPL wire contract for RPL0 format version 0 (`Header0`,
   `EventFrame0`, LE encoding)
 - Current parser and firmware path for RPL0 format version 1 containers with
   legacy 16-byte `EventFrame0` replay semantics (support/reference)
@@ -45,7 +54,7 @@ not current authoritative replay inputs.
   path consumed by current authoritative `precision replay`
 - [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md): canonical STM32 self-stimulus interval CSV capture contract frozen for
   downstream import
-- [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md): normative RPL0 format authority (support/reference)
+- [docs/spec/rpl0_format_contract.md](../spec/rpl0_format_contract.md): normative portable RPL format authority (support/reference)
 - [docs/replay/tooling.md](tooling.md): support/reference replay tooling boundary and local validation guidance
 - [docs/replay/RPL0_PARSER_TRACEABILITY.md](RPL0_PARSER_TRACEABILITY.md): rule-level spec -> parser -> tests -> CI traceability matrix
 - [docs/replay/ARTIFACT_VALIDATION_WORKFLOW.md](ARTIFACT_VALIDATION_WORKFLOW.md): operator/local/CI validation workflow for artifact parser + toolchain
@@ -55,10 +64,10 @@ not current authoritative replay inputs.
 
 ## Historical Replay and Capture References
 
-- [docs/replay/FW_F446_CAPTURE_v1.md](FW_F446_CAPTURE_v1.md): retained historical RPL0 artifact-capture contract note
+- [docs/replay/FW_F446_CAPTURE_v1.md](FW_F446_CAPTURE_v1.md): retained historical RPL0 capture contract note
   superseded by the active STM32 interval CSV contract
 - [docs/replay/REPLAY_CAPTURE_CONTRACT_v0.md](REPLAY_CAPTURE_CONTRACT_v0.md): legacy RPL0 format version 0 capture acceptance contract retained
   for historical inspection
-- [docs/replay/WIRE_FORMAT_v0.md](WIRE_FORMAT_v0.md): byte-level artifact format and parser validation rules
+- [docs/replay/WIRE_FORMAT_v0.md](WIRE_FORMAT_v0.md): byte-level RPL format and parser validation rules
 - [docs/replay/HOST_REPLAY_v0.md](HOST_REPLAY_v0.md): experimental Rust replay state transition, hashing, and legacy-frame replay semantics
 - [docs/replay/FW_F446_CAPTURE_v0.md](FW_F446_CAPTURE_v0.md): legacy RPL0 format version 0 capture contract note retained for historical traceability

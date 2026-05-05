@@ -1,9 +1,19 @@
 # CLI Contract
 
 ## 1. Authority
-This file is the sole authority for the CLI schema and the related operational contract, including invocation, process termination semantics, stream separation, result emission conditions, result block schema, artifact contract, and stability scope.
+This file is the sole authority for the CLI schema and the related operational contract, including invocation, process termination semantics, stream separation, result emission conditions, result block schema, published artifact contract, and stability scope.
 No other file is authoritative for the schema or operational contract.
 All downstream implementation and documentation must conform exactly to this contract.
+
+## 1.1 Terminology Boundary
+In this contract, `artifact` means the published `precision` provenance artifact
+directory under `artifacts/<run_id>/`.
+That published artifact contains `result.txt`, `trace.json`, and `meta.json`.
+`RPL` refers to the portable replay binary format governed separately by
+[docs/spec/rpl0_format_contract.md](../spec/rpl0_format_contract.md).
+`precision.meta.v1` and `precision.meta.v2` are published artifact `meta.json`
+schema versions for `precision` provenance metadata. They do not version the
+RPL container.
 
 
 ## 2. Command Set
@@ -119,7 +129,7 @@ If `record` does not inherently compare traces, it must populate `EQUIVALENCE=ex
 Any contract-valid `FAIL` for `record` must still satisfy the general `FAIL` invariant.
 
 ## 12. Artifact Layout
-The artifact layout is defined exactly as:
+The published provenance artifact layout is defined exactly as:
 
 ```text
 artifacts/<run_id>
@@ -181,12 +191,12 @@ Volatile artifact identity and metadata are excluded from semantic stability.
 The authoritative `meta.json` file is schema-tagged.
 No untagged metadata form is valid.
 
-Retained legacy artifacts may use:
+Retained legacy published artifacts may use:
 
 - `schema = "precision.meta.v1"`
 - `transient_rpl0_sha256`
 
-Current emitted artifacts use:
+Current emitted published artifacts use:
 
 - `schema = "precision.meta.v2"`
 - `transient_rpl0_payload_sha256`
@@ -195,3 +205,5 @@ The schema string is the only authoritative metadata version discriminator.
 No separate numeric `version` field is valid.
 Loaders must dispatch by `schema` before interpreting transient hash fields.
 `precision.meta.v1` and `precision.meta.v2` are distinct contracts and must not be silently collapsed into one schema shape.
+These schema versions apply to published provenance metadata only, not to RPL
+header/container versioning.

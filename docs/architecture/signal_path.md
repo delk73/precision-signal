@@ -10,8 +10,9 @@ Signals are generated with fixed-point phase accumulation and deterministic
 kernel evaluation. Core signal-path arithmetic is intended to remain free of
 floating-point operations.
 Within project direction, this signal path is the arithmetic substrate behind
-replay artifacts inspected through the `precision` CLI and captured from the
-canonical attached STM32-over-UART path.
+published `precision` provenance artifacts inspected through the `precision`
+CLI and the replay data captured from the canonical attached STM32-over-UART
+path.
 
 ```text
 Phase (Scalar = I64F64)

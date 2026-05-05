@@ -65,7 +65,7 @@ Current emitted header fields:
 - `capture_boundary = 0`
 - `reserved = 0`
 
-The normative artifact-format definition remains [docs/spec/rpl0_artifact_contract.md](../spec/rpl0_artifact_contract.md).
+The normative RPL format definition remains [docs/spec/rpl0_format_contract.md](../spec/rpl0_format_contract.md).
 
 ---
 

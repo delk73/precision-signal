@@ -27,7 +27,7 @@ Experimental notes live under [docs/wip/README.md](wip/README.md) and are non-no
 Normative behavior is covered by the contract and spec documents listed below:
 
 - [docs/MATH_CONTRACT.md](MATH_CONTRACT.md): arithmetic, signal-path, narrowing, and saturation contract
-- [docs/spec/rpl0_artifact_contract.md](spec/rpl0_artifact_contract.md): normative replay artifact format
+- [docs/spec/rpl0_format_contract.md](spec/rpl0_format_contract.md): normative portable RPL format
 - [docs/spec/dpw_gain.md](spec/dpw_gain.md): gain model invariants and domain specification
 - [docs/spec/oscillator_api.md](spec/oscillator_api.md): oscillator dispatch contract
 - [docs/spec/reference_invariants.md](spec/reference_invariants.md): mathematical reference invariants
