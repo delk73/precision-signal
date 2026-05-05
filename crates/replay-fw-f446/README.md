@@ -3,9 +3,9 @@
 Bare-metal STM32F446RE firmware for the hardware-backed RPL0 capture path.
 
 Captures 10,000 interrupt-driven execution samples via TIM2 update interrupt and
-emits them as a binary RPL0 v1 file over USART2. Every `timer_delta` is a real
-TIM2 counter reading; every `input_sample` is a real phase accumulator output.
-No host-side transformation step is involved.
+emits them as a binary RPL0 v1 file over USART2. Every `timer_delta` is the
+nominal constant `1000` (one TIM2 period at PSC=15, ARR=999); every `input_sample`
+is a real phase accumulator output. No host-side transformation step is involved.
 
 Release classification is owned by `docs/RELEASE_SURFACE.md`. The active capture
 contract is `docs/replay/FW_F446_CAPTURE_v1.md`. Retained release evidence for

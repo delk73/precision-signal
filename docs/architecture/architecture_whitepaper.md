@@ -295,8 +295,9 @@ Evidence:
 > The architectural role of Layer 3 is bare-metal firmware that captures
 > interrupt-driven execution samples and emits them directly as an RPL file
 > over USART2. This is the only path that produces a hardware-backed RPL file:
-> every `timer_delta` is a real TIM2 counter reading; every `input_sample` is
-> a real phase accumulator output; no host-side transformation step is involved.
+> every `timer_delta` is the nominal constant `1000` (one TIM2 period); every
+> `input_sample` is a real phase accumulator output; no host-side transformation
+> step is involved.
 > Active capture contract: [docs/replay/FW_F446_CAPTURE_v1.md](../replay/FW_F446_CAPTURE_v1.md).
 >
 > The timing characterization fixture (TIM2 input-capture + TIM3 PWM self-stimulus,

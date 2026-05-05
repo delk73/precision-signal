@@ -12,7 +12,7 @@ use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use cortex_m::interrupt::Mutex;
 use panic_halt as _;
 use replay_core::artifact::{
-    encode_header1_le, EventFrame0, Header1, EVENTFRAME0_SIZE, FRAME_SIZE, MAGIC,
+    encode_event_frame0_le, encode_header1_le, EventFrame0, Header1, FRAME_SIZE, MAGIC,
     V1_MIN_HEADER_SIZE, VERSION1,
 };
 use stm32f4::stm32f446::{self as pac};
@@ -272,13 +272,7 @@ fn write_header1(usart2: &pac::USART2, header: &Header1) {
 }
 
 fn write_event_frame0(usart2: &pac::USART2, frame: &EventFrame0) {
-    debug_assert_eq!(EVENTFRAME0_SIZE, 16);
-    write_bytes(usart2, &frame.frame_idx.to_le_bytes());
-    write_bytes(usart2, &[frame.irq_id]);
-    write_bytes(usart2, &[frame.flags]);
-    write_bytes(usart2, &frame.rsv.to_le_bytes());
-    write_bytes(usart2, &frame.timer_delta.to_le_bytes());
-    write_bytes(usart2, &frame.input_sample.to_le_bytes());
+    write_bytes(usart2, &encode_event_frame0_le(frame));
 }
 
 fn write_bytes(usart2: &pac::USART2, bytes: &[u8]) {
