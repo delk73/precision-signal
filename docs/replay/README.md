@@ -52,8 +52,10 @@ not current authoritative replay inputs.
 - [docs/authority/cli_contract.md](../authority/cli_contract.md): sole active
   CLI authority, including the published `ARTIFACT: artifacts/<run_id>` result
   path consumed by current authoritative `precision replay`
-- [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md): canonical STM32 self-stimulus interval CSV capture contract frozen for
-  downstream import
+- [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md): canonical STM32 self-stimulus interval CSV capture contract
+  (`crates/replay-fw-f446-timing`)
+- [docs/replay/FW_F446_CAPTURE_v1.md](FW_F446_CAPTURE_v1.md): active RPL0 hardware capture contract
+  (`crates/replay-fw-f446`)
 - [docs/spec/rpl0_format_contract.md](../spec/rpl0_format_contract.md): normative portable RPL format authority (support/reference)
 - [docs/replay/tooling.md](tooling.md): support/reference replay tooling boundary and local validation guidance
 - [docs/replay/RPL0_PARSER_TRACEABILITY.md](RPL0_PARSER_TRACEABILITY.md): rule-level spec -> parser -> tests -> CI traceability matrix
@@ -64,8 +66,7 @@ not current authoritative replay inputs.
 
 ## Historical Replay and Capture References
 
-- [docs/replay/FW_F446_CAPTURE_v1.md](FW_F446_CAPTURE_v1.md): retained historical RPL0 capture contract note
-  superseded by the active STM32 interval CSV contract
+- [docs/replay/FW_F446_CAPTURE_v1.md](FW_F446_CAPTURE_v1.md): active RPL0 hardware capture contract — see `crates/replay-fw-f446`
 - [docs/replay/REPLAY_CAPTURE_CONTRACT_v0.md](REPLAY_CAPTURE_CONTRACT_v0.md): legacy RPL0 format version 0 capture acceptance contract retained
   for historical inspection
 - [docs/replay/WIRE_FORMAT_v0.md](WIRE_FORMAT_v0.md): byte-level RPL format and parser validation rules

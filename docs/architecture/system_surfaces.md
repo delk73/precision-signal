@@ -37,10 +37,11 @@ Release classification is defined only in [docs/RELEASE_SURFACE.md](../RELEASE_S
 The authoritative operator entrypoint is the `precision` CLI, and the
 canonical attached-hardware route is an STM32 target over UART.
 
-The active STM32 self-stimulus capture contract is
+The active STM32 RPL0 capture contract is
+[docs/replay/FW_F446_CAPTURE_v1.md](../replay/FW_F446_CAPTURE_v1.md).
+The timing characterization fixture is governed by
 [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](../replay/INTERVAL_CAPTURE_CONTRACT_v1.md).
-The historical retained board-capture note remains
-[docs/replay/FW_F446_CAPTURE_v1.md](../replay/FW_F446_CAPTURE_v1.md). The
+The
 active workspace/package version is `1.4.0`, and the latest retained patch
 release evidence currently present in-tree lives under
 [docs/verification/releases/1.4.0/](../verification/releases/1.4.0/). The

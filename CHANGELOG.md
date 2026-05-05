@@ -10,11 +10,18 @@
 ### Added
 
 - canonical streaming payload SHA-256 helpers in `dpw4`, including the strict `OriginHeader`-masked `compute_payload_hash` path and offset-based stream hashing for artifact payload identity
+- new crate `crates/replay-fw-f446-timing` containing the TIM2 input-capture + TIM3 PWM self-stimulus CSV interval workflow, separated from the RPL0 capture crate
 
 ### Changed
 
 - formalized authoritative `precision` metadata as `precision.meta.v2`, with `transient_rpl0_payload_sha256` as the current contract field
 - retained explicit read compatibility for `precision.meta.v1` artifacts that still use `transient_rpl0_sha256`, while rejecting legacy field spelling under `precision.meta.v2`
+- restored `crates/replay-fw-f446` to emit RPL0 v1 (`[HEADER][SCHEMA][FRAMES]`) over USART2 via TIM2 update interrupt; timing characterization firmware moved to `crates/replay-fw-f446-timing`
+- `make fw-gate` re-routed to RPL0 capture path (`artifact_tool.py capture/verify/compare` + `repeat_capture.py --contract rpl0`); interval CSV gate targets (`fw-capture-check`, `fw-repeat-check`) retained for direct timing-crate use only
+- `firmware-release-check` and `fw-release-archive` updated to archive RPL0 `.bin` artifacts and `repeat_capture` manifest instead of interval CSV evidence files
+- `docs/replay/FW_F446_CAPTURE_v1.md` promoted from retained historical note to normative active operator contract for `crates/replay-fw-f446`
+- `docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md` scope updated to `crates/replay-fw-f446-timing`
+- documentation routing updated across `docs/README.md`, `docs/RELEASE_SURFACE.md`, `docs/replay/README.md`, `docs/architecture/system_surfaces.md`, `docs/replay/CI_GATES.md` to reflect dual active contracts
 
 ## [1.7.0] - 2026-04-22
 
