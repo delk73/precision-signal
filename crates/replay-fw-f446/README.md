@@ -29,7 +29,13 @@ CSV output), see `crates/replay-fw-f446-timing`.
 ## Host capture
 
 ```bash
-python3 scripts/read_artifact.py --out artifacts/run.rpl --signal-model phase8
+make rpl0-replay-check
+```
+
+Or invoke the capture step directly:
+
+```bash
+PYTHONPATH="$PWD" python3 scripts/artifact_tool.py capture --out artifacts/run.rpl --signal-model phase8
 ```
 
 ## Demo perturbation modes
