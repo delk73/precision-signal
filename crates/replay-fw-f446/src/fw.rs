@@ -12,8 +12,8 @@ use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 use cortex_m::interrupt::Mutex;
 use panic_halt as _;
 use replay_core::artifact::{
-    encode_header1_le, EventFrame0, Header1, EVENTFRAME0_SIZE, FRAME_SIZE, MAGIC, VERSION1,
-    V1_MIN_HEADER_SIZE,
+    encode_header1_le, EventFrame0, Header1, EVENTFRAME0_SIZE, FRAME_SIZE, MAGIC,
+    V1_MIN_HEADER_SIZE, VERSION1,
 };
 use stm32f4::stm32f446::{self as pac};
 
@@ -264,7 +264,6 @@ fn dump_artifact() {
         }
     });
 }
-
 
 fn write_header1(usart2: &pac::USART2, header: &Header1) {
     let bytes = encode_header1_le(header);
