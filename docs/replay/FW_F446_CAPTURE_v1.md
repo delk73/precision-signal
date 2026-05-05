@@ -133,7 +133,7 @@ make rpl0-replay-repeat-auto REPLAY_REPEAT_RUNS=3
 
 Host tooling expectations:
 
-- `scripts/read_artifact.py` reads the v1 container from UART
+- `scripts/artifact_tool.py capture` reads the v1 container from UART
 - `scripts/artifact_tool.py verify` enforces strict structure and signal-model checks
 - `scripts/artifact_tool.py compare` requires byte-identical match against `artifacts/baseline.bin`
 - repeat-capture manifests are written as `replay_manifest_v1.txt` with `contract_version=rpl0_capture_v1`
