@@ -2,7 +2,7 @@
 
 **Document revision:** 1.4.0  
 **Status:** NORMATIVE  
-**Scope:** STM32F446 self-stimulus interval capture emitted by `replay-fw-f446`,
+**Scope:** STM32F446 self-stimulus interval capture emitted by `replay-fw-f446-timing`,
 captured by `scripts/csv_capture.py`, and accepted by `replay-host validate-interval-csv`
 and `replay-host import-interval-csv`.
 

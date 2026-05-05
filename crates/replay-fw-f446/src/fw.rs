@@ -7,34 +7,43 @@
 // These are required by current PAC APIs and are quarantined to this firmware crate.
 
 use core::cell::RefCell;
-use core::fmt::{self, Write};
-use core::sync::atomic::{AtomicBool, AtomicU32, AtomicUsize, Ordering};
+use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 use cortex_m::interrupt::Mutex;
 use panic_halt as _;
+use replay_core::artifact::{
+    encode_header1_le, EventFrame0, Header1, EVENTFRAME0_SIZE, FRAME_SIZE, MAGIC, VERSION1,
+    V1_MIN_HEADER_SIZE,
+};
 use stm32f4::stm32f446::{self as pac};
 
-const INTERVAL_COUNT: usize = 138;
-const CSV_HEADER: &str = "index,interval_us\n";
-const CAPTURE_WAIT_POLL_CYCLES: u32 = 16_000;
-const CAPTURE_WAIT_POLLS: u32 = 5_000;
-const STIM_TIM_PSC: u16 = 15_999;
-const STIM_TIM_ARR: u16 = 18;
-const STIM_TIM_CCR1: u16 = 9;
+const FRAME_COUNT: usize = 10_000;
+const IRQ_ID_TIM2: u8 = 0x02;
+const TIMER_DELTA_NOMINAL: u32 = 1_000;
+const STEP: u32 = 0x0100_0000;
+const CAPTURE_BOUNDARY_ISR: u16 = 0;
+use crate::artifact_metadata::{BUILD_HASH, CONFIG_HASH, RPL0_SCHEMA, SCHEMA_HASH};
+
+const BOARD_ID: [u8; 16] = *b"NUCLEO-F446RE\0\0\0";
+const CLOCK_PROFILE: [u8; 16] = *b"reset-16mhz-apb1";
+#[cfg(feature = "demo-divergence")]
+const DEMO_DIVERGENCE_FRAME: usize = 4_096;
+#[cfg(feature = "demo-persistent-divergence")]
+const DEMO_PERSISTENT_DIVERGENCE_FRAME: usize = 4_096;
+
+#[cfg(all(feature = "demo-divergence", feature = "demo-persistent-divergence"))]
+compile_error!("demo-divergence and demo-persistent-divergence are mutually exclusive");
 
 static CAPTURE_DONE: AtomicBool = AtomicBool::new(false);
-static HAVE_PREV: AtomicBool = AtomicBool::new(false);
-static LAST_CAPTURE: AtomicU32 = AtomicU32::new(0);
-static WRITE_IDX: AtomicUsize = AtomicUsize::new(0);
+static WRITE_IDX: AtomicU32 = AtomicU32::new(0);
+static SIGNAL_PHASE: AtomicU32 = AtomicU32::new(0);
 #[cfg(feature = "debug-irq-count")]
 #[used]
 #[no_mangle]
 #[link_section = ".bss.irq_probe"]
 pub static mut IRQ_COUNT_PROBE: u32 = 0;
-static INTERVALS: Mutex<RefCell<[u32; INTERVAL_COUNT]>> =
-    Mutex::new(RefCell::new([0; INTERVAL_COUNT]));
+static SAMPLES: Mutex<RefCell<[i32; FRAME_COUNT]>> = Mutex::new(RefCell::new([0; FRAME_COUNT]));
 static TIM2_DEV: Mutex<RefCell<Option<pac::TIM2>>> = Mutex::new(RefCell::new(None));
-static TIM3_DEV: Mutex<RefCell<Option<pac::TIM3>>> = Mutex::new(RefCell::new(None));
 static USART2_DEV: Mutex<RefCell<Option<pac::USART2>>> = Mutex::new(RefCell::new(None));
 
 pub fn fw_main() -> ! {
@@ -50,44 +59,42 @@ pub fn fw_main() -> ! {
         }
     };
 
-    init_gpioa_for_tim2_ch1(&dp);
-    init_gpioa_for_tim3_ch1(&dp);
     init_gpioa_for_usart2_tx(&dp);
-    dp.RCC.apb1enr().modify(|_, w| {
-        w.tim2en().set_bit();
-        w.tim3en().set_bit();
-        w.usart2en().set_bit()
-    });
     init_usart2(&dp);
-    reset_capture_state();
+    dp.RCC.apb1enr().modify(|_, w| w.tim2en().set_bit());
 
     cortex_m::interrupt::free(|cs| {
         TIM2_DEV.borrow(cs).replace(Some(dp.TIM2));
-        TIM3_DEV.borrow(cs).replace(Some(dp.TIM3));
         USART2_DEV.borrow(cs).replace(Some(dp.USART2));
     });
 
-    init_tim2_capture();
+    init_tim2_1khz();
+
+    // Enable TIM2 IRQ at NVIC. IRQs are globally enabled after reset.
     unsafe {
         cortex_m::peripheral::NVIC::unmask(pac::Interrupt::TIM2);
     }
-    init_tim3_stimulus();
 
-    wait_for_capture_progress();
-
-    cortex_m::peripheral::NVIC::mask(pac::Interrupt::TIM2);
-    stop_tim2_capture();
-    stop_tim3_stimulus();
-    let write_idx = WRITE_IDX.load(Ordering::Acquire).min(INTERVAL_COUNT);
-
-    cortex_m::interrupt::disable();
-    emit_capture_state(write_idx);
-    if write_idx == INTERVAL_COUNT {
-        dump_csv();
+    while !CAPTURE_DONE.load(Ordering::Acquire) {
+        cortex_m::asm::wfi();
     }
 
+    // Halt capture and enter dump-only phase.
+    cortex_m::interrupt::disable();
+    cortex_m::peripheral::NVIC::mask(pac::Interrupt::TIM2);
+    stop_tim2();
+
+    #[cfg(feature = "debug-repeat-dump")]
     loop {
-        cortex_m::asm::wfi();
+        dump_artifact();
+    }
+
+    #[cfg(not(feature = "debug-repeat-dump"))]
+    {
+        dump_artifact();
+        loop {
+            cortex_m::asm::wfi();
+        }
     }
 }
 
@@ -99,100 +106,59 @@ pub fn tim2_isr() {
         core::ptr::write_volatile(p, v.wrapping_add(1));
     }
 
-    let mut maybe_now = None;
-    cortex_m::interrupt::free(|cs| {
-        if let Some(tim2) = TIM2_DEV.borrow(cs).borrow_mut().as_mut() {
-            let sr = tim2.sr().read();
-            if sr.cc1if().is_match() {
-                let now = tim2.ccr1().read().ccr().bits();
-                tim2.sr().write(|w| {
-                    w.cc1if().clear();
-                    w.cc1of().clear()
-                });
-                maybe_now = Some(now);
-            }
-        }
-    });
-
-    let Some(now) = maybe_now else {
-        return;
-    };
-
-    if !HAVE_PREV.load(Ordering::Acquire) {
-        LAST_CAPTURE.store(now, Ordering::Release);
-        HAVE_PREV.store(true, Ordering::Release);
+    if CAPTURE_DONE.load(Ordering::Acquire) {
+        clear_tim2_update_flag();
         return;
     }
 
-    let interval = now.wrapping_sub(LAST_CAPTURE.load(Ordering::Relaxed));
-    LAST_CAPTURE.store(now, Ordering::Release);
+    clear_tim2_update_flag();
 
-    let idx = WRITE_IDX.load(Ordering::Relaxed);
-    if idx >= INTERVAL_COUNT {
+    let idx = WRITE_IDX.load(Ordering::Relaxed) as usize;
+    if idx >= FRAME_COUNT {
         CAPTURE_DONE.store(true, Ordering::Release);
         return;
     }
 
+    #[cfg(feature = "demo-persistent-divergence")]
+    let phase = {
+        let mut p = SIGNAL_PHASE.load(Ordering::Relaxed);
+        if idx == DEMO_PERSISTENT_DIVERGENCE_FRAME {
+            // One-time state perturbation: shift phase trajectory by one output step.
+            p = p.wrapping_add(STEP);
+        }
+        p
+    };
+    #[cfg(not(feature = "demo-persistent-divergence"))]
+    let phase = SIGNAL_PHASE.load(Ordering::Relaxed);
+
+    #[cfg(not(feature = "demo-divergence"))]
+    let sample = (phase >> 24) as i32;
+    #[cfg(feature = "demo-divergence")]
+    let sample = {
+        let mut s = (phase >> 24) as i32;
+        if idx == DEMO_DIVERGENCE_FRAME {
+            s = s.wrapping_add(1);
+        }
+        s
+    };
+
+    let next = phase.wrapping_add(STEP);
+    SIGNAL_PHASE.store(next, Ordering::Relaxed);
     cortex_m::interrupt::free(|cs| {
-        INTERVALS.borrow(cs).borrow_mut()[idx] = interval;
+        SAMPLES.borrow(cs).borrow_mut()[idx] = sample;
     });
 
     let next = idx + 1;
-    WRITE_IDX.store(next, Ordering::Release);
-    if next >= INTERVAL_COUNT {
+    WRITE_IDX.store(next as u32, Ordering::Release);
+    if next >= FRAME_COUNT {
         CAPTURE_DONE.store(true, Ordering::Release);
-        stop_tim2_capture();
     }
-}
-
-fn reset_capture_state() {
-    CAPTURE_DONE.store(false, Ordering::Release);
-    HAVE_PREV.store(false, Ordering::Release);
-    LAST_CAPTURE.store(0, Ordering::Release);
-    WRITE_IDX.store(0, Ordering::Release);
-}
-
-fn wait_for_capture_progress() {
-    for _ in 0..CAPTURE_WAIT_POLLS {
-        let write_idx = WRITE_IDX.load(Ordering::Acquire);
-        if write_idx >= INTERVAL_COUNT {
-            return;
-        }
-        cortex_m::asm::delay(CAPTURE_WAIT_POLL_CYCLES);
-    }
-}
-
-fn init_gpioa_for_tim2_ch1(dp: &pac::Peripherals) {
-    // TIM2_CH1 capture input is routed on PA0 and expects the external
-    // self-stimulus loopback from TIM3_CH1 on PA6.
-    dp.RCC.ahb1enr().modify(|_, w| w.gpioaen().set_bit());
-
-    dp.GPIOA.moder().modify(|_, w| w.moder0().alternate());
-    dp.GPIOA.afrl().modify(|_, w| w.afrl0().af1());
-    dp.GPIOA
-        .ospeedr()
-        .modify(|_, w| w.ospeedr0().very_high_speed());
-    dp.GPIOA.otyper().modify(|_, w| w.ot0().clear_bit());
-    dp.GPIOA.pupdr().modify(|_, w| w.pupdr0().floating());
-}
-
-fn init_gpioa_for_tim3_ch1(dp: &pac::Peripherals) {
-    // TIM3_CH1 drives the stimulus square wave on PA6. Capture remains zero
-    // unless PA6 is physically looped back into PA0 / TIM2_CH1.
-    dp.RCC.ahb1enr().modify(|_, w| w.gpioaen().set_bit());
-
-    dp.GPIOA.moder().modify(|_, w| w.moder6().alternate());
-    dp.GPIOA.afrl().modify(|_, w| w.afrl6().af2());
-    dp.GPIOA
-        .ospeedr()
-        .modify(|_, w| w.ospeedr6().very_high_speed());
-    dp.GPIOA.otyper().modify(|_, w| w.ot6().clear_bit());
-    dp.GPIOA.pupdr().modify(|_, w| w.pupdr6().floating());
 }
 
 fn init_gpioa_for_usart2_tx(dp: &pac::Peripherals) {
     dp.RCC.ahb1enr().modify(|_, w| w.gpioaen().set_bit());
 
+    // PA2 -> USART2_TX (AF7)
     dp.GPIOA.moder().modify(|_, w| w.moder2().alternate());
     dp.GPIOA.afrl().modify(|_, w| w.afrl2().af7());
     dp.GPIOA
@@ -203,6 +169,11 @@ fn init_gpioa_for_usart2_tx(dp: &pac::Peripherals) {
 }
 
 fn init_usart2(dp: &pac::Peripherals) {
+    dp.RCC.apb1enr().modify(|_, w| w.usart2en().set_bit());
+
+    // Reset clocks: APB1 = 16 MHz, oversampling by 16.
+    // USARTDIV = 16_000_000 / (16 * 115200) = 8.6805
+    // Mantissa = 8, Fraction = 11.
     dp.USART2.cr1().modify(|_, w| w.ue().clear_bit());
     dp.USART2
         .brr()
@@ -214,100 +185,79 @@ fn init_usart2(dp: &pac::Peripherals) {
         .modify(|_, w| w.te().set_bit().re().clear_bit().ue().set_bit());
 }
 
-fn init_tim3_stimulus() {
-    cortex_m::interrupt::free(|cs| {
-        if let Some(tim3) = TIM3_DEV.borrow(cs).borrow_mut().as_mut() {
-            tim3.cr1()
-                .modify(|_, w| w.cen().disabled().opm().clear_bit());
-            tim3.psc().write(|w| unsafe { w.psc().bits(STIM_TIM_PSC) });
-            tim3.arr().write(|w| unsafe { w.arr().bits(STIM_TIM_ARR) });
-            tim3.ccr1()
-                .write(|w| unsafe { w.ccr().bits(STIM_TIM_CCR1) });
-            tim3.cnt().write(|w| unsafe { w.cnt().bits(0) });
-            tim3.smcr().write(|w| w.sms().disabled());
-            tim3.ccmr1_output().write(|w| {
-                w.cc1s().output();
-                w.oc1fe().disabled();
-                w.oc1pe().enabled();
-                w.oc1m().pwm_mode1()
-            });
-            tim3.ccer().write(|w| {
-                w.cc1np().clear_bit();
-                w.cc1p().rising_edge();
-                w.cc1e().enabled()
-            });
-            tim3.egr().write(|w| w.ug().update());
-            tim3.sr().write(|w| w.uif().clear());
-            tim3.cr1().modify(|_, w| w.arpe().enabled().cen().enabled());
-        }
-    });
-}
-
-fn init_tim2_capture() {
+fn init_tim2_1khz() {
     cortex_m::interrupt::free(|cs| {
         if let Some(tim2) = TIM2_DEV.borrow(cs).borrow_mut().as_mut() {
+            // Timer clock assumed 16 MHz (reset clocks):
+            // update_hz = 16_000_000 / (PSC + 1) / (ARR + 1)
+            // PSC=15 and ARR=999 => 1,000 Hz update interrupt.
+            // Force a known base state: disabled, continuous mode.
             tim2.cr1()
                 .modify(|_, w| w.cen().clear_bit().opm().clear_bit());
             tim2.psc().write(|w| unsafe { w.psc().bits(15) });
-            tim2.arr().write(|w| unsafe { w.arr().bits(u32::MAX) });
-            tim2.cnt().write(|w| unsafe { w.cnt().bits(0) });
-            tim2.smcr().write(|w| w.sms().disabled());
-            tim2.ccmr1_input().write(|w| {
-                w.cc1s().ti1();
-                w.ic1psc().no_prescaler();
-                w.ic1f().no_filter()
-            });
-            tim2.ccer().write(|w| {
-                w.cc1np().clear_bit();
-                w.cc1p().rising_edge();
-                w.cc1e().enabled()
-            });
-            tim2.sr().write(|w| {
-                w.cc1if().clear();
-                w.cc1of().clear();
-                w.uif().clear()
-            });
-            tim2.dier().write(|w| w.cc1ie().enabled());
-            tim2.cr1().modify(|_, w| w.cen().set_bit());
+            tim2.arr().write(|w| unsafe { w.arr().bits(999) });
+            tim2.egr().write(|w| w.ug().set_bit());
+            tim2.sr().modify(|_, w| w.uif().clear_bit());
+            tim2.dier().modify(|_, w| w.uie().set_bit());
+            // Start last.
+            tim2.cr1()
+                .modify(|_, w| w.opm().clear_bit().cen().set_bit());
         }
     });
 }
 
-fn stop_tim3_stimulus() {
-    cortex_m::interrupt::free(|cs| {
-        if let Some(tim3) = TIM3_DEV.borrow(cs).borrow_mut().as_mut() {
-            tim3.ccer().write(|w| w.cc1e().disabled());
-            tim3.cr1().modify(|_, w| w.cen().clear_bit());
-            tim3.sr().write(|w| w.uif().clear());
-        }
-    });
-}
-
-fn stop_tim2_capture() {
+fn stop_tim2() {
     cortex_m::interrupt::free(|cs| {
         if let Some(tim2) = TIM2_DEV.borrow(cs).borrow_mut().as_mut() {
-            tim2.dier().write(|w| w.cc1ie().disabled());
-            tim2.ccer().write(|w| w.cc1e().disabled());
+            tim2.dier().modify(|_, w| w.uie().clear_bit());
             tim2.cr1().modify(|_, w| w.cen().clear_bit());
-            tim2.sr().write(|w| {
-                w.cc1if().clear();
-                w.cc1of().clear();
-                w.uif().clear()
-            });
+            tim2.sr().modify(|_, w| w.uif().clear_bit());
         }
     });
 }
 
-fn dump_csv() {
+fn clear_tim2_update_flag() {
+    cortex_m::interrupt::free(|cs| {
+        if let Some(tim2) = TIM2_DEV.borrow(cs).borrow_mut().as_mut() {
+            tim2.sr().write(|w| w.uif().clear_bit());
+        }
+    });
+}
+
+fn dump_artifact() {
     cortex_m::interrupt::free(|cs| {
         if let Some(usart2) = USART2_DEV.borrow(cs).borrow().as_ref() {
-            write_bytes(usart2, CSV_HEADER.as_bytes());
+            let header = Header1 {
+                magic: MAGIC,
+                version: VERSION1,
+                header_len: V1_MIN_HEADER_SIZE as u16,
+                frame_count: FRAME_COUNT as u32,
+                frame_size: FRAME_SIZE as u16,
+                flags: 0,
+                schema_len: RPL0_SCHEMA.len() as u32,
+                schema_hash: SCHEMA_HASH,
+                build_hash: BUILD_HASH,
+                config_hash: CONFIG_HASH,
+                board_id: BOARD_ID,
+                clock_profile: CLOCK_PROFILE,
+                capture_boundary: CAPTURE_BOUNDARY_ISR,
+                reserved: 0,
+            };
 
-            let intervals = INTERVALS.borrow(cs).borrow();
-            for (idx, interval) in intervals.iter().copied().enumerate() {
-                let mut line = LineBuf::new();
-                let _ = writeln!(&mut line, "{idx},{interval}");
-                write_bytes(usart2, line.as_bytes());
+            write_header1(usart2, &header);
+            write_bytes(usart2, RPL0_SCHEMA);
+
+            let samples = SAMPLES.borrow(cs).borrow();
+            for (idx, sample) in samples.iter().copied().enumerate() {
+                let frame = EventFrame0 {
+                    frame_idx: idx as u32,
+                    irq_id: IRQ_ID_TIM2,
+                    flags: 0,
+                    rsv: 0,
+                    timer_delta: TIMER_DELTA_NOMINAL,
+                    input_sample: sample,
+                };
+                write_event_frame0(usart2, &frame);
             }
 
             wait_tc(usart2);
@@ -315,60 +265,34 @@ fn dump_csv() {
     });
 }
 
-fn emit_capture_state(write_idx: usize) {
-    cortex_m::interrupt::free(|cs| {
-        if let Some(usart2) = USART2_DEV.borrow(cs).borrow().as_ref() {
-            let mut line = LineBuf::new();
-            if write_idx == INTERVAL_COUNT {
-                let _ = writeln!(&mut line, "STATE,CAPTURE_DONE,{INTERVAL_COUNT}");
-            } else {
-                let _ = writeln!(&mut line, "STATE,CAPTURE_INCOMPLETE,{write_idx}");
-            }
-            write_bytes(usart2, line.as_bytes());
-            wait_tc(usart2);
-        }
-    });
+
+fn write_header1(usart2: &pac::USART2, header: &Header1) {
+    let bytes = encode_header1_le(header);
+    debug_assert_eq!(bytes.len(), V1_MIN_HEADER_SIZE);
+    write_bytes(usart2, &bytes);
 }
 
-struct LineBuf {
-    buf: [u8; 32],
-    len: usize,
-}
-
-impl LineBuf {
-    const fn new() -> Self {
-        Self {
-            buf: [0; 32],
-            len: 0,
-        }
-    }
-
-    fn as_bytes(&self) -> &[u8] {
-        &self.buf[..self.len]
-    }
-}
-
-impl Write for LineBuf {
-    fn write_str(&mut self, s: &str) -> fmt::Result {
-        let bytes = s.as_bytes();
-        let end = self.len + bytes.len();
-        if end > self.buf.len() {
-            return Err(fmt::Error);
-        }
-
-        self.buf[self.len..end].copy_from_slice(bytes);
-        self.len = end;
-        Ok(())
-    }
+fn write_event_frame0(usart2: &pac::USART2, frame: &EventFrame0) {
+    debug_assert_eq!(EVENTFRAME0_SIZE, 16);
+    write_bytes(usart2, &frame.frame_idx.to_le_bytes());
+    write_bytes(usart2, &[frame.irq_id]);
+    write_bytes(usart2, &[frame.flags]);
+    write_bytes(usart2, &frame.rsv.to_le_bytes());
+    write_bytes(usart2, &frame.timer_delta.to_le_bytes());
+    write_bytes(usart2, &frame.input_sample.to_le_bytes());
 }
 
 fn write_bytes(usart2: &pac::USART2, bytes: &[u8]) {
-    for &byte in bytes {
-        while usart2.sr().read().txe().bit_is_clear() {}
-        usart2
-            .dr()
-            .write(|w| unsafe { w.dr().bits(u16::from(byte)) });
+    for byte in bytes {
+        write_u8(usart2, *byte);
     }
+}
+
+fn write_u8(usart2: &pac::USART2, byte: u8) {
+    while usart2.sr().read().txe().bit_is_clear() {}
+    usart2
+        .dr()
+        .write(|w| unsafe { w.dr().bits(u16::from(byte)) });
 }
 
 fn wait_tc(usart2: &pac::USART2) {

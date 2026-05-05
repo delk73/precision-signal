@@ -292,26 +292,16 @@ Evidence:
 
 ### Layer 3: Capture Firmware (`replay-fw-f446`, `replay-embed`)
 
-> **Design intent — reference implementation on `feat/1.2.2` branch.** The
-> architectural role of Layer 3 is bare-metal firmware that captures
+> The architectural role of Layer 3 is bare-metal firmware that captures
 > interrupt-driven execution samples and emits them directly as an RPL file
 > over USART2. This is the only path that produces a hardware-backed RPL file:
 > every `timer_delta` is a real TIM2 counter reading; every `input_sample` is
 > a real phase accumulator output; no host-side transformation step is involved.
+> Active capture contract: [docs/replay/FW_F446_CAPTURE_v1.md](../replay/FW_F446_CAPTURE_v1.md).
 >
-> The reference implementation of this path is on the `feat/1.2.2` branch and
-> documented in
-> [docs/replay/FW_F446_CAPTURE_v1.md](../replay/FW_F446_CAPTURE_v1.md).
-> The evidence lines below reference that branch.
->
-> The current `main` firmware (`replay-fw-f446/src/fw.rs`) is a timing
-> characterization fixture: TIM2 input-capture measuring 138 self-stimulus
-> intervals, emitting a text CSV over UART. This is a separate, narrower use
-> case — characterizing MCU timing jitter — governed by
+> The timing characterization fixture (TIM2 input-capture + TIM3 PWM self-stimulus,
+> 138 intervals, CSV output) is a separate crate: `replay-fw-f446-timing`, governed by
 > [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](../replay/INTERVAL_CAPTURE_CONTRACT_v1.md).
-> It feeds a host-side construction step (`replay-host import-interval-csv`)
-> that produces a synthetic RPL with a constant `timer_delta`. It does not
-> replace the Layer 3 architectural role.
 >
 > `replay-fw-f446` is classified Experimental in
 > [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
@@ -326,14 +316,13 @@ USART2.
   interrupt. Sample is extracted as `(phase >> 24) as i32`. Stored into a
   static `[i32; 10_000]` buffer protected by Cortex-M critical sections.
 - **RPL file emission**: After 10,000 frames are captured, firmware disables
-  interrupts and emits the complete RPL0 file (16-byte header + 10,000
-  × 16-byte frames) over USART2 at 115200 baud.
+  interrupts and emits the complete RPL0 v1 file (`[HEADER=152 bytes][SCHEMA BLOCK=91 bytes][10,000 × 16-byte frames]`) over USART2 at 115200 baud.
 - **Demo perturbation modes**: Feature flags `demo-divergence` and
   `demo-persistent-divergence` inject controlled perturbations at frame 4096
   for divergence analysis demonstration.
 
 Evidence:
-- `crates/replay-fw-f446/src/fw.rs`: `tim2_isr()` (lines 95–149), `init_tim2_1khz()` (lines 182+), `dump_artifact()` (lines 221+), `write_header0()` (line 251), `write_event_frame0()` (line 259)
+- `crates/replay-fw-f446/src/fw.rs`: `tim2_isr()` (line 101), `init_tim2_1khz()` (line 188), `dump_artifact()` (line 227), `write_header1()` (line 269), `write_event_frame0()` (line 275)
 - `crates/replay-fw-f446/src/main.rs`: TIM2 interrupt binding
 - `crates/replay-fw-f446/memory.x`: FLASH 512K at 0x08000000, RAM 128K at 0x20000000
 
