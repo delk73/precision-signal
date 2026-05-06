@@ -1,0 +1,17 @@
+[package]
+name = "replay-fw-f446-timing"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description = "NUCLEO-F446RE TIM2 self-stimulus timing characterization fixture (138 intervals, CSV output)"
+
+[features]
+# Diagnostic-only ISR probe symbol for low-level debugger sessions.
+# Not part of the canonical release/capture workflow.
+debug-irq-count = []
+
+[target.'cfg(all(target_arch = "arm", target_os = "none"))'.dependencies]
+cortex-m = { version = "0.7", features = ["critical-section-single-core"] }
+cortex-m-rt = "0.7"
+panic-halt = "1.0"
+stm32f4 = { version = "0.16", features = ["stm32f446", "rt"] }

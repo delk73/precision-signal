@@ -20,6 +20,7 @@ SIGNAL_PERTURB_FRAME ?= 50
 SIGNAL_REPEAT_SECONDS ?=
 FW_GATE_RESET_MODE ?= manual
 FW_CAPTURE_TIMEOUT ?= 10
+REPLAY_CAPTURE_TIMEOUT ?= 60
 FW_CAPTURE_DIR ?= artifacts/fw_capture_runs
 FW_REPEAT_DIR ?= artifacts/fw_repeat_runs
 REPLAY_SIGNAL_MODEL ?= phase8
@@ -364,7 +365,8 @@ demo-signal-pi-perturb:
 demo-signal-diff:
 	python3 scripts/interval_diff.py "$(SIGNAL_BASELINE_CSV)" "$(SIGNAL_OBSERVED_CSV)"
 
-# Active firmware hardware path:
+# Timing-crate interval CSV path (replay-fw-f446-timing).
+# Pruned from fw-gate; retained for direct timing-crate operator use.
 # capture waits for STATE,CAPTURE_DONE,138 and validates index,interval_us CSV via replay-host.
 fw-capture-check:
 	test -n "$(SERIAL)" || { echo "SERIAL not set"; exit 1; }
@@ -384,8 +386,8 @@ fw-repeat-check:
 	  --timeout "$(FW_CAPTURE_TIMEOUT)" \
 	  --artifacts-dir "$(FW_REPEAT_DIR)"
 
-# Retained historical RPL0 operator path:
-# capture waits for replay header; operator presses reset once after listener starts.
+# Active RPL0 operator path (replay-fw-f446).
+# capture waits for replay header after board boots post-flash.
 rpl0-replay-check:
 	export PYTHONPATH="$(CURDIR)$${PYTHONPATH:+:$${PYTHONPATH}}"
 	$(MAKE) flash-ur
@@ -423,69 +425,55 @@ fw-gate:
 	$(MAKE) flash-ur SERIAL="$(SERIAL)"
 	$(MAKE) flash-verify-ur
 	$(MAKE) flash-compare-ur
-	$(MAKE) fw-capture-check SERIAL="$(SERIAL)"
-	$(MAKE) fw-repeat-check SERIAL="$(SERIAL)" REPLAY_REPEAT_RUNS=3
+	# RPL0 single capture: firmware already on device; listener starts, board emits after ~10 s collection.
+	export PYTHONPATH="$(CURDIR)$${PYTHONPATH:+:$${PYTHONPATH}}"
+	timeout "$(REPLAY_CAPTURE_TIMEOUT)" env SERIAL="$(SERIAL)" python3 scripts/artifact_tool.py capture --quick --out "$(REPLAY_RUN)"
+	python3 scripts/artifact_tool.py verify "$(REPLAY_RUN)" --signal-model "$(REPLAY_SIGNAL_MODEL)"
+	python3 scripts/artifact_tool.py compare "$(REPLAY_BASELINE)" "$(REPLAY_RUN)"
+	# RPL0 repeat captures (FW_GATE_RESET_MODE=manual — operator resets board between runs).
+	rm -rf "$(REPLAY_REPEAT_DIR)"
+	SERIAL="$(SERIAL)" python3 scripts/repeat_capture.py \
+	  --contract rpl0 \
+	  --runs $(REPLAY_REPEAT_RUNS) \
+	  --signal-model "$(REPLAY_SIGNAL_MODEL)" \
+	  --manifest-name replay_manifest_v1.txt \
+	  --artifacts-dir "$(REPLAY_REPEAT_DIR)"
 
 firmware-release-check: fw-gate
-	@CAPTURE_DIR="$$(ls -dt "$(FW_CAPTURE_DIR)"/run_* | head -n1)"; \
-	REPEAT_DIR="$$(ls -dt "$(FW_REPEAT_DIR)"/run_* | head -n1)"; \
-	echo "CAPTURE_DIR=$$CAPTURE_DIR"; \
-	echo "REPEAT_DIR=$$REPEAT_DIR"; \
+	@echo "REPLAY_RUN=$(REPLAY_RUN)"; \
+	echo "REPLAY_REPEAT_DIR=$(REPLAY_REPEAT_DIR)"; \
 	echo; \
-	echo "== capture files =="; \
-	ls -lah "$$CAPTURE_DIR"; \
-	echo; \
-	echo "== capture manifest =="; \
-	cat "$$CAPTURE_DIR/interval_capture_manifest_v1.txt"; \
+	echo "== capture file =="; \
+	ls -lah "$(REPLAY_RUN)"; \
+	sha256sum "$(REPLAY_RUN)"; \
 	echo; \
 	echo "== repeat files =="; \
-	ls -lah "$$REPEAT_DIR"; \
-	echo; \
-	echo "== repeat csv sha256 summary =="; \
-	cat "$$REPEAT_DIR/csv_sha256_summary.txt"; \
-	echo; \
-	echo "== repeat imported sha256 summary =="; \
-	cat "$$REPEAT_DIR/imported_artifact_sha256_summary.txt"; \
+	ls -lah "$(REPLAY_REPEAT_DIR)"; \
 	echo; \
 	echo "== repeat manifest =="; \
-	cat "$$REPEAT_DIR/interval_capture_manifest_v1.txt"
+	cat "$(REPLAY_REPEAT_DIR)/replay_manifest_v1.txt"
 
 fw-release-archive:
 	@test -n "$(SERIAL)" || { echo "SERIAL is required"; exit 1; }
 	@test -n "$(VERSION)" || { echo "VERSION is required"; exit 1; }
 	$(MAKE) firmware-release-check SERIAL="$(SERIAL)"
-	@CAPTURE_DIR="$$(ls -dt "$(FW_CAPTURE_DIR)"/run_* | head -n1)"; \
-	REPEAT_DIR="$$(ls -dt "$(FW_REPEAT_DIR)"/run_* | head -n1)"; \
-	REL_DIR="docs/verification/releases/$(VERSION)"; \
+	@REL_DIR="docs/verification/releases/$(VERSION)"; \
 	mkdir -p "$$REL_DIR"; \
-	rm -rf "$$REL_DIR/fw_capture" "$$REL_DIR/fw_repeat"; \
-	cp -R "$$CAPTURE_DIR" "$$REL_DIR/fw_capture"; \
-	cp -R "$$REPEAT_DIR" "$$REL_DIR/fw_repeat"; \
-	sha256sum "$$CAPTURE_DIR"/run_*.csv "$$CAPTURE_DIR"/run_*.imported.rpl > "$$REL_DIR/fw_capture_hash_check.txt"; \
-	sha256sum "$$REPEAT_DIR"/run_*.csv "$$REPEAT_DIR"/run_*.imported.rpl > "$$REL_DIR/fw_repeat_hash_check.txt"; \
+	rm -rf "$$REL_DIR/fw_capture.bin" "$$REL_DIR/fw_repeat"; \
+	cp "$(REPLAY_RUN)" "$$REL_DIR/fw_capture.bin"; \
+	cp -R "$(REPLAY_REPEAT_DIR)" "$$REL_DIR/fw_repeat"; \
+	sha256sum "$(REPLAY_RUN)" > "$$REL_DIR/fw_capture_hash_check.txt"; \
+	sha256sum "$(REPLAY_REPEAT_DIR)"/run_*.bin > "$$REL_DIR/fw_repeat_hash_check.txt"; \
 	echo "# Firmware Release Evidence ($(VERSION))" > "$$REL_DIR/firmware_release_evidence.md"; \
 	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	echo "CAPTURE_DIR=$$CAPTURE_DIR" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	echo "REPEAT_DIR=$$REPEAT_DIR" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	echo "## capture manifest" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	cat "$$REL_DIR/fw_capture/interval_capture_manifest_v1.txt" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	echo "## repeat csv sha256 summary" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	cat "$$REL_DIR/fw_repeat/csv_sha256_summary.txt" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	echo "## repeat imported sha256 summary" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	cat "$$REL_DIR/fw_repeat/imported_artifact_sha256_summary.txt" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	echo "## repeat manifest" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	cat "$$REL_DIR/fw_repeat/interval_capture_manifest_v1.txt" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "REPLAY_RUN=$(REPLAY_RUN)" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "REPLAY_REPEAT_DIR=$(REPLAY_REPEAT_DIR)" >> "$$REL_DIR/firmware_release_evidence.md"; \
 	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
 	echo "## capture hash check" >> "$$REL_DIR/firmware_release_evidence.md"; \
 	cat "$$REL_DIR/fw_capture_hash_check.txt" >> "$$REL_DIR/firmware_release_evidence.md"; \
 	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	echo "## repeat hash check" >> "$$REL_DIR/firmware_release_evidence.md"; \
-	cat "$$REL_DIR/fw_repeat_hash_check.txt" >> "$$REL_DIR/firmware_release_evidence.md"
-	python3 scripts/check_release_bundle.py --version "$(VERSION)"
+	echo "## repeat manifest" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	cat "$$REL_DIR/fw_repeat/replay_manifest_v1.txt" >> "$$REL_DIR/firmware_release_evidence.md"
 
 release-bundle:
 	@test -n "$(VERSION)" || { echo "VERSION is required"; exit 1; }

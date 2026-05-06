@@ -11,6 +11,7 @@ members = [
     "crates/replay-host",
     "crates/replay-cli",
     "crates/replay-fw-f446",
+    "crates/replay-fw-f446-timing",
     "crates/xtask",
 ]
 default-members = [

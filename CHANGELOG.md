@@ -9,12 +9,24 @@
 
 ### Added
 
-- canonical streaming payload SHA-256 helpers in `dpw4`, including the strict `OriginHeader`-masked `compute_payload_hash` path and offset-based stream hashing for artifact payload identity
+- canonical streaming payload SHA-256 helpers in `dpw4`: `OriginHeader` struct for artifact identity, `compute_payload_hash` (strict `OriginHeader`-masked path), and offset-based stream hashing for artifact payload identity
+- `crates/replay-fw-f446-timing`: new crate containing the TIM2 input-capture + TIM3 PWM self-stimulus CSV interval workflow, separated from the RPL0 capture crate
 
 ### Changed
 
-- formalized authoritative `precision` metadata as `precision.meta.v2`, with `transient_rpl0_payload_sha256` as the current contract field
-- retained explicit read compatibility for `precision.meta.v1` artifacts that still use `transient_rpl0_sha256`, while rejecting legacy field spelling under `precision.meta.v2`
+- formalized authoritative `precision` metadata as `precision.meta.v2`, with `transient_rpl0_payload_sha256` as the current contract field; retained read compatibility for `precision.meta.v1` artifacts using `transient_rpl0_sha256`; legacy field spelling rejected under `precision.meta.v2`
+- restored `crates/replay-fw-f446` to emit RPL0 v1 (`[HEADER][SCHEMA][FRAMES]`) over USART2 via TIM2 update interrupt; prior timing characterization firmware moved to `crates/replay-fw-f446-timing`
+- `make fw-gate` re-routed to RPL0 capture path (`artifact_tool.py capture/verify/compare` + `repeat_capture.py --contract rpl0`); interval CSV gate targets (`fw-capture-check`, `fw-repeat-check`) retained for direct timing-crate use only
+- `firmware-release-check` and `fw-release-archive` updated to archive RPL0 `.bin` artifacts and `repeat_capture` manifest instead of interval CSV evidence files
+- `docs/replay/FW_F446_CAPTURE_v1.md` promoted from retained historical note to normative active operator contract for `crates/replay-fw-f446`; `docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md` scope updated to `crates/replay-fw-f446-timing`
+- documentation routing updated across `docs/README.md`, `docs/RELEASE_SURFACE.md`, `docs/replay/README.md`, `docs/architecture/system_surfaces.md`, `docs/replay/CI_GATES.md` to reflect dual active contracts
+- renamed `docs/spec/rpl0_artifact_contract.md` → `docs/spec/rpl0_format_contract.md` as canonical RPL format spec; replaced deprecated artifact vocabulary with RPL/Provenance Artifact terminology across 13 docs
+- added CORDIC, DPW4, SplitMix64 design rationale to architecture whitepaper; corrected Appendix C evidence paths and line numbers for claims 3, 4, 5, 24, 26, 30, 31
+- migrated operational verification scripts (`verify_kani.sh`, `verify_kani_tier2.sh`, `verify_release_repro.sh`) from repo root to `scripts/`
+
+### Fixed
+
+- removed redundant `u128 → u128` cast in the `I256::mul_u32` path (`crates/dpw4`)
 
 ## [1.7.0] - 2026-04-22
 

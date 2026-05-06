@@ -1,30 +1,29 @@
-# F446 Capture v1 — Retained Historical RPL0 Capture Contract
+# F446 Capture v1 — RPL0 Capture Contract
 
-**Document revision:** 1.2.2  
-**Applies to:** retained release 1.2.2 evidence only
+**Document revision:** 1.7.0  
+**Status:** NORMATIVE  
+**Applies to:** `crates/replay-fw-f446`
 
 ## Versioning Terminology
 
 - Document revision labels editorial history for this capture contract.
 - Release versions identify the shipped software release.
-- `v1` in this document name and `version = 1` in emitted headers identify the artifact/header version, not the software release version.
-
-> **Status: RETAINED HISTORICAL**
-> This document is retained only for the older hardware-backed RPL0 artifact
-> capture record. It is superseded for the active STM32 self-stimulus operator
-> path by [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md).
-> The active path no longer uses this document as its operator-facing capture
-> contract.
-> Historical release-record routing lives in
-> [docs/verification/releases/index.md](../verification/releases/index.md).
+- `v1` in this document name and `version = 1` in emitted headers identify the RPL container version, not the software release version.
 
 ---
 
 ## Scope
 
-This retained document describes the older RPL0 artifact-emission path captured
-in the release `1.2.2` evidence bundle. It is not the active operator-facing
-capture contract for the current STM32 self-stimulus interval CSV path.
+This document is the active operator capture contract for `crates/replay-fw-f446` — the
+bare-metal RPL0-emitting firmware on STM32F446RE. It covers the TIM2 update-interrupt
+capture path that produces a hardware-backed RPL file over USART2.
+
+The STM32 self-stimulus timing characterization fixture is a separate crate
+(`crates/replay-fw-f446-timing`) governed by
+[docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md).
+
+Historical release-record routing lives in
+[docs/verification/releases/index.md](../verification/releases/index.md).
 
 ---
 
@@ -123,22 +122,18 @@ RPL0 v1 artifacts. No nondeterministic fields were permitted in that retained ca
 
 ---
 
-## Historical Verification Expectations
+## Verification Expectations
 
-Historical operator path:
+Active operator path:
 
 ```bash
 make rpl0-replay-check
 make rpl0-replay-repeat-auto REPLAY_REPEAT_RUNS=3
 ```
 
-Host tooling expectations for the retained historical path:
+Host tooling expectations:
 
 - `scripts/artifact_tool.py capture` reads the v1 container from UART
 - `scripts/artifact_tool.py verify` enforces strict structure and signal-model checks
 - `scripts/artifact_tool.py compare` requires byte-identical match against `artifacts/baseline.bin`
 - repeat-capture manifests are written as `replay_manifest_v1.txt` with `contract_version=rpl0_capture_v1`
-
-The active firmware gate no longer routes through this retained contract. v0/v1
-RPL0 UART capture remains supported for historical inspection only under
-explicit `rpl0-*` targets; it is not the active capture/release path.

@@ -16,7 +16,8 @@ active authority path before reading supporting material here.
 - [VERIFICATION_GUIDE.md](./VERIFICATION_GUIDE.md): release-readiness authority and verification contract
 - [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md): release-surface classification and routing
 - [docs/authority/cli_contract.md](authority/cli_contract.md): sole active CLI contract authority
-- [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](replay/INTERVAL_CAPTURE_CONTRACT_v1.md): sole active STM32 capture contract authority
+- [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](replay/INTERVAL_CAPTURE_CONTRACT_v1.md): active timing characterization capture contract (`replay-fw-f446-timing`)
+- [docs/replay/FW_F446_CAPTURE_v1.md](replay/FW_F446_CAPTURE_v1.md): active RPL0 capture contract (`replay-fw-f446`)
 
 ## Historical / Release-Record Landing
 
@@ -47,7 +48,8 @@ Normative behavior is covered by the contract and spec documents listed below:
 ## Replay
 
 - [docs/replay/README.md](replay/README.md): replay subsystem scope and document index
-- [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](replay/INTERVAL_CAPTURE_CONTRACT_v1.md): current STM32 self-stimulus capture contract
+- [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](replay/INTERVAL_CAPTURE_CONTRACT_v1.md): STM32 timing characterization capture contract (`replay-fw-f446-timing`)
+- [docs/replay/FW_F446_CAPTURE_v1.md](replay/FW_F446_CAPTURE_v1.md): active RPL0 capture contract (`replay-fw-f446`)
 - [docs/replay/tooling.md](replay/tooling.md): support/reference replay tooling boundary and validation guidance
 - [docs/replay/DIVERGENCE_SEMANTICS.md](replay/DIVERGENCE_SEMANTICS.md): normative replay explanation and classification contract
 - [docs/architecture/replay_explained.md](architecture/replay_explained.md): single-pass replay system narrative and demo ladder

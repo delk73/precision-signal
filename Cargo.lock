@@ -949,6 +949,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "replay-fw-f446-timing"
+version = "1.7.0"
+dependencies = [
+ "cortex-m",
+ "cortex-m-rt",
+ "panic-halt",
+ "stm32f4",
+]
+
+[[package]]
 name = "replay-host"
 version = "1.7.0"
 dependencies = [
