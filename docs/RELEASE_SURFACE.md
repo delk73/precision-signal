@@ -82,7 +82,6 @@ not part of the current release surface
 - Active retained release route:
   [docs/verification/releases/1.7.0/](verification/releases/1.7.0/) for the
   narrowed primary precision non-firmware release record
-- Active retained release summary routes:
 - Active retained release summary route:
   [docs/verification/releases/1.7.0/index.md](verification/releases/1.7.0/index.md)
 - Supporting firmware evidence retained under the `1.7.0` bundle is bounded
