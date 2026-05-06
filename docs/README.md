@@ -64,6 +64,7 @@ Normative behavior is covered by the contract and spec documents listed below:
 - [docs/verification/chaos_probes.md](verification/chaos_probes.md): chaos-probe verification notes
 - [docs/verification/hardware_procedures.md](verification/hardware_procedures.md): non-authoritative manual hardware support procedures
 - [docs/verification/releases/index.md](verification/releases/index.md): retained release records and historical verification landing
+- [docs/notes/power_characterization.md](notes/power_characterization.md): power characterization design note (supporting, non-authoritative)
 
 ## CLI
 

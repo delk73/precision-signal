@@ -1,10 +1,10 @@
 # Release Evidence Note (1.3.0)
 
-This route exists so GitHub Pages resolves `docs/verification/releases/1.3.0/`
-correctly.
+This directory is an explanatory note for release tag `1.3.0`.
 
-Primary note:
+`1.3.0` is referenced in the repository changelog and tag history, but no
+retained release-evidence bundle was committed under
+`docs/verification/releases/1.3.0/` at the time of that release.
 
-- [README.md](README.md): explains that release tag `1.3.0` has no committed
-  retained release-evidence bundle and that no historical evidence was
-  reconstructed here
+This note exists to make that gap explicit. No retrospective command outputs,
+hash records, or release artifacts have been reconstructed here.
