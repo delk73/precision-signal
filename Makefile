@@ -435,6 +435,7 @@ fw-gate:
 	  --contract rpl0 \
 	  --runs $(REPLAY_REPEAT_RUNS) \
 	  --signal-model "$(REPLAY_SIGNAL_MODEL)" \
+	  --manifest-name replay_manifest_v1.txt \
 	  --artifacts-dir "$(REPLAY_REPEAT_DIR)"
 
 firmware-release-check: fw-gate
@@ -449,29 +450,30 @@ firmware-release-check: fw-gate
 	ls -lah "$(REPLAY_REPEAT_DIR)"; \
 	echo; \
 	echo "== repeat manifest =="; \
-	cat "$(REPLAY_REPEAT_DIR)/manifest.txt"
+	cat "$(REPLAY_REPEAT_DIR)/replay_manifest_v1.txt"
 
 fw-release-archive:
 	@test -n "$(SERIAL)" || { echo "SERIAL is required"; exit 1; }
 	@test -n "$(VERSION)" || { echo "VERSION is required"; exit 1; }
 	$(MAKE) firmware-release-check SERIAL="$(SERIAL)"
-        @REL_DIR="docs/verification/releases/$(VERSION)"; \
-        mkdir -p "$$REL_DIR"; \
-        rm -rf "$$REL_DIR/fw_capture.bin" "$$REL_DIR/fw_repeat"; \
-        cp "$(REPLAY_RUN)" "$$REL_DIR/fw_capture.bin"; \
-        cp -R "$(REPLAY_REPEAT_DIR)" "$$REL_DIR/fw_repeat"; \
-        sha256sum "$(REPLAY_RUN)" > "$$REL_DIR/fw_capture_hash_check.txt"; \
-        sha256sum "$(REPLAY_REPEAT_DIR)"/run_*.bin > "$$REL_DIR/fw_repeat_hash_check.txt"; \
-        echo "# Firmware Release Evidence ($(VERSION))" > "$$REL_DIR/firmware_release_evidence.md"; \
-        echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
-        echo "REPLAY_RUN=$(REPLAY_RUN)" >> "$$REL_DIR/firmware_release_evidence.md"; \
-        echo "REPLAY_REPEAT_DIR=$(REPLAY_REPEAT_DIR)" >> "$$REL_DIR/firmware_release_evidence.md"; \
-        echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
-        echo "## capture hash check" >> "$$REL_DIR/firmware_release_evidence.md"; \
-        cat "$$REL_DIR/fw_capture_hash_check.txt" >> "$$REL_DIR/firmware_release_evidence.md"; \
-        echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
-        echo "## repeat manifest" >> "$$REL_DIR/firmware_release_evidence.md"; \
-        cat "$$REL_DIR/fw_repeat/manifest.txt" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	@REL_DIR="docs/verification/releases/$(VERSION)"; \
+	mkdir -p "$$REL_DIR"; \
+	rm -rf "$$REL_DIR/fw_capture.bin" "$$REL_DIR/fw_repeat"; \
+	cp "$(REPLAY_RUN)" "$$REL_DIR/fw_capture.bin"; \
+	cp -R "$(REPLAY_REPEAT_DIR)" "$$REL_DIR/fw_repeat"; \
+	sha256sum "$(REPLAY_RUN)" > "$$REL_DIR/fw_capture_hash_check.txt"; \
+	sha256sum "$(REPLAY_REPEAT_DIR)"/run_*.bin > "$$REL_DIR/fw_repeat_hash_check.txt"; \
+	echo "# Firmware Release Evidence ($(VERSION))" > "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "REPLAY_RUN=$(REPLAY_RUN)" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "REPLAY_REPEAT_DIR=$(REPLAY_REPEAT_DIR)" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "## capture hash check" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	cat "$$REL_DIR/fw_capture_hash_check.txt" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	echo "## repeat manifest" >> "$$REL_DIR/firmware_release_evidence.md"; \
+	cat "$$REL_DIR/fw_repeat/replay_manifest_v1.txt" >> "$$REL_DIR/firmware_release_evidence.md"
+	python3 scripts/check_release_bundle.py --version "$(VERSION)"
 
 release-bundle:
 	@test -n "$(VERSION)" || { echo "VERSION is required"; exit 1; }

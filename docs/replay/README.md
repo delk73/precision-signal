@@ -66,7 +66,6 @@ not current authoritative replay inputs.
 
 ## Historical Replay and Capture References
 
-- [docs/replay/FW_F446_CAPTURE_v1.md](FW_F446_CAPTURE_v1.md): active RPL0 hardware capture contract — see `crates/replay-fw-f446`
 - [docs/replay/REPLAY_CAPTURE_CONTRACT_v0.md](REPLAY_CAPTURE_CONTRACT_v0.md): legacy RPL0 format version 0 capture acceptance contract retained
   for historical inspection
 - [docs/replay/WIRE_FORMAT_v0.md](WIRE_FORMAT_v0.md): byte-level RPL format and parser validation rules
