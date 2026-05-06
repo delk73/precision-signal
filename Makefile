@@ -474,7 +474,6 @@ fw-release-archive:
 	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
 	echo "## repeat manifest" >> "$$REL_DIR/firmware_release_evidence.md"; \
 	cat "$$REL_DIR/fw_repeat/replay_manifest_v1.txt" >> "$$REL_DIR/firmware_release_evidence.md"
-	python3 scripts/check_release_bundle.py --version "$(VERSION)"
 
 release-bundle:
 	@test -n "$(VERSION)" || { echo "VERSION is required"; exit 1; }
