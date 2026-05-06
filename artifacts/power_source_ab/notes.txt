@@ -163,32 +163,32 @@ Updated boundary:
 
 Stress workload introduction (firmware)
 
-The irregular-timing workload is a bounded irregular-timing stimulus.
-It increases timing variability relative to the minimal fixed-period workload, but it is not a broad CPU, memory, flash, or peripheral stress test.
+The stress workload used in these experiments increases timing variability
+relative to the minimal fixed-period workload, but it is not a broad CPU,
+memory, flash, or peripheral stress test.
 
-- added single alternate firmware mode: `irregular-timing`
-- implemented deterministic irregular TIM3 stimulus intervals
-- preserved capture contract: `index,interval_us`
-- preserved terminal state: `STATE,CAPTURE_DONE,138`
-- default minimal workload unchanged
+Observed interface during the experiment:
+- capture contract remained `index,interval_us`
+- terminal state remained `STATE,CAPTURE_DONE,138`
+- default minimal workload remained the comparison baseline
 
-Constraints enforced:
-- irregular-timing is isolated behind feature flag
-- compile-time guard prevents combination with divergence injection features
-- no changes to CLI, artifact structure, or CSV schema
+This note retains `irregular-timing` as experiment shorthand only. It should
+not be read as a claim about the current in-tree firmware feature set.
 
-Build validation:
-- irregular-timing firmware builds successfully
-- default and stress builds both compile clean
-- tests pass
-- formatting and diff checks pass
+Firmware provenance:
+These measurements used a timing-variant experimental image derived from the
+timing characterization firmware lineage now retained in
+crates/replay-fw-f446-timing. That crate holds the current in-tree reference
+implementation of the timing measurement workload that powered this
+characterization. The `irregular-timing` label documents the experimental
+context, not a versioned firmware feature.
 
 ---
 
 Flashing procedure correction
 
 Initial condition:
-- irregular-timing firmware was flashed while target rail was ~1.755 V
+- the stress-workload image was flashed while target rail was ~1.755 V
 
 Observed:
 - st-flash reported low voltage and downgraded to 8-bit flash writes
@@ -196,7 +196,7 @@ Observed:
 
 Correction:
 - board rail restored to nominal operating voltage prior to flashing
-- irregular-timing firmware reflashed under normal conditions
+- stress-workload image reflashed under normal conditions
 
 Verification:
 - st-flash used 32-bit flash writes at nominal voltage
@@ -213,7 +213,7 @@ Interpretation:
 
 Measurement integrity update
 
-- irregular-timing firmware is now installed under correct electrical conditions
+- stress-workload image is now installed under correct electrical conditions
 - device state is consistent with build artifact
 - subsequent captures will reflect valid firmware execution state
 
@@ -238,7 +238,7 @@ results:
 
 interpretation:
 
-- irregular-timing workload is deterministic under nominal conditions
+- stress workload is deterministic under nominal conditions
 - irregular TIM3 interval modulation does not introduce non-determinism at baseline voltage
 - workload is valid for replay-based characterization
 
@@ -260,7 +260,7 @@ Stress workload validation sanity check
 - first_divergence: step=0 node=artifact.signal_inputs cause=VAL_MISMATCH
 
 Interpretation:
-- irregular-timing record/replay path is internally consistent
+- stress-workload record/replay path is internally consistent
 - diff detects single-value mutation under stress workload
 - stress workload is valid for voltage sweep characterization
 
@@ -292,7 +292,7 @@ Stress workload floor stability check
 ~1.75 V measured rail
 
 Condition:
-- irregular-timing firmware
+- stress-workload image
 - ST-LINK auto reset
 - runs: 6+
 
@@ -313,7 +313,7 @@ Stress workload refined low-voltage stability
 ~1.70 V measured rail
 
 Condition:
-- irregular-timing firmware
+- stress-workload image
 - ST-LINK auto reset
 - runs: ≥16
 
@@ -344,10 +344,10 @@ Interpretation:
 
 Terminology update
 
-- `irregular-timing` is the current firmware feature name
-- reflects actual workload: deterministic irregular timer intervals
-- avoids implying CPU/memory stress characteristics
-- "stress workload" in this document refers to the `irregular-timing` firmware mode
+- `irregular-timing` is retained here as experiment shorthand used during note-taking
+- it does not assert a current in-tree firmware feature name
+- it refers to the timing-variant workload used for these captures
+- "stress workload" in this document refers to that experimental workload
 
 ---
 
