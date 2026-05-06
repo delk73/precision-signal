@@ -41,10 +41,9 @@ The active STM32 RPL0 capture contract is
 [docs/replay/FW_F446_CAPTURE_v1.md](../replay/FW_F446_CAPTURE_v1.md).
 The timing characterization fixture is governed by
 [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](../replay/INTERVAL_CAPTURE_CONTRACT_v1.md).
-The active workspace/package version is `1.4.0`, and the latest retained patch
-release evidence currently present in-tree lives under
-[docs/verification/releases/1.4.0/](../verification/releases/1.4.0/). The
-older hardware-backed retained release record remains explicit under
+The current workspace version and latest retained release evidence path are
+listed in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md). The older
+hardware-backed retained release record remains explicit under
 [docs/verification/releases/1.2.2/](../verification/releases/1.2.2/).
 
 ### Present In Workspace But Not Promoted By The Canonical Release Classifier

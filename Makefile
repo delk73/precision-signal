@@ -20,6 +20,7 @@ SIGNAL_PERTURB_FRAME ?= 50
 SIGNAL_REPEAT_SECONDS ?=
 FW_GATE_RESET_MODE ?= manual
 FW_CAPTURE_TIMEOUT ?= 10
+REPLAY_CAPTURE_TIMEOUT ?= 60
 FW_CAPTURE_DIR ?= artifacts/fw_capture_runs
 FW_REPEAT_DIR ?= artifacts/fw_repeat_runs
 REPLAY_SIGNAL_MODEL ?= phase8
@@ -426,7 +427,7 @@ fw-gate:
 	$(MAKE) flash-compare-ur
 	# RPL0 single capture: firmware already on device; listener starts, board emits after ~10 s collection.
 	export PYTHONPATH="$(CURDIR)$${PYTHONPATH:+:$${PYTHONPATH}}"
-	SERIAL="$(SERIAL)" python3 scripts/artifact_tool.py capture --quick --out "$(REPLAY_RUN)"
+	timeout "$(REPLAY_CAPTURE_TIMEOUT)" env SERIAL="$(SERIAL)" python3 scripts/artifact_tool.py capture --quick --out "$(REPLAY_RUN)"
 	python3 scripts/artifact_tool.py verify "$(REPLAY_RUN)" --signal-model "$(REPLAY_SIGNAL_MODEL)"
 	python3 scripts/artifact_tool.py compare "$(REPLAY_BASELINE)" "$(REPLAY_RUN)"
 	# RPL0 repeat captures (FW_GATE_RESET_MODE=manual — operator resets board between runs).
