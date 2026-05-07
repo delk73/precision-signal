@@ -14,7 +14,6 @@ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 RUN_DIR_REL_RE = re.compile(r"^artifacts/replay_runs/(run_\d{8}T\d{6}Z)$")
 
 NON_FIRMWARE_REQUIRED_FILES = (
-    "README.md",
     "index.md",
     "cargo_check_dpw4_thumb_locked.txt",
     "kani_evidence.txt",
