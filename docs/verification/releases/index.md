@@ -33,6 +33,7 @@ Active retained release record: `1.7.0`
 
 ## Historical Retained Release Evidence
 
+- [Release 1.6.0](1.6.0/): narrowed retained release bundle with bounded firmware capture evidence
 - [Release 1.5.0](1.5.0/): bounded Rust replay release bundle
 - [Release 1.4.0](1.4.0/): prior verification-depth release bundle
 - [Release 1.3.1](1.3.1/): prior patch-release retained bundle
