@@ -1,0 +1,390 @@
+Power Source A/B + External Voltage Sweep Characterization
+
+A/B smoke test (baseline USB vs external 5V)
+
+- baseline_usb.csv and ext_5v.csv are bit-identical
+- sha256: b6243038335e15871ff9750b0b1bfa0cc75cc03639fe25d0cd22644abeff43a1
+
+Result:
+- baseline USB power and external 5V (nominal conditions) produce identical interval capture CSVs
+- record: PASS
+- replay: PASS
+- equivalence: exact
+- first_divergence: none
+
+Interpretation:
+- external 5V path is valid for replay capture under nominal conditions
+- no observable difference between USB-powered and externally powered execution at the capture/replay surface
+
+---
+
+Sweep invalidation (first pass)
+
+- initial sweep (4.90 → 4.70 nominal) was performed with incorrect board jumper configuration
+- board was not under external 5V authority
+- results are invalid for power-floor characterization
+
+Action:
+- reconfigured board to external 5V (E5V)
+- re-ran sweep with verified PSU authority over board power
+
+Verification:
+- PSU OFF → board unpowered
+- PSU ON → board powered
+- confirmed external rail is authoritative
+
+---
+
+Validation sanity check (negative control)
+
+- negative_control.csv created by mutating a single interval value
+- record: PASS
+- replay: PASS
+- diff vs baseline artifact: FAIL
+- equivalence: diverged
+- first_divergence: step=0 node=artifact.signal_inputs cause=VAL_MISMATCH
+
+Interpretation:
+- record/replay validate internal artifact consistency
+- diff is the correct cross-artifact validation mechanism
+- validation surface is sensitive to single-value mutation
+- identical CSV hashes across sweep are meaningful
+
+---
+
+External 5V sweep (E5V mode, calibrated)
+
+rail behavior:
+- PSU exhibits ~±0.04–0.05 V fluctuation under load
+- voltage labels corrected to measured rail values
+- external input sweep propagates to board 3V3 rail
+
+results (all valid runs):
+
+measured rail ≈ 4.9 V → PASS
+measured rail ≈ 4.8 V → PASS
+measured rail ≈ 4.7 V → PASS
+measured rail ≈ 4.6 V → PASS
+measured rail ≈ 4.5 V → PASS
+measured rail ≈ 4.4 V → PASS
+measured rail ≈ 4.3 V → PASS
+measured rail ≈ 4.2 V → PASS
+measured rail ≈ 2.2 V → PASS
+
+For all above:
+
+- capture: STATE,CAPTURE_DONE,138
+- record: PASS
+- replay: PASS
+- equivalence: exact
+- first_divergence: none
+- CSV hash identical to baseline
+
+---
+
+Low-voltage characterization (measured rail)
+
+- ~1.75 V:
+  - capture: STATE,CAPTURE_DONE,138
+  - record: PASS
+  - replay: PASS
+  - equivalence: exact
+  - first_divergence: none
+  - CSV hash matches baseline
+
+- ~1.56 V:
+  - capture: FAIL (no valid capture / unstable operation)
+  - no replay artifact promoted
+
+---
+
+Failure boundary
+
+- last confirmed PASS: ~1.75 V measured rail
+- first confirmed FAIL: ~1.56 V measured rail
+- coarse operating band: ~1.56–1.75 V
+
+---
+
+Interpretation
+
+- deterministic replay surface remains bit-exact across a wide undervoltage range
+- no execution-level divergence observed for this firmware/stimulus down to ~1.75 V
+- failure manifests as loss of capture / unstable execution below ~1.56 V
+- external voltage reduction is confirmed to propagate to MCU supply rail (3V3)
+
+---
+
+Constraints / caveats
+
+- result applies only to this minimal firmware and stimulus
+- workload is low complexity and timing-tolerant
+- USB remains connected (possible residual bias not fully eliminated)
+- PSU resolution is coarse (±0.05 V)
+
+---
+
+Summary
+
+Minimal firmware demonstrates stable, replay-identical execution across a substantial undervoltage range, with a first observed failure band between ~1.56 V and ~1.75 V measured rail.
+
+No replay divergence was observed prior to failure; correctness holds until execution collapses.
+
+---
+
+Refined low-voltage boundary
+
+~1.760 V measured rail
+- measured input: 1.760 V
+- measured 3V3 rail: 1.758 V
+- measured NRST: 1.399 V
+- result: PASS
+- interpretation: stable confirmed pass point
+
+~1.691 V measured rail
+- measured input: 1.691 V
+- measured 3V3 rail: 1.688 V
+- measured NRST: 1.43 V
+- result: PASS, but inconsistent / near floor
+- interpretation: lowest observed passing point so far, not a robust margin point
+
+Prior failure:
+- ~1.56 V measured rail: FAIL
+
+Updated boundary:
+- stable PASS: ~1.760 V
+- lowest inconsistent PASS: ~1.691 V
+- FAIL: ~1.56 V
+- current failure band: below ~1.69 V and above ~1.56 V
+
+
+
+---
+
+Stress workload introduction (firmware)
+
+The stress workload used in these experiments increases timing variability
+relative to the minimal fixed-period workload, but it is not a broad CPU,
+memory, flash, or peripheral stress test.
+
+Observed interface during the experiment:
+- capture contract remained `index,interval_us`
+- terminal state remained `STATE,CAPTURE_DONE,138`
+- default minimal workload remained the comparison baseline
+
+This note retains `irregular-timing` as experiment shorthand only. It should
+not be read as a claim about the current in-tree firmware feature set.
+
+Firmware provenance:
+These measurements used a timing-variant experimental image derived from the
+timing characterization firmware lineage now retained in
+crates/replay-fw-f446-timing. That crate holds the current in-tree reference
+implementation of the timing measurement workload that powered this
+characterization. The `irregular-timing` label documents the experimental
+context, not a versioned firmware feature.
+
+---
+
+Flashing procedure correction
+
+Initial condition:
+- the stress-workload image was flashed while target rail was ~1.755 V
+
+Observed:
+- st-flash reported low voltage and downgraded to 8-bit flash writes
+- flash completed and verified under low-voltage condition
+
+Correction:
+- board rail restored to nominal operating voltage prior to flashing
+- stress-workload image reflashed under normal conditions
+
+Verification:
+- st-flash used 32-bit flash writes at nominal voltage
+- flash write completed successfully
+- flash-compare-ur passed (device binary matches build artifact)
+
+Interpretation:
+- low-voltage flashing is not a valid operating condition
+- correct procedure is:
+  - flash and verify at nominal voltage
+  - perform undervoltage only during execution/capture phase
+
+---
+
+Measurement integrity update
+
+- stress-workload image is now installed under correct electrical conditions
+- device state is consistent with build artifact
+- subsequent captures will reflect valid firmware execution state
+
+
+---
+
+Stress workload nominal determinism (validation)
+
+captures:
+
+- stress_nominal_01.csv
+- stress_nominal_02.csv
+- stress_nominal_03.csv
+
+results:
+
+- all three captures completed:
+  - STATE,CAPTURE_DONE,138
+
+- sha256 hashes:
+  - identical across all three captures
+
+interpretation:
+
+- stress workload is deterministic under nominal conditions
+- irregular TIM3 interval modulation does not introduce non-determinism at baseline voltage
+- workload is valid for replay-based characterization
+
+validation status:
+
+- determinism gate: PASS
+- stress workload cleared for record/replay promotion and voltage sweep characterization
+
+
+
+Stress workload validation sanity check
+
+- stress_negative_control.csv created by mutating one interval value from stress_nominal_01.csv
+- stress baseline record: PASS
+- stress baseline replay: PASS
+- negative-control record: PASS
+- diff baseline vs negative control: FAIL
+- equivalence: diverged
+- first_divergence: step=0 node=artifact.signal_inputs cause=VAL_MISMATCH
+
+Interpretation:
+- stress-workload record/replay path is internally consistent
+- diff detects single-value mutation under stress workload
+- stress workload is valid for voltage sweep characterization
+
+
+---
+
+Stress workload external voltage sweep (E5V mode)
+
+results:
+
+measured rail ≈ 1.80 V → PASS
+- capture: STATE,CAPTURE_DONE,138
+- CSV hash matches stress baseline
+- replay: PASS
+- equivalence: exact
+- first_divergence: none
+
+measured rail ≈ 1.75 V → PASS (single run)
+- capture: STATE,CAPTURE_DONE,138
+- CSV hash matches stress baseline
+- replay: PASS
+- equivalence: exact
+- first_divergence: none
+
+---
+
+Stress workload floor stability check
+
+~1.75 V measured rail
+
+Condition:
+- stress-workload image
+- ST-LINK auto reset
+- runs: 6+
+
+Result:
+- all runs completed:
+  - STATE,CAPTURE_DONE,138
+- all CSV hashes identical:
+  - sha256: 2517c58f0aa1a7e365e2ba25dd2a09bffd8b1316ac527b4fcdff960a4f3ce2c9
+
+Interpretation:
+- stress workload is stable and deterministic at ~1.75 V
+- confirms stable PASS region, not a single-run artifact
+
+---
+
+Stress workload refined low-voltage stability
+
+~1.70 V measured rail
+
+Condition:
+- stress-workload image
+- ST-LINK auto reset
+- runs: ≥16
+
+Result:
+- all runs completed:
+  - STATE,CAPTURE_DONE,138
+- all CSV hashes identical:
+  - sha256: 2517c58f0aa1a7e365e2ba25dd2a09bffd8b1316ac527b4fcdff960a4f3ce2c9
+
+Interpretation:
+- stress workload remains stable and deterministic at ~1.70 V
+- confirms stable PASS region extends to at least ~1.70 V under repeated runs
+
+---
+
+Stress workload failure observation
+
+~1.69 V measured rail
+
+- capture: FAIL (no valid capture / unstable operation)
+- no replay divergence observed prior to failure; behavior remains bit-exact until capture loss
+
+Interpretation:
+- failure transition occurs in a narrow band between ~1.69 V and ~1.70 V
+- boundary width is comparable to PSU fluctuation (±0.04–0.05 V)
+
+---
+
+Terminology update
+
+- `irregular-timing` is retained here as experiment shorthand used during note-taking
+- it does not assert a current in-tree firmware feature name
+- it refers to the timing-variant workload used for these captures
+- "stress workload" in this document refers to that experimental workload
+
+---
+
+Hysteresis observation (run vs recovery)
+
+- sustained execution can continue at voltages lower than those required to recover after failure
+- after undershoot into failure, higher voltage is required to re-establish stable execution
+
+Interpretation:
+- system exhibits hysteresis near the low-voltage boundary
+- distinction required between:
+  - run-sustain floor
+  - recovery/startup floor
+  - collapse point
+
+---
+
+Updated stress workload boundary
+
+- stable PASS: ≥ ~1.70 V (multi-run validated)
+- FAIL: ≤ ~1.69 V
+- transition band appears narrow, but exact width is not claimed because PSU fluctuation is ~±0.04–0.05 V
+
+---
+
+Comparison vs minimal workload
+
+minimal workload:
+- stable PASS: ~1.76 V
+- edge PASS: ~1.69 V
+- FAIL: ~1.56 V
+
+stress workload:
+- stable PASS: ~1.70 V
+- FAIL: ~1.69 V
+
+Interpretation:
+- stress workload did not produce an observed earlier divergence or materially higher stable-pass floor in this setup
+- both workloads exhibit collapse without prior divergence
+- execution remains bit-exact until failure boundary is reached

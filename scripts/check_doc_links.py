@@ -24,6 +24,7 @@ NAVIGATION_CUE_RE = re.compile(
     r"remains in|contract is|authority is defined in|status is classified in)\b",
     re.IGNORECASE,
 )
+BULLET_RE = re.compile(r"^(?P<indent>\s*)-\s+")
 
 
 @dataclass(frozen=True)
@@ -53,6 +54,10 @@ def iter_public_docs(root: Path) -> list[Path]:
         if rel.startswith("docs/internal/"):
             continue
         if rel.startswith("docs/verification/releases/"):
+            # Keep release-evidence pages out of general checks except the
+            # routed release landing page.
+            if rel == "docs/verification/releases/index.md":
+                files.append(path)
             continue
         files.append(path)
     return files
@@ -186,7 +191,8 @@ def collect_orphan_findings(root: Path) -> list[Finding]:
 def collect_findings(root: Path) -> list[Finding]:
     findings: list[Finding] = []
     for path in iter_public_docs(root):
-        for line_no, line in iter_non_fenced_lines(path):
+        lines = iter_non_fenced_lines(path)
+        for idx, (line_no, line) in enumerate(lines):
             for match in MARKDOWN_LINK_RE.finditer(line):
                 label = match.group("label")
                 target = match.group("target").strip()
@@ -243,8 +249,41 @@ def collect_findings(root: Path) -> list[Finding]:
                         reason=f"use [{repo_facing_label(inferred, root)}](...) instead of prose navigation",
                     )
                 )
+
+            if _is_dangling_bullet(lines, idx):
+                findings.append(
+                    Finding(
+                        path=path,
+                        line_no=line_no,
+                        defect_class="dangling_bullet",
+                        reference_text=line.strip(),
+                        reason="bullet route heading ends with ':' but is immediately followed by a sibling bullet",
+                    )
+                )
     findings.extend(collect_orphan_findings(root))
     return findings
+
+
+def _is_dangling_bullet(lines: list[tuple[int, str]], idx: int) -> bool:
+    line = lines[idx][1]
+    bullet = BULLET_RE.match(line)
+    if bullet is None:
+        return False
+    if not line.rstrip().endswith(":"):
+        return False
+    if MARKDOWN_LINK_RE.search(line) is not None:
+        return False
+
+    cur_indent = len(bullet.group("indent"))
+    for _, next_line in lines[idx + 1 :]:
+        if not next_line.strip():
+            continue
+        next_bullet = BULLET_RE.match(next_line)
+        if next_bullet is None:
+            return False
+        next_indent = len(next_bullet.group("indent"))
+        return next_indent <= cur_indent
+    return False
 
 
 def main() -> int:

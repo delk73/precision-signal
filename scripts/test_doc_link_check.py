@@ -89,6 +89,30 @@ def main() -> int:
         proc = run_check(root)
         assert_ok("non_doc_paths_ignored", proc)
 
+    with tempfile.TemporaryDirectory(prefix="dpw_doc_links_") as tmp:
+        root = Path(tmp)
+        write(root / "README.md", "See [releases](docs/verification/releases/index.md).\n")
+        write(root / "docs" / "VERIFICATION_GUIDE.md", "# Guide\n")
+        write(
+            root / "docs" / "verification" / "releases" / "index.md",
+            "Use [VERIFICATION_GUIDE.md](../../../VERIFICATION_GUIDE.md).\n",
+        )
+        proc = run_check(root)
+        assert_fail("release_index_broken_target_fails", proc, "broken_target")
+
+    with tempfile.TemporaryDirectory(prefix="dpw_doc_links_") as tmp:
+        root = Path(tmp)
+        write(root / "README.md", "See [docs](docs/README.md).\n")
+        write(
+            root / "docs" / "README.md",
+            "- Active retained release summary routes:\n"
+            "- Active retained release summary route:\n"
+            "  [docs/verification/releases/1.7.0/index.md](verification/releases/1.7.0/index.md)\n",
+        )
+        write(root / "docs" / "verification" / "releases" / "1.7.0" / "index.md", "# 1.7.0\n")
+        proc = run_check(root)
+        assert_fail("dangling_bullet_fails", proc, "dangling_bullet")
+
     print("PASS: documentation link integrity regression suite")
     return 0
 

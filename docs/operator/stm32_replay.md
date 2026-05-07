@@ -44,3 +44,34 @@ Preconditions:
 - `CAPTURE_INCOMPLETE,0`
   Meaning: the first transport state line is `STATE,CAPTURE_INCOMPLETE,0`; `0` corresponds to zero recorded intervals.
   First check: check the physical loopback from `PA6` (`TIM3_CH1`) to `PA0` (`TIM2_CH1`).
+
+## Physical Replay Characterization Prep
+
+Purpose: prepare bounded STM32 physical replay characterization for future
+voltage / power-floor evidence capture while preserving the authoritative
+`precision record` / `precision replay` replay path.
+
+Setup boundary:
+- use the same STM32-over-UART replay procedure and loopback precondition above
+- vary only the documented voltage or power condition for a discrete sweep point
+- keep the replay artifact path and hash tied to the sweep point
+- record power provenance separately from execution provenance
+
+High-level operator flow:
+1. Establish the baseline setup and confirm the normal STM32 replay procedure.
+2. Select one discrete voltage or power condition.
+3. Capture the STM32 UART output and any power observation for that condition.
+4. Run `precision record` on a complete capture when one exists.
+5. Run `precision replay` on the resulting artifact directory when `record`
+   produced one.
+6. Classify the result using the procedure vocabulary in
+   [hardware_procedures.md](../verification/hardware_procedures.md).
+7. Preserve provenance for the replay artifact, capture artifact, power
+   observation source, result classification, equivalence classification, first
+   divergence if any, capture completeness, UART/log completeness, and operator
+   notes.
+
+This procedure does not expand the authoritative release surface and does not
+establish full power-envelope correctness. See
+[hardware_procedures.md](../verification/hardware_procedures.md) for full
+characterization boundaries, non-claims, and provenance requirements.

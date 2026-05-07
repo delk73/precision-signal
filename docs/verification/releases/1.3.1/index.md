@@ -1,14 +1,16 @@
 # Release Evidence Bundle (1.3.1)
 
-This route exists so GitHub Pages resolves `docs/verification/releases/1.3.1/`
-correctly.
+This directory is the retained release record for patch release `1.3.1`.
 
-Primary retained release record:
+Scope of this cut:
 
-- [README.md](README.md): patch-release summary and retained checklist inventory
+- proof-route repair for `make demo-evidence-package`
+- retained evidence completion for the `1.3.1` release record
+- locked-toolchain lockfile correction for Rust `1.91.1`
 
 Retained command outputs:
 
+- [cargo_check_dpw4_thumb_locked.txt](cargo_check_dpw4_thumb_locked.txt)
 - [make_gate.txt](make_gate.txt)
 - [make_replay_tests.txt](make_replay_tests.txt)
 - [make_demo_evidence_package.txt](make_demo_evidence_package.txt)
@@ -16,4 +18,8 @@ Retained command outputs:
 - [verify_release_repro.txt](verify_release_repro.txt)
 - [release_reproducibility.txt](release_reproducibility.txt)
 - [kani_evidence.txt](kani_evidence.txt)
-- [cargo_check_dpw4_thumb_locked.txt](cargo_check_dpw4_thumb_locked.txt)
+
+Historical retained release records remain immutable:
+
+- `docs/verification/releases/1.2.2/` remains the older hardware-backed retained evidence bundle
+- no files under older retained release directories were modified for `1.3.1`
