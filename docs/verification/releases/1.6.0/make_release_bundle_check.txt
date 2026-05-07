@@ -1,0 +1,13 @@
+PLACEHOLDER BACKFILL (added after original 1.6.0 retention)
+
+This file is a synthetic completeness placeholder for historical bundle parity.
+It is not contemporaneous command output captured during the 1.6.0 release cycle.
+
+Reason:
+- scripts/check_release_bundle.py requires make_release_bundle_check.txt
+  for non-firmware retained bundles.
+- The original 1.6.0 retained bundle never contained this artifact.
+
+Provenance note:
+- Added later to make the retained file set explicit and checker-complete,
+  while preserving a clear statement that historical output is unavailable.
