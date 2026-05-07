@@ -45,7 +45,7 @@ Tier-2 Kani proofs are excluded from this retained bundle and remain optional un
 - [make_doc_link_check.txt](make_doc_link_check.txt)
 - [make_gate.txt](make_gate.txt)
 - [make_release_bundle_check.txt](make_release_bundle_check.txt):
-	post-release placeholder backfill; not contemporaneous 1.6.0 command output
+  post-release placeholder backfill; not contemporaneous 1.6.0 command output
 - [make_replay_tests.txt](make_replay_tests.txt)
 - [precision_authoritative_surface_test_evidence.txt](precision_authoritative_surface_test_evidence.txt)
 - [release_reproducibility.txt](release_reproducibility.txt)
