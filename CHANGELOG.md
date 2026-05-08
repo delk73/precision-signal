@@ -7,6 +7,18 @@
 
 ## [Unreleased]
 
+<!-- Next-cut scope goes here -->
+
+## [1.8.0] - 2026-05-07
+
+### RPL0 Firmware Restore + Precision Meta v2 + DPW4 Streaming Hash
+
+> **Release classification:** Firmware-including. Evidence bundle includes RPL0
+> capture evidence (`fw_capture_hash_check.txt`, `fw_repeat/replay_manifest_v1.txt`,
+> `firmware_release_evidence.md`) in addition to the standard software-gate outputs.
+> `sig-util validate` scope is toolchain-only in this release; artifact-contract
+> awareness deferred to a future release.
+
 ### Added
 
 - canonical streaming payload SHA-256 helpers in `dpw4`: `OriginHeader` struct for artifact identity, `compute_payload_hash` (strict `OriginHeader`-masked path), and offset-based stream hashing for artifact payload identity
@@ -29,6 +41,7 @@
 - removed redundant `u128 → u128` cast in the `I256::mul_u32` path (`crates/dpw4`)
 
 ## [1.7.0] - 2026-04-22
+
 
 ### Replay Authority Hardening + STM32 Operator Path
 

@@ -1,5 +1,5 @@
 # precision-signal: Canonical Verification Protocol
-**Version: 1.7.0 (Active Release Baseline)**
+**Version: 1.8.0 (Active Release Baseline)**
 **Status: Frozen Definition**
 
 ## Purpose
@@ -12,33 +12,35 @@ This document is the canonical release contract for `precision-signal`.
 
 Release readiness for a retained repository release record requires:
 
-- retained Kani evidence from the manual preflight `bash scripts/verify_kani.sh` to exist under [docs/verification/releases/1.7.0/](verification/releases/1.7.0/)
-- the canonical `1.7.0` release-record orchestration `make release-1.7.0` to pass
+- retained Kani evidence from the manual preflight `bash scripts/verify_kani.sh` to exist under [docs/verification/releases/1.8.0/](verification/releases/1.8.0/)
+- the canonical `1.8.0` release-record orchestration `make release-1.8.0` to pass
 - the retained release evidence bundle to live under `docs/verification/releases/<version>/`
 - the canonical operator-facing release gate `make gate` to pass within the retained release-record orchestration
 - `make release-bundle-check VERSION=<version>` to pass against that retained bundle within the retained release-record orchestration
+- *(firmware-including)* `make fw-gate` RPL0 capture to pass and evidence archived via `make fw-release-archive VERSION=1.8.0`
 
-For release `1.7.0`, run the pre-tag path in this order:
+For release `1.8.0`, run the pre-tag path in this order:
 
 1. `bash scripts/verify_kani.sh`
-2. `make release-1.7.0`
+2. `make release-1.8.0`
+3. `make fw-gate SERIAL=<port> FW_GATE_RESET_MODE=manual`
+4. `make fw-release-archive VERSION=1.8.0 SERIAL=<port>`
 
-Embedded checks for `1.7.0`: `make release-1.7.0` requires existing
+Embedded checks for `1.8.0`: `make release-1.8.0` requires existing
 `kani_evidence.txt`, reruns `make gate`, reruns `make doc-link-check`, and
-runs `make release-bundle-check VERSION=1.7.0` while recording retained outputs
-under [docs/verification/releases/1.7.0/](verification/releases/1.7.0/). Those checks remain required for the
+runs `make release-bundle-check VERSION=1.8.0` while recording retained outputs
+under [docs/verification/releases/1.8.0/](verification/releases/1.8.0/). Those checks remain required for the
 release record, but they are satisfied inside the orchestration rather than as
 additional mandatory operator invocations in the minimal pre-tag path.
 
 Standalone re-runs remain allowed for reviewer verification or diagnosis:
 
 - `make gate`
-- `make release-bundle-check VERSION=1.7.0`
+- `make release-bundle-check VERSION=1.8.0`
 
-Not part of the active `1.7.0` pre-tag contract:
+Not part of the active `1.8.0` pre-tag contract:
 
 - `make gate-full` is supplementary validation only
-- manual STM32 validation and hardware support procedures are supporting/reference material, not release authority
 - changelog timing is not a release-admissibility requirement in this guide
 
 For release-surface questions, use this guide as the source of truth for:
@@ -47,10 +49,10 @@ For release-surface questions, use this guide as the source of truth for:
 - what command is canonical
 - where retained release evidence lives
 
-For release `1.7.0`, reviewers should traverse this path: `bash scripts/verify_kani.sh`
-for the manual once-per-release preflight, `make release-1.7.0` for the
+For release `1.8.0`, reviewers should traverse this path: `bash scripts/verify_kani.sh`
+for the manual once-per-release preflight, `make release-1.8.0` for the
 canonical retained-record orchestration, [docs/replay/tooling.md](replay/tooling.md)
-for released replay-tooling boundaries, and [docs/verification/releases/1.7.0/](verification/releases/1.7.0/)
+for released replay-tooling boundaries, and [docs/verification/releases/1.8.0/](verification/releases/1.8.0/)
 for the retained release evidence bundle. Historical retained evidence remains explicit under
 [docs/verification/releases/](verification/releases/).
 
@@ -203,8 +205,8 @@ KEEP_LOGS=1 bash scripts/verify_kani.sh
 - **"dereference failure ... Status: SUCCESS" lines**: These indicate Kani proved the failing path unreachable under harness constraints; they are successful checks, not proof failures.
 
 ### 3.6 Release-Scoped Correctness and Limits
-- The active release (`1.7.0`) retains its release-scoped correctness claims and limits under [docs/verification/releases/1.7.0/](verification/releases/1.7.0/).
-- That retained `1.7.0` bundle is a narrowed, non-firmware release record for the primary precision CLI surface only, scoped to `crates/dpw4/src/bin/common/mod.rs`, `crates/dpw4/src/bin/precision/mod.rs`, and `crates/dpw4/tests/precision_authoritative_surface.rs`, within the explicit limits documented in the `1.7.0` release directory.
+- The active release (`1.8.0`) retains its release-scoped correctness claims and limits under [docs/verification/releases/1.8.0/](verification/releases/1.8.0/).
+- `1.8.0` is a firmware-including release: it covers the primary precision CLI surface (`crates/dpw4`) and the RPL0 firmware capture path (`crates/replay-fw-f446`), with the timing characterization fixture separated into `crates/replay-fw-f446-timing`. Claims are exercised-path and release-scoped, not global.
 - That claim is exercised-path and release-scoped, not global.
 - Heavy Tier-2 proofs remain optional unless the active release bundle explicitly retains a heavy proof run. If omitted, the retained release bundle must state the exclusion and the remaining release-claim boundary explicitly.
 
@@ -309,6 +311,13 @@ Use `make gate` for routine operator execution of the quick validation gate.
 The underlying normative command is `sig-util validate --mode quick`.
 No other command is an equally authoritative release-admissibility gate.
 
+**`sig-util validate` scope (1.8.0):** `sig-util validate` is a toolchain and
+build-environment gate — it asserts compiler channel pin, version consistency,
+and waveform determinism hashes. It does not inspect recorded artifact `meta.json`
+schema versions. The `precision.meta.v2` contract is enforced by the `precision`
+binary at record and replay time. Artifact-contract awareness for `sig-util validate`
+is deferred to a future release.
+
 ### 6.4 Release Evidence Location
 
 The canonical retained release-evidence location is:
@@ -328,7 +337,7 @@ For a retained repository release record under
 `docs/verification/releases/<version>/`, the required evidence set is:
 
 - Non-firmware retained release bundle:
-  - [index.md](verification/releases/1.7.0/index.md)
+  - [index.md](verification/releases/1.8.0/index.md)
   - `cargo_check_dpw4_thumb_locked.txt`
   - `kani_evidence.txt`
   - `make_demo_evidence_package.txt`
@@ -336,13 +345,13 @@ For a retained repository release record under
   - `make_gate.txt`
   - `make_replay_tests.txt`
   - `release_reproducibility.txt`
-- Firmware-including retained release bundle:
-  - [firmware_release_evidence.md](verification/releases/1.2.2/firmware_release_evidence.md)
-  - `sha256_summary.txt`
-  - `hash_check.txt`
-  - `replay_manifest_v1.txt` for the active RPL0 `version = 1` capture path
-  - `replay_manifest_v0.txt` only for historical retained bundles captured
-    before the `v1` manifest transition
+- Firmware-including retained release bundle (required for `1.8.0`):
+  - [index.md](verification/releases/1.8.0/index.md) — see firmware section
+  - `firmware_release_evidence` (markdown — generated by `make fw-release-archive`)
+  - `fw_capture_hash_check.txt`
+  - `fw_repeat_hash_check.txt`
+  - `fw_repeat/replay_manifest_v1.txt` — active RPL0 `version = 1` capture path
+  - `replay_manifest_v0.txt` — historical bundles only (pre-v1 manifest transition)
 
 For the active RPL0 `version = 1` firmware capture path, the retained
 `replay_manifest_v1.txt` record must preserve the current release-defining
