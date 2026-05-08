@@ -189,6 +189,7 @@ KEEP_LOGS=1 bash scripts/verify_kani.sh
 | `proof_atan2_q2` | `geom-signal` | Tier-2 |
 | `proof_atan2_q3` | `geom-signal` | Tier-2 |
 | `proof_atan2_q4` | `geom-signal` | Tier-2 |
+| `proof_i256_mul_u32_matches_spec` | `dpw4` | Tier-2 |
 
 ### 3.5 Diagnostics and Interpretation
 - **Per-harness logs**: Stored under `kani_logs/<package>__<harness>.log`.
