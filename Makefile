@@ -232,15 +232,19 @@ release-1.8.0:
 	  exit 1; \
 	}
 	@REL_DIR="docs/verification/releases/1.8.0"; \
-	echo "--- [GATE 1/5] Functional Validation ---" && \
+	echo "--- [GATE 1/7] Thumb Locked Check ---" && \
+	cargo check --locked -p dpw4 --target thumbv7em-none-eabihf > "$$REL_DIR/cargo_check_dpw4_thumb_locked.txt" 2>&1 && \
+	echo "--- [GATE 2/7] Functional Validation ---" && \
 	$(MAKE) --no-print-directory gate > "$$REL_DIR/make_gate.txt" 2>&1 && \
-	echo "--- [GATE 2/5] Evidence Packaging ---" && \
+	echo "--- [GATE 3/7] Evidence Packaging ---" && \
 	$(MAKE) --no-print-directory demo-evidence-package > "$$REL_DIR/make_demo_evidence_package.txt" 2>&1 && \
-	echo "--- [GATE 3/5] Documentation Integrity ---" && \
+	echo "--- [GATE 4/7] Replay Tests ---" && \
+	$(MAKE) --no-print-directory replay-tests > "$$REL_DIR/make_replay_tests.txt" 2>&1 && \
+	echo "--- [GATE 5/7] Documentation Integrity ---" && \
 	$(MAKE) --no-print-directory doc-link-check > "$$REL_DIR/make_doc_link_check.txt" 2>&1 && \
-	echo "--- [GATE 4/5] Reproducibility Record ---" && \
+	echo "--- [GATE 6/7] Reproducibility Record ---" && \
 	RELEASE_EVIDENCE_DIR="$$REL_DIR" bash scripts/verify_release_repro.sh > "$$REL_DIR/release_reproducibility.txt" 2>&1 && \
-	echo "--- [GATE 5/5] Bundle Coherence Check ---" && \
+	echo "--- [GATE 7/7] Bundle Coherence Check ---" && \
 	$(MAKE) --no-print-directory release-bundle-check VERSION=1.8.0 > "$$REL_DIR/make_release_bundle_check.txt" 2>&1 && \
 	echo "--- [FIRMWARE] RPL0 Capture Gate ---" && \
 	$(MAKE) fw-gate SERIAL="$(SERIAL)" FW_GATE_RESET_MODE=manual && \

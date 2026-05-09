@@ -12,7 +12,7 @@ This document is the canonical release contract for `precision-signal`.
 
 Release readiness for a retained repository release record requires:
 
-- retained Kani evidence from the manual preflight `bash scripts/verify_kani.sh` to exist under [docs/verification/releases/1.8.0/](verification/releases/1.8.0/)
+- retained Kani evidence from the manual preflight to exist under [docs/verification/releases/1.8.0/](verification/releases/1.8.0/)
 - the canonical `1.8.0` release-record orchestration `make release-1.8.0` to pass
 - the retained release evidence bundle to live under `docs/verification/releases/<version>/`
 - the canonical operator-facing release gate `make gate` to pass within the retained release-record orchestration
@@ -21,17 +21,18 @@ Release readiness for a retained repository release record requires:
 
 For release `1.8.0`, run the pre-tag path in this order:
 
-1. `bash scripts/verify_kani.sh`
-2. `make release-1.8.0`
-3. `make fw-gate SERIAL=<port> FW_GATE_RESET_MODE=manual`
-4. `make fw-release-archive VERSION=1.8.0 SERIAL=<port>`
+1. `mkdir -p docs/verification/releases/1.8.0`
+2. `KEEP_LOGS=1 NO_COLOR=1 bash scripts/verify_kani.sh | tee docs/verification/releases/1.8.0/kani_evidence.txt`
+3. `make release-1.8.0`
 
 Embedded checks for `1.8.0`: `make release-1.8.0` requires existing
-`kani_evidence.txt`, reruns `make gate`, reruns `make doc-link-check`, and
+`kani_evidence.txt`, records the thumb locked check, reruns `make gate`, reruns
+`make replay-tests`, reruns `make doc-link-check`, records reproducibility, and
 runs `make release-bundle-check VERSION=1.8.0` while recording retained outputs
-under [docs/verification/releases/1.8.0/](verification/releases/1.8.0/). Those checks remain required for the
-release record, but they are satisfied inside the orchestration rather than as
-additional mandatory operator invocations in the minimal pre-tag path.
+under [docs/verification/releases/1.8.0/](verification/releases/1.8.0/). Those
+checks remain required for the release record, but they are satisfied inside the
+orchestration rather than as additional mandatory operator invocations in the
+minimal pre-tag path.
 
 Standalone re-runs remain allowed for reviewer verification or diagnosis:
 
