@@ -1,6 +1,6 @@
 # precision-signal: Canonical Verification Protocol
 **Version: 1.8.0 (Active Release Baseline)**
-**Status: Frozen Definition**
+**Status: Active Release Definition**
 
 ## Purpose
 
@@ -49,12 +49,11 @@ For release-surface questions, use this guide as the source of truth for:
 - what command is canonical
 - where retained release evidence lives
 
-For release `1.8.0`, reviewers should traverse this path: `bash scripts/verify_kani.sh`
-for the manual once-per-release preflight, `make release-1.8.0` for the
-canonical retained-record orchestration, [docs/replay/tooling.md](replay/tooling.md)
-for released replay-tooling boundaries, and [docs/verification/releases/1.8.0/](verification/releases/1.8.0/)
-for the retained release evidence bundle. Historical retained evidence remains explicit under
-[docs/verification/releases/](verification/releases/).
+For release `1.8.0`, reviewers should inspect
+[docs/verification/releases/1.8.0/](verification/releases/1.8.0/) for the
+retained release evidence bundle and [docs/replay/tooling.md](replay/tooling.md)
+for released replay-tooling boundaries. Historical retained evidence remains
+explicit under [docs/verification/releases/](verification/releases/).
 
 Pre-split historical evidence may still refer to `precision` as the validation
 binary; the current validation entrypoint is `sig-util -- validate`, which implements `make gate`.
@@ -72,7 +71,7 @@ The rest of the release-adjacent documentation is supporting only:
 
 ## 1. Governance & Authority
 
-This document defines the **only** valid interpretation of "precision-signal conformance" for the `precision-signal` repository. To prevent interpretation drift, all signals produced or audited by this system are classified as either **Normative** or **Advisory**.
+This document defines the canonical interpretation of "precision-signal conformance" for the active release baseline. To prevent interpretation drift, all signals produced or audited by this system are classified as either **Normative** or **Advisory**.
 
 ### 1.1 Normative vs. Advisory Signals
 
@@ -143,10 +142,10 @@ Normative evidence boundary: the harness manifest embedded in
 `scripts/verify_kani.sh` is the authoritative runner surface for formal-verification
 claims in this repository. Harnesses present in source but omitted from that
 manifest are implementation inventory, not normative runner evidence.
-Tiers reflect release maturity, not raw runtime. Tier-1 is release-critical
-evidence for active contract claims. Tier-2 is runnable exploratory evidence
-that can be retained separately. Tier-3 is proof-decomposition inventory and is
-not release-gating.
+Tiers reflect evidentiary role and release maturity, not solver cost. Tier-1
+is release-critical evidence for active contract claims. Tier-2 is runnable
+exploratory evidence that can be retained separately. Tier-3 is proof inventory
+and is not release-gating.
 
 ### 3.2 Environment Controls
 ```bash
@@ -220,7 +219,6 @@ KEEP_LOGS=1 bash scripts/verify_kani.sh
 ### 3.6 Release-Scoped Correctness and Limits
 - The active release (`1.8.0`) retains its release-scoped correctness claims and limits under [docs/verification/releases/1.8.0/](verification/releases/1.8.0/).
 - `1.8.0` is a firmware-including release: it covers the primary precision CLI surface (`crates/dpw4`) and the RPL0 firmware capture path (`crates/replay-fw-f446`), with the timing characterization fixture separated into `crates/replay-fw-f446-timing`. Claims are exercised-path and release-scoped, not global.
-- That claim is exercised-path and release-scoped, not global.
 - Tier-2 and Tier-3 proofs remain optional unless the active release bundle explicitly retains them. If omitted, the retained release bundle must state the exclusion and the remaining release-claim boundary explicitly.
 - `proof_i256_mul_u32_matches_spec` is Tier-3 in its current form. It
   remains valid proof inventory but does not close full I256 arithmetic proof
@@ -496,13 +494,13 @@ No additional experimental audit surface is included in this repository.
 
 ## 12. Red Flags & Non-Conformance
 
-Any of the following conditions constitutes an **Immediate Failure** of the Reference Baseline:
+Any of the following conditions constitutes an **Immediate Failure** of the active release baseline:
 1. **Hash Mismatch**: Any deviation in `forensic_audit` SHA-256 output.
 2. **Phase Jitter**: Any deviation from the Scalar phase engine at sample boundaries.
 3. **FP Core**: Inclusion of floating-point math within the core DSP path.
 4. **Floating Point Intrusion**: Use of `f64` or `libm` within the `geom-signal` or `dpw4` tick loops.
 5. **Padding Noise**: Hashes that vary based on compiler optimization levels.
-6. **Proof Failure**: Any failure in the Kani formal verification harnesses.
+6. **Proof Failure**: Failure in required Tier-1 Kani verification harnesses, or failure in optional tiers that were explicitly retained as release evidence.
 
 ---
 
