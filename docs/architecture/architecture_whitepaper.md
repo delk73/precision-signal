@@ -781,14 +781,13 @@ The verification architecture is organized into four mechanisms.
 The repository contains 34+ Kani harnesses in source verifying absence of
 panics, arithmetic overflow safety, and specification conformance for
 critical math and state operations. The normative default runner executes a
-narrower Tier-1 subset defined by `verify_kani.sh`.
+narrower Tier-1 release-critical subset defined by `verify_kani.sh`.
 
-**Tier-1 harnesses** (fast, run by default):
+**Tier-1 harnesses** (release-critical, run by default):
 
 | Crate | Harness | Property |
 |-------|---------|----------|
 | `geom-signal` | `proof_sqrt_no_panic` | Newton-Raphson safety (64 iterations) |
-| `geom-signal` | `proof_sin_cos_no_panic` | CORDIC convergence + iteration bounds |
 | `dpw4` | `proof_compute_x2_safe` | x² overflow safety |
 | `dpw4` | `proof_saturate_safe` | i32 saturation correctness |
 | `dpw4` | `proof_phase_u32_no_overflow` | Phase conversion safety |
@@ -811,15 +810,21 @@ narrower Tier-1 subset defined by `verify_kani.sh`.
 | `replay-core` | `proof_encode_header0_wire_layout_and_le` | v0 header wire layout + LE encoding |
 | `replay-core` | `proof_encode_event_frame0_wire_layout_and_le` | v0 frame wire layout + LE encoding |
 
-**Tier-2 harnesses** (heavy, `RUN_HEAVY=1`):
+**Tier-2 runnable harnesses** (exploratory, `RUN_TIER2=1`):
 
 | Crate | Harness | Property |
 |-------|---------|----------|
+| `geom-signal` | `proof_sin_cos_no_panic` | CORDIC convergence + iteration bounds |
 | `geom-signal` | `proof_atan2_q1` through `proof_atan2_q4` | Per-quadrant atan2 range [-π, π] |
-| `dpw4` | `proof_i256_mul_u32_matches_spec` | I256 multiply-by-u32 oracle identity |
 
-Kani configuration: unwind depth 65, solver `cadical`, 360-second timeout per
-harness.
+**Tier-3 harnesses** (serial opt-in, `RUN_TIER3=1`):
+
+| Crate | Harness | Property |
+|-------|---------|----------|
+| `dpw4` | `proof_i256_mul_u32_matches_spec` | I256 multiply-by-u32 oracle identity; proof-decomposition work, not release-gating |
+
+Kani configuration: selected geom-signal harnesses use unwind depth 65 and
+solver `cadical`. `SLOW_SECS` is a reporting threshold, not a hard timeout.
 
 Evidence:
 - `crates/geom-signal/src/verification.rs`: signal harnesses (lines 13–107)
@@ -1158,7 +1163,7 @@ that produced valid artifacts.
 | 22 | Evolution classification has 4 classes: region_transition, self_healing, monotonic_growth, bounded_persistent | `scripts/artifact_diff.py` `classify_evolution()` line 150; [DIVERGENCE_SEMANTICS.md](../replay/DIVERGENCE_SEMANTICS.md) | supported |
 | 23 | Unsupported field differences cause FAIL exit (no silent fallback) | `scripts/artifact_diff.py` `fail()` line 36; `scripts/test_artifact_diff.py` line 47+ | supported |
 | 24 | Repository contains 34+ Kani harnesses in source across `geom-signal`, `dpw4`, and `replay-core` | `crates/geom-signal/src/verification.rs`; `crates/dpw4/src/verification.rs`; `crates/dpw4/src/i256.rs`; `crates/replay-core/src/artifact.rs` (mod verification) | supported |
-| 25 | Normative Kani runner executes a narrower manifest-defined subset; Tier-1 excludes `proof_atan_shafer_safety` and Tier-2 adds atan2 shard proofs plus `proof_i256_mul_u32_matches_spec` when `RUN_HEAVY=1` | `verify_kani.sh` HARNESS_MANIFEST; `verify_kani_tier2.sh` | supported |
+| 25 | Normative Kani runner executes a narrower manifest-defined subset; Tier-1 excludes exploratory trig proofs such as `proof_atan_shafer_safety` and `proof_sin_cos_no_panic`; Tier-2 adds runnable trig proofs when `RUN_TIER2=1`; `proof_i256_mul_u32_matches_spec` remains Tier-3 proof inventory via `RUN_TIER3=1` and is not release-gating | `verify_kani.sh` HARNESS_MANIFEST; `verify_kani_tier2.sh` | supported |
 | 26 | Six normative scenarios have frozen SHA-256 hashes | `crates/dpw4/src/bin/sig_util/artifacts.rs` line 17 | supported |
 | 27 | Hash regeneration requires semantic version bump | [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md) governance policy | supported |
 | 28 | Deterministic build verified by dual-build SHA-256 comparison | `verify_release_repro.sh` | supported |

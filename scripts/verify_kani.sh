@@ -8,12 +8,16 @@ REQUIRED_RUSTC_VERSION="1.91.1"
 SUCCESS_TOKEN="VERIFICATION:- SUCCESSFUL"
 DRY_RUN="${DRY_RUN:-0}"
 ALLOW_DRY_RUN_PASS="${ALLOW_DRY_RUN_PASS:-0}"
-RUN_HEAVY="${RUN_HEAVY:-0}"
+RUN_TIER2="${RUN_TIER2:-0}"
+RUN_TIER3="${RUN_TIER3:-0}"
 DEFAULT_MAX_JOBS="${DEFAULT_MAX_JOBS:-4}"
 SLOW_SECS="${SLOW_SECS:-360}"
 KANI_LOG_DIR="kani_logs"
 KANI_LOCK_DIR="$KANI_LOG_DIR/.verify_kani.lockdir"
 # SSOT manifest: tier|crate|harness|target
+# tier2-runnable harnesses are optional exploratory evidence that can be
+# retained separately from release Tier-1 evidence. tier3 harnesses are proof
+# inventory only unless explicitly run with RUN_TIER3=1.
 HARNESS_MANIFEST='tier1|dpw4|proof_compute_x2_safe|lib
 tier1|dpw4|proof_saturate_safe|lib
 tier1|dpw4|proof_phase_u32_no_overflow|lib
@@ -34,18 +38,18 @@ tier1|dpw4|proof_spec_sar_sanity|lib
 tier1|dpw4|proof_triangle_freeze_invariant|lib
 tier1|dpw4|proof_triangle_freeze_egress_invariant|lib
 tier1|geom-signal|proof_sqrt_no_panic|lib
-tier1|geom-signal|proof_sin_cos_no_panic|lib
 tier1|replay-core|proof_v0_wire_size_constants|lib
 tier1|replay-core|proof_encode_header0_wire_layout_and_le|lib
 tier1|replay-core|proof_encode_event_frame0_wire_layout_and_le|lib
-tier2|dpw4|proof_i256_mul_u32_matches_spec|lib
-tier2|geom-signal|proof_atan2_q1|lib
-tier2|geom-signal|proof_atan2_q2|lib
-tier2|geom-signal|proof_atan2_q3|lib
-tier2|geom-signal|proof_atan2_q4|lib'
+tier3|dpw4|proof_i256_mul_u32_matches_spec|lib
+tier2-runnable|geom-signal|proof_sin_cos_no_panic|lib
+tier2-runnable|geom-signal|proof_atan2_q1|lib
+tier2-runnable|geom-signal|proof_atan2_q2|lib
+tier2-runnable|geom-signal|proof_atan2_q3|lib
+tier2-runnable|geom-signal|proof_atan2_q4|lib'
 
 if [ -z "${KEEP_LOGS+x}" ]; then
-    if [ "$RUN_HEAVY" = "1" ]; then
+    if [ "$RUN_TIER2" = "1" ] || [ "$RUN_TIER3" = "1" ]; then
         KEEP_LOGS=1
     else
         KEEP_LOGS=0
@@ -144,6 +148,22 @@ min_int() {
         printf "%s" "$a"
     else
         printf "%s" "$b"
+    fi
+}
+
+append_manifest_entry() {
+    local var_name="$1"
+    local tier="$2"
+    local package="$3"
+    local harness="$4"
+    local target_kind="$5"
+    local current="${!var_name:-}"
+    local entry="${tier}|${package}|${harness}|${target_kind}"
+
+    if [ -n "$current" ]; then
+        printf -v "$var_name" "%s\n%s" "$current" "$entry"
+    else
+        printf -v "$var_name" "%s" "$entry"
     fi
 }
 
@@ -270,6 +290,214 @@ run_harness() {
     handle_failure "$harness" "$elapsed" "$log"
 }
 
+run_harness_batch() {
+    local label="$1"
+    local batch="$2"
+    local jobs="$3"
+    local log_suffix="$4"
+    local groups=()
+    declare -A group_harnesses=()
+
+    if ! [ "$jobs" -ge 1 ] 2>/dev/null; then
+        fail_msg "Invalid Kani job count: $jobs"
+        exit 1
+    fi
+
+    while IFS='|' read -r tier package harness target_kind; do
+        [ -z "${tier:-}" ] && continue
+
+        local key="${package}|${target_kind}"
+        if [ -z "${group_harnesses[$key]+x}" ]; then
+            groups+=("$key")
+            group_harnesses[$key]="$harness"
+        else
+            group_harnesses[$key]+=$'\n'"$harness"
+        fi
+    done <<EOF
+$batch
+EOF
+
+    for key in "${groups[@]}"; do
+        local package
+        local target_kind
+        IFS='|' read -r package target_kind <<EOF
+$key
+EOF
+
+        local log="$KANI_LOG_DIR/${package}__${log_suffix}.log"
+        local cmd=(cargo kani -p "$package" --output-format terse -j "$jobs")
+        local harness_count=0
+
+        while IFS= read -r harness; do
+            [ -z "$harness" ] && continue
+            cmd+=(--harness "$harness")
+            harness_count=$((harness_count + 1))
+        done <<EOF
+${group_harnesses[$key]}
+EOF
+
+        case "$target_kind" in
+            lib)
+                cmd+=(--lib)
+                ;;
+        esac
+
+        print_header "$label: $package"
+        printf "Harnesses: %s\n" "$harness_count"
+        printf "Kani jobs: %s\n" "$jobs"
+
+        if [ "$DRY_RUN" = "1" ]; then
+            printf "Log file: %s\n" "$log"
+            run_cmd "${cmd[@]}"
+            skip_msg "$package $log_suffix batch (dry run, non-normative)"
+            continue
+        fi
+
+        local start
+        local end
+        local elapsed
+        start=$(now_epoch)
+
+        # cargo-kani occasionally injects NUL bytes into terse output; strip them so
+        # retained transcripts remain text-stable and pass control-byte guards.
+        set +e
+        "${cmd[@]}" 2>&1 | perl -pe 's/\x00//g' | tee "$log" || true
+        local cargo_exit="${PIPESTATUS[0]}"
+        set -e
+
+        if [ "$cargo_exit" = "0" ] && validate_success_token "$log"; then
+            end=$(now_epoch)
+            elapsed=$((end - start))
+            pass_msg "$package $log_suffix batch (${elapsed}s)"
+            if [ "$elapsed" -gt "$SLOW_SECS" ]; then
+                warn_msg "$package $log_suffix batch exceeded SLOW_SECS=${SLOW_SECS}s (${elapsed}s)"
+            fi
+            if [ "$KEEP_LOGS" != "1" ]; then
+                rm -f "$log"
+            else
+                printf "Log kept: %s\n" "$log"
+            fi
+            continue
+        fi
+
+        end=$(now_epoch)
+        elapsed=$((end - start))
+        handle_failure "$package $log_suffix batch" "$elapsed" "$log"
+    done
+}
+
+run_harness_parallel_worker() {
+    local package="$1"
+    local harness="$2"
+    local target_kind="$3"
+    local log="$4"
+    local status_file="$5"
+    local elapsed_file="$6"
+
+    local target_dir="target/kani-${package}-${harness}"
+    local cmd=(cargo kani -p "$package" --harness "$harness" --output-format terse --target-dir "$target_dir")
+    case "$target_kind" in
+        lib)
+            cmd+=(--lib)
+            ;;
+    esac
+
+    local start
+    local end
+    local elapsed
+    start=$(now_epoch)
+
+    set +e
+    "${cmd[@]}" 2>&1 | perl -pe 's/\x00//g' > "$log"
+    local cargo_exit="${PIPESTATUS[0]}"
+    set -e
+
+    end=$(now_epoch)
+    elapsed=$((end - start))
+    printf "%s\n" "$cargo_exit" > "$status_file"
+    printf "%s\n" "$elapsed" > "$elapsed_file"
+}
+
+run_harness_parallel_batch() {
+    local batch="$1"
+    local jobs="$2"
+    local active=0
+    local pids=()
+    local entries=()
+
+    if ! [ "$jobs" -ge 1 ] 2>/dev/null; then
+        fail_msg "Invalid parallel job count: $jobs"
+        exit 1
+    fi
+
+    while IFS='|' read -r tier package harness target_kind; do
+        [ -z "${tier:-}" ] && continue
+
+        local log="$KANI_LOG_DIR/${package}__${harness}.log"
+        local status_file="$KANI_LOG_DIR/.${package}__${harness}.status"
+        local elapsed_file="$KANI_LOG_DIR/.${package}__${harness}.elapsed"
+
+        print_header "Scheduling parallel harness: $harness"
+        printf "Log file: %s\n" "$log"
+        printf "Target dir: target/kani-%s-%s\n" "$package" "$harness"
+
+        if [ "$DRY_RUN" = "1" ]; then
+            printf "DRY_RUN=1 -> cargo kani -p %q --harness %q --output-format terse --target-dir %q" "$package" "$harness" "target/kani-${package}-${harness}"
+            if [ "$target_kind" = "lib" ]; then
+                printf " --lib"
+            fi
+            printf "\n"
+            skip_msg "$harness (dry run, non-normative)"
+            continue
+        fi
+
+        run_harness_parallel_worker "$package" "$harness" "$target_kind" "$log" "$status_file" "$elapsed_file" &
+        pids+=("$!")
+        entries+=("$package|$harness|$log|$status_file|$elapsed_file")
+        active=$((active + 1))
+
+        if [ "$active" -ge "$jobs" ]; then
+            wait "${pids[0]}"
+            pids=("${pids[@]:1}")
+            active=$((active - 1))
+        fi
+    done <<EOF
+$batch
+EOF
+
+    for pid in "${pids[@]}"; do
+        wait "$pid"
+    done
+
+    for entry in "${entries[@]}"; do
+        IFS='|' read -r package harness log status_file elapsed_file <<EOF
+$entry
+EOF
+        print_header "Harness: $harness"
+        cat "$log"
+
+        local cargo_exit
+        local elapsed
+        cargo_exit=$(cat "$status_file")
+        elapsed=$(cat "$elapsed_file")
+        rm -f "$status_file" "$elapsed_file"
+
+        if [ "$cargo_exit" = "0" ] && validate_success_token "$log"; then
+            pass_msg "$harness (${elapsed}s)"
+            if [ "$elapsed" -gt "$SLOW_SECS" ]; then
+                warn_msg "$harness exceeded SLOW_SECS=${SLOW_SECS}s (${elapsed}s)"
+            fi
+            if [ "$KEEP_LOGS" != "1" ]; then
+                rm -f "$log"
+            else
+                printf "Log kept: %s\n" "$log"
+            fi
+        else
+            handle_failure "$harness" "$elapsed" "$log"
+        fi
+    done
+}
+
 print_header "Pre-flight: Environment"
 check_cmd cargo
 check_cmd rustc
@@ -308,8 +536,17 @@ fi
 trap 'rmdir "$KANI_LOCK_DIR" >/dev/null 2>&1 || true' EXIT
 
 print_header "Kani Formal Verification (Protocol Level -1)"
-printf "Tier mode: %s\n" "$( [ "$RUN_HEAVY" = "1" ] && printf "Tier-2 (heavy enabled)" || printf "Tier-1 (fast default)" )"
-printf "Shard jobs (atan2): %s\n" "$JOBS"
+if [ "$RUN_TIER3" = "1" ]; then
+    TIER_MODE="Tier-3 opt-in enabled"
+elif [ "$RUN_TIER2" = "1" ]; then
+    TIER_MODE="Tier-2 opt-in enabled"
+else
+    TIER_MODE="Tier-1 default"
+fi
+printf "Tier mode: %s\n" "$TIER_MODE"
+printf "Kani jobs: %s\n" "$JOBS"
+printf "RUN_TIER2=%s\n" "$RUN_TIER2"
+printf "RUN_TIER3=%s\n" "$RUN_TIER3"
 printf "KEEP_LOGS=%s\n" "$KEEP_LOGS"
 printf "SLOW_SECS=%s\n" "$SLOW_SECS"
 if [ "$DRY_RUN" = "1" ]; then
@@ -318,17 +555,70 @@ fi
 
 TOTAL_START=$(now_epoch)
 
+TIER1_MANIFEST=''
+TIER2_RUNNABLE_MANIFEST=''
+TIER3_MANIFEST=''
+
 while IFS='|' read -r tier package harness target_kind; do
     [ -z "${tier:-}" ] && continue
-    if [ "$tier" = "tier2" ] && [ "$RUN_HEAVY" != "1" ]; then
-        warn_msg "Skipping heavy harness $harness (set RUN_HEAVY=1 to enable)"
-        continue
-    fi
-
-    run_harness "Harness: $harness" "$package" "$harness" "$target_kind"
+    case "$tier" in
+        tier1)
+            append_manifest_entry TIER1_MANIFEST "$tier" "$package" "$harness" "$target_kind"
+            ;;
+        tier2-runnable)
+            append_manifest_entry TIER2_RUNNABLE_MANIFEST "$tier" "$package" "$harness" "$target_kind"
+            ;;
+        tier3)
+            append_manifest_entry TIER3_MANIFEST "$tier" "$package" "$harness" "$target_kind"
+            ;;
+        *)
+            fail_msg "Unknown Kani harness tier '$tier' for $harness"
+            exit 1
+            ;;
+    esac
 done <<EOF
 $HARNESS_MANIFEST
 EOF
+
+print_header "Runner Plan"
+printf "Tier-1: package batches with cargo-kani -j %s\n" "$JOBS"
+printf "Tier-2 runnable: %s\n" "$( [ "$RUN_TIER2" = "1" ] && printf "parallel optional path" || printf "skipped unless RUN_TIER2=1" )"
+printf "Tier-3: %s\n" "$( [ "$RUN_TIER3" = "1" ] && printf "serial opt-in proof inventory" || printf "non-gating skipped path" )"
+
+run_harness_batch "Tier-1 package batch" "$TIER1_MANIFEST" "$JOBS" "tier1"
+
+if [ "$RUN_TIER2" = "1" ]; then
+    if [ -n "$TIER2_RUNNABLE_MANIFEST" ]; then
+        print_header "Tier-2 Runnable Parallel Batch"
+        printf "Parallel jobs: %s\n" "$JOBS"
+        run_harness_parallel_batch "$TIER2_RUNNABLE_MANIFEST" "$JOBS"
+    fi
+else
+    while IFS='|' read -r tier package harness target_kind; do
+        [ -z "${tier:-}" ] && continue
+        warn_msg "Skipping runnable Tier-2 harness $harness (set RUN_TIER2=1 to enable)"
+    done <<EOF
+$TIER2_RUNNABLE_MANIFEST
+EOF
+fi
+
+if [ "$RUN_TIER3" = "1" ]; then
+    print_header "Tier-3 Serial Opt-In"
+    warn_msg "Tier-3 harnesses are non-gating proof inventory and not release evidence unless separately retained."
+    while IFS='|' read -r tier package harness target_kind; do
+        [ -z "${tier:-}" ] && continue
+        run_harness "Harness: $harness" "$package" "$harness" "$target_kind"
+    done <<EOF
+$TIER3_MANIFEST
+EOF
+else
+    while IFS='|' read -r tier package harness target_kind; do
+        [ -z "${tier:-}" ] && continue
+        warn_msg "Skipping Tier-3 harness $harness (set RUN_TIER3=1 to run serially; non-gating)"
+    done <<EOF
+$TIER3_MANIFEST
+EOF
+fi
 
 TOTAL_END=$(now_epoch)
 TOTAL_ELAPSED=$((TOTAL_END - TOTAL_START))

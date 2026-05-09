@@ -1155,7 +1155,10 @@ kani-gate:
 	bash scripts/verify_kani.sh
 
 kani-gate-tier2:
-	RUN_HEAVY=1 bash scripts/verify_kani.sh
+	RUN_TIER2=1 bash scripts/verify_kani.sh
+
+kani-gate-tier3:
+	RUN_TIER3=1 bash scripts/verify_kani.sh
 
 verify-repro:
 	bash scripts/verify_release_repro.sh

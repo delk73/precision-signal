@@ -8,7 +8,7 @@
 ## Mechanism
 - Documentation closure in `docs/MATH_CONTRACT.md` (triangle calibration, accumulator semantics, Δ mappings).
 - Runtime/test enforcement in triangle control-surface tests and Kani harnesses.
-- Tiered verification in `verify_kani.sh` (Tier-1 normative, Tier-2 heavy optional).
+- Tiered verification in `verify_kani.sh` (Tier-1 normative, Tier-2/Tier-3 optional).
 
 ## Evidence Commands
 ```bash

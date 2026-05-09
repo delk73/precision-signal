@@ -129,21 +129,28 @@ Objective: Use formal methods (Kani) to prove that core mathematical and DSP ker
 Use the repository runner for deterministic CI behavior and normative token validation.
 
 ```bash
-# Tier-1 (default): fast harnesses only
+# Tier-1 (default): release-critical harnesses only
 bash scripts/verify_kani.sh
 
-# Tier-2 (heavy): includes atan2 shard proofs (q1-q4)
-RUN_HEAVY=1 bash scripts/verify_kani.sh
+# Tier-2 runnable: exploratory trig proofs
+RUN_TIER2=1 bash scripts/verify_kani.sh
+
+# Tier-3: serial opt-in proof inventory, not release-gating
+RUN_TIER3=1 bash scripts/verify_kani.sh
 ```
 
 Normative evidence boundary: the harness manifest embedded in
 `scripts/verify_kani.sh` is the authoritative runner surface for formal-verification
 claims in this repository. Harnesses present in source but omitted from that
 manifest are implementation inventory, not normative runner evidence.
+Tiers reflect release maturity, not raw runtime. Tier-1 is release-critical
+evidence for active contract claims. Tier-2 is runnable exploratory evidence
+that can be retained separately. Tier-3 is proof-decomposition inventory and is
+not release-gating.
 
 ### 3.2 Environment Controls
 ```bash
-# Conservative shard cap: min(online cores, DEFAULT_MAX_JOBS)
+# Conservative Kani job cap: min(online cores, DEFAULT_MAX_JOBS)
 # Recommended Env defaults:
 #   DEFAULT_MAX_JOBS=4 on >=16 GB RAM runners
 #   DEFAULT_MAX_JOBS=2 on memory-constrained runners
@@ -156,9 +163,10 @@ KEEP_LOGS=1 bash scripts/verify_kani.sh
 - **Implementation**: `dpw4` boundary kernels and `geom-signal` primitives.
 - **Harnesses**: the manifest-defined subset executed by `scripts/verify_kani.sh`
   for Tier-1, with additional manifest-defined Tier-2 harnesses when
-  `RUN_HEAVY=1`.
-- **Status**: Each per-harness log must contain `VERIFICATION:- SUCCESSFUL` and must not contain `** N of M failed` where `N > 0`.
-- **Implication**: Provides panic-safety and invariant evidence for the kernels covered by these harnesses and their assumptions. The active release-scoped proof boundary and exclusions must be read from [docs/verification/releases/1.7.0/](verification/releases/1.7.0/).
+  `RUN_TIER2=1`. Tier-3 harnesses require explicit `RUN_TIER3=1`
+  and do not contribute to release gating unless separately reclassified.
+- **Status**: Each runner log must contain `VERIFICATION:- SUCCESSFUL` and must not contain `** N of M failed` where `N > 0`.
+- **Implication**: Provides panic-safety and invariant evidence for the kernels covered by these harnesses and their assumptions. The active release-scoped proof boundary and exclusions must be read from [docs/verification/releases/1.8.0/](verification/releases/1.8.0/).
 
 ### 3.4 Harness-to-Crate Mapping
 | Harness | Crate | Tier |
@@ -183,32 +191,41 @@ KEEP_LOGS=1 bash scripts/verify_kani.sh
 | `proof_triangle_freeze_invariant` | `dpw4` | Tier-1 |
 | `proof_triangle_freeze_egress_invariant` | `dpw4` | Tier-1 |
 | `proof_sqrt_no_panic` | `geom-signal` | Tier-1 |
-| `proof_sin_cos_no_panic` | `geom-signal` | Tier-1 |
 | `proof_v0_wire_size_constants` | `replay-core` | Tier-1 |
 | `proof_encode_header0_wire_layout_and_le` | `replay-core` | Tier-1 |
 | `proof_encode_event_frame0_wire_layout_and_le` | `replay-core` | Tier-1 |
-| `proof_atan2_q1` | `geom-signal` | Tier-2 |
-| `proof_atan2_q2` | `geom-signal` | Tier-2 |
-| `proof_atan2_q3` | `geom-signal` | Tier-2 |
-| `proof_atan2_q4` | `geom-signal` | Tier-2 |
-| `proof_i256_mul_u32_matches_spec` | `dpw4` | Tier-2 |
+| `proof_sin_cos_no_panic` | `geom-signal` | Tier-2 runnable |
+| `proof_atan2_q1` | `geom-signal` | Tier-2 runnable |
+| `proof_atan2_q2` | `geom-signal` | Tier-2 runnable |
+| `proof_atan2_q3` | `geom-signal` | Tier-2 runnable |
+| `proof_atan2_q4` | `geom-signal` | Tier-2 runnable |
+| `proof_i256_mul_u32_matches_spec` | `dpw4` | Tier-3 |
 
 ### 3.5 Diagnostics and Interpretation
-- **Per-harness logs**: Stored under `kani_logs/<package>__<harness>.log`.
-- **Retention policy**: Logs are always kept on failure. On success they are deleted unless `KEEP_LOGS=1`. For `RUN_HEAVY=1`, success logs default to kept unless explicitly overridden.
+- **Logs**: Tier-1 package batches are stored under `kani_logs/<package>__tier1.log`; parallel Tier-2 runnable harnesses are stored under `kani_logs/<package>__<harness>.log`.
+- **Retention policy**: Logs are always kept on failure. On success they are deleted unless `KEEP_LOGS=1`. For `RUN_TIER2=1` or `RUN_TIER3=1`, success logs default to kept unless explicitly overridden.
 - **Output format**: Runner uses `--output-format terse` for all harnesses to improve CI readability.
+- **Parallelism**: Tier-1 is grouped by package and passed to `cargo kani -j`
+  according to `KANI_JOBS` or `min(online cores, DEFAULT_MAX_JOBS)`. Runnable
+  Tier-2 harnesses are optional exploratory proofs and scheduled by the runner
+  as independent workers with per-harness target directories and logs to avoid
+  artifact contention. Tier-3 remains serial opt-in.
 - **Discovery-only (manual, non-normative)**: For Kani 0.67.0, run discovery from the crate directory with target options before `list` (no `-p`):
   - `cd crates/geom-signal && cargo kani --lib list`
   - `cd crates/dpw4 && cargo kani --lib list`
   (`cargo kani list --lib` is rejected by this Kani version.)
-  This is optional local harness discovery only. It is not required by the canonical runner (`bash scripts/verify_kani.sh` / `RUN_HEAVY=1 bash scripts/verify_kani.sh`), may fail in some workspace/feature-gated-bin (`required-features`) layouts, and is not normative evidence. Only runner logs and success token checks are normative evidence.
+  This is optional local harness discovery only. It is not required by the canonical runner (`bash scripts/verify_kani.sh` / `RUN_TIER2=1 bash scripts/verify_kani.sh`), may fail in some workspace/feature-gated-bin (`required-features`) layouts, and is not normative evidence. Only runner logs and success token checks are normative evidence.
 - **"dereference failure ... Status: SUCCESS" lines**: These indicate Kani proved the failing path unreachable under harness constraints; they are successful checks, not proof failures.
 
 ### 3.6 Release-Scoped Correctness and Limits
 - The active release (`1.8.0`) retains its release-scoped correctness claims and limits under [docs/verification/releases/1.8.0/](verification/releases/1.8.0/).
 - `1.8.0` is a firmware-including release: it covers the primary precision CLI surface (`crates/dpw4`) and the RPL0 firmware capture path (`crates/replay-fw-f446`), with the timing characterization fixture separated into `crates/replay-fw-f446-timing`. Claims are exercised-path and release-scoped, not global.
 - That claim is exercised-path and release-scoped, not global.
-- Heavy Tier-2 proofs remain optional unless the active release bundle explicitly retains a heavy proof run. If omitted, the retained release bundle must state the exclusion and the remaining release-claim boundary explicitly.
+- Tier-2 and Tier-3 proofs remain optional unless the active release bundle explicitly retains them. If omitted, the retained release bundle must state the exclusion and the remaining release-claim boundary explicitly.
+- `proof_i256_mul_u32_matches_spec` is Tier-3 in its current form. It
+  remains valid proof inventory but does not close full I256 arithmetic proof
+  claims and is not release-gating until decomposed into budget-compatible
+  runnable proofs.
 
 ---
 

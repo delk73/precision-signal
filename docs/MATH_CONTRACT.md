@@ -147,14 +147,14 @@ When freeze condition holds, for this tick:
 | `spec_clamp` in-range contract | Tier 1 | ✅ byte-level spec self-consistency | `proof_spec_clamp_in_range_contract` |
 | `spec_clamp` out-of-range contract | Tier 1 | ✅ byte-level spec self-consistency | `proof_spec_clamp_out_of_range_contract` |
 | `spec_sar` sanity (known patterns) | Tier 1 | ✅ micro-harness vs. expected bit patterns | `proof_spec_sar_sanity` |
-| `I256::mul_u32` | Tier 2 | ⏸ optional — spec correct, proof exceeds CI budget | `proof_i256_mul_u32_matches_spec` (run with `RUN_HEAVY=1`) |
+| `I256::mul_u32` | Tier 3 | ⏸ oracle-specified; proof-decomposition work exceeds release runner budget | `proof_i256_mul_u32_matches_spec` (serial opt-in with `RUN_TIER3=1`) |
 
-> **Constraint**: "I256 `sub`/`sar`/`clamp` are proven against an independent byte-level oracle; `spec_clamp`/`spec_sar` byte-level specs are self-verified as Tier-1." NOT "I256 arithmetic proven" — `mul_u32` equivalence is tier-2/optional.
+> **Constraint**: "I256 `sub`/`sar`/`clamp` are proven against an independent byte-level oracle; `spec_clamp`/`spec_sar` byte-level specs are self-verified as Tier-1." NOT "I256 arithmetic proven" — `mul_u32` equivalence remains Tier-3 proof inventory until decomposed into budget-compatible runnable proofs.
 
 **Divergences**: `docs/spec/reference_invariants.md §4` describes Triangle as naive bitwise folding; normative shape=2 is DPW4 integration. Naive form (`TriangleDPW1`) is forensic-only.
 
 **Calibration & Safety**: Triangle `e4` calibration rationale relative to Saw/Pulse is specified in §6 "Triangle e4 Calibration". No code change required.
-No uncontrolled i128 wrap; entire pipeline executes in I256 (mod 2^256), delta clamped once via `clamp_to_i128`, z updated via `saturating_add`. Formally verified: `I256::sub`, `I256::sar`, `I256::clamp_to_i128` proven against independent byte-level oracle (tier1); `I256::mul_u32` oracle-specified, proof tier2. Kani harnesses: `proof_triangle_delta_clamp_identity_when_in_range`, `proof_triangle_delta_clamp_saturates_when_out_of_range`, `proof_triangle_z_update_is_saturating`.
+No uncontrolled i128 wrap; entire pipeline executes in I256 (mod 2^256), delta clamped once via `clamp_to_i128`, z updated via `saturating_add`. Formally verified: `I256::sub`, `I256::sar`, `I256::clamp_to_i128` proven against independent byte-level oracle (tier1); `I256::mul_u32` oracle-specified and retained as Tier-3 proof inventory until decomposed. Kani harnesses: `proof_triangle_delta_clamp_identity_when_in_range`, `proof_triangle_delta_clamp_saturates_when_out_of_range`, `proof_triangle_z_update_is_saturating`.
 
 ---
 
