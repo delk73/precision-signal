@@ -1,5 +1,2 @@
-    Checking typenum v1.20.0
    Compiling dpw4 v1.8.0 (/home/dce/src/precision-signal/crates/dpw4)
-    Checking fixed v1.30.0
-    Checking geom-signal v1.8.0 (/home/dce/src/precision-signal/crates/geom-signal)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 4.63s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.19s

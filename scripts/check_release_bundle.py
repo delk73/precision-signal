@@ -26,6 +26,13 @@ NON_FIRMWARE_REQUIRED_FILES = (
 )
 
 FIRMWARE_REQUIRED_FILE_SETS = {
+    "rpl0_archive_v1": (
+        "firmware_release_evidence.md",
+        "fw_capture.bin",
+        "fw_capture_hash_check.txt",
+        "fw_repeat/replay_manifest_v1.txt",
+        "fw_repeat_hash_check.txt",
+    ),
     "firmware_v1": (
         "firmware_release_evidence.md",
         "hash_check.txt",
@@ -43,6 +50,8 @@ FIRMWARE_REQUIRED_FILE_SETS = {
 FIRMWARE_SENTINEL_FILES = frozenset(
     {
         "firmware_release_evidence.md",
+        "fw_capture_hash_check.txt",
+        "fw_repeat_hash_check.txt",
         "hash_check.txt",
         "replay_manifest_v0.txt",
         "replay_manifest_v1.txt",
@@ -111,6 +120,117 @@ def parse_hash_check(path: Path) -> list[tuple[str, str]]:
     return entries
 
 
+def parse_repeat_manifest(path: Path) -> tuple[dict[str, str], list[dict[str, str]]]:
+    header: dict[str, str] = {}
+    runs: list[dict[str, str]] = []
+    for raw_line in load_text(path).splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        fields: dict[str, str] = {}
+        for part in line.split():
+            if "=" not in part:
+                continue
+            key, value = part.split("=", 1)
+            fields[key] = value
+        if fields.get("contract") == "rpl0" and "run" in fields:
+            runs.append(fields)
+        else:
+            header.update(fields)
+    return header, runs
+
+
+def validate_rpl0_archive_bundle(bundle_dir: Path, repo_root: Path) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    capture_hash_path = bundle_dir / "fw_capture_hash_check.txt"
+    repeat_hash_path = bundle_dir / "fw_repeat_hash_check.txt"
+    manifest_path = bundle_dir / "fw_repeat" / "replay_manifest_v1.txt"
+    capture_path = bundle_dir / "fw_capture.bin"
+    repeat_dir = bundle_dir / "fw_repeat"
+
+    for rel_path in FIRMWARE_REQUIRED_FILE_SETS["rpl0_archive_v1"]:
+        path = bundle_dir / rel_path
+        if not path.is_file():
+            errors.append(f"missing required retained file: {rel_path}")
+    if errors:
+        return errors, warnings
+
+    capture_entries = parse_hash_check(capture_hash_path)
+    if len(capture_entries) != 1:
+        errors.append("fw_capture_hash_check.txt must contain exactly one hash entry")
+    else:
+        capture_sha, capture_label = capture_entries[0]
+        retained_capture_sha = sha256_file(capture_path)
+        if retained_capture_sha != capture_sha:
+            errors.append("fw_capture_hash_check.txt does not match retained fw_capture.bin")
+        if capture_label != "artifacts/run.bin":
+            warnings.append(f"fw_capture_hash_check.txt path label is non-canonical: {capture_label}")
+
+    repeat_entries = parse_hash_check(repeat_hash_path)
+    repeat_hash_map = {Path(label).name: sha for sha, label in repeat_entries}
+    if len(repeat_hash_map) != len(repeat_entries):
+        errors.append("fw_repeat_hash_check.txt contains duplicate retained run filenames")
+
+    manifest_header, manifest_runs = parse_repeat_manifest(manifest_path)
+    if manifest_header.get("contract") != "rpl0":
+        errors.append("fw_repeat/replay_manifest_v1.txt contract must be rpl0")
+    if manifest_header.get("reset_mode") != "manual":
+        errors.append("fw_repeat/replay_manifest_v1.txt reset_mode must be manual")
+    if manifest_header.get("signal_model") != "phase8":
+        errors.append("fw_repeat/replay_manifest_v1.txt signal_model must be phase8")
+    try:
+        expected_runs = int(manifest_header.get("runs", ""))
+    except ValueError:
+        errors.append("fw_repeat/replay_manifest_v1.txt runs must be an integer")
+        expected_runs = -1
+    if expected_runs != len(manifest_runs):
+        errors.append("fw_repeat/replay_manifest_v1.txt run count does not match runs header")
+
+    for run in manifest_runs:
+        filename = run.get("file")
+        if not filename:
+            errors.append("fw_repeat/replay_manifest_v1.txt run entry missing file")
+            continue
+        retained_run = repeat_dir / filename
+        if not retained_run.is_file():
+            errors.append(f"retained repeat run artifact missing: fw_repeat/{filename}")
+            continue
+        expected_sha = run.get("sha256")
+        if expected_sha is None or not SHA256_RE.fullmatch(expected_sha):
+            errors.append(f"fw_repeat/replay_manifest_v1.txt invalid sha256 for {filename}")
+            continue
+        actual_sha = sha256_file(retained_run)
+        if actual_sha != expected_sha:
+            errors.append(f"retained repeat run hash mismatch for fw_repeat/{filename}")
+        if repeat_hash_map.get(filename) != expected_sha:
+            errors.append(f"fw_repeat_hash_check.txt does not match manifest for {filename}")
+        if run.get("status") != "PASS":
+            errors.append(f"fw_repeat/replay_manifest_v1.txt retained run did not pass: {filename}")
+
+    capture_sha = capture_entries[0][0] if len(capture_entries) == 1 else None
+    manifest_shas = {run.get("sha256") for run in manifest_runs if run.get("sha256")}
+    if capture_sha and manifest_shas and manifest_shas != {capture_sha}:
+        errors.append("retained repeat run hashes diverge from single capture hash")
+
+    evidence_text = load_text(bundle_dir / "firmware_release_evidence.md")
+    for required_text in ("## capture hash check", "## repeat manifest"):
+        if required_text not in evidence_text:
+            errors.append(f"firmware_release_evidence.md missing section: {required_text}")
+
+    return errors, warnings
+
+
+def sha256_file(path: Path) -> str:
+    import hashlib
+
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def validate_run_dir(
     run_dir_value: str,
     run_id: str,
@@ -163,6 +283,11 @@ def validate_bundle(bundle_dir: Path, repo_root: Path, strict_paths: bool) -> tu
         return [f"retained release bundle directory does not exist: {display_path(bundle_dir, repo_root)}"], []
 
     file_names = {path.name for path in bundle_dir.iterdir() if path.is_file()}
+    rel_file_names = {
+        path.relative_to(bundle_dir).as_posix()
+        for path in bundle_dir.rglob("*")
+        if path.is_file()
+    }
     errors: list[str] = []
     warnings: list[str] = []
 
@@ -172,7 +297,14 @@ def validate_bundle(bundle_dir: Path, repo_root: Path, strict_paths: bool) -> tu
     bundle_class = "non_firmware"
     required_files = NON_FIRMWARE_REQUIRED_FILES
     manifest_name = "replay_manifest_v1.txt"
-    if file_names & FIRMWARE_SENTINEL_FILES:
+    if {
+        "fw_capture_hash_check.txt",
+        "fw_repeat_hash_check.txt",
+        "fw_repeat/replay_manifest_v1.txt",
+    } & rel_file_names:
+        bundle_class = "rpl0_archive_v1"
+        required_files = FIRMWARE_REQUIRED_FILE_SETS[bundle_class]
+    elif file_names & FIRMWARE_SENTINEL_FILES:
         if "replay_manifest_v0.txt" in file_names:
             bundle_class = "firmware_v0"
             manifest_name = "replay_manifest_v0.txt"
@@ -192,6 +324,8 @@ def validate_bundle(bundle_dir: Path, repo_root: Path, strict_paths: bool) -> tu
 
     if bundle_class == "non_firmware":
         return errors, warnings
+    if bundle_class == "rpl0_archive_v1":
+        return validate_rpl0_archive_bundle(bundle_dir, repo_root)
 
     evidence_text = load_text(required["firmware_release_evidence.md"])
     manifest_text = load_text(required[manifest_name])

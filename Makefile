@@ -92,7 +92,7 @@ space :=
 space +=
 comma := ,
 
-.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-check fw-release-archive release-1.7.0 release-1.8.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
+.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-summary firmware-release-check fw-release-archive-current fw-release-archive release-1.7.0 release-1.8.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
 
 help:
 	echo "Active operator / release path:"
@@ -244,12 +244,12 @@ release-1.8.0:
 	$(MAKE) --no-print-directory doc-link-check > "$$REL_DIR/make_doc_link_check.txt" 2>&1 && \
 	echo "--- [GATE 6/7] Reproducibility Record ---" && \
 	RELEASE_EVIDENCE_DIR="$$REL_DIR" bash scripts/verify_release_repro.sh > "$$REL_DIR/release_reproducibility.txt" 2>&1 && \
-	echo "--- [GATE 7/7] Bundle Coherence Check ---" && \
-	$(MAKE) --no-print-directory release-bundle-check VERSION=1.8.0 > "$$REL_DIR/make_release_bundle_check.txt" 2>&1 && \
 	echo "--- [FIRMWARE] RPL0 Capture Gate ---" && \
 	$(MAKE) fw-gate SERIAL="$(SERIAL)" FW_GATE_RESET_MODE=manual && \
 	echo "--- [FIRMWARE] Archive Evidence ---" && \
-	$(MAKE) fw-release-archive VERSION=1.8.0 SERIAL="$(SERIAL)"
+	$(MAKE) fw-release-archive-current VERSION=1.8.0 SERIAL="$(SERIAL)" && \
+	echo "--- [GATE 7/7] Final Bundle Coherence Check ---" && \
+	$(MAKE) --no-print-directory release-bundle-check VERSION=1.8.0 > "$$REL_DIR/make_release_bundle_check.txt" 2>&1
 
 shell-check:
 	test -x "$(SHELL)"
@@ -467,7 +467,7 @@ fw-gate:
 	  --manifest-name replay_manifest_v1.txt \
 	  --artifacts-dir "$(REPLAY_REPEAT_DIR)"
 
-firmware-release-check: fw-gate
+firmware-release-summary:
 	@echo "REPLAY_RUN=$(REPLAY_RUN)"; \
 	echo "REPLAY_REPEAT_DIR=$(REPLAY_REPEAT_DIR)"; \
 	echo; \
@@ -481,10 +481,11 @@ firmware-release-check: fw-gate
 	echo "== repeat manifest =="; \
 	cat "$(REPLAY_REPEAT_DIR)/replay_manifest_v1.txt"
 
-fw-release-archive:
+firmware-release-check: fw-gate firmware-release-summary
+
+fw-release-archive-current: firmware-release-summary
 	@test -n "$(SERIAL)" || { echo "SERIAL is required"; exit 1; }
 	@test -n "$(VERSION)" || { echo "VERSION is required"; exit 1; }
-	$(MAKE) firmware-release-check SERIAL="$(SERIAL)"
 	@REL_DIR="docs/verification/releases/$(VERSION)"; \
 	mkdir -p "$$REL_DIR"; \
 	rm -rf "$$REL_DIR/fw_capture.bin" "$$REL_DIR/fw_repeat"; \
@@ -502,6 +503,9 @@ fw-release-archive:
 	echo "" >> "$$REL_DIR/firmware_release_evidence.md"; \
 	echo "## repeat manifest" >> "$$REL_DIR/firmware_release_evidence.md"; \
 	cat "$$REL_DIR/fw_repeat/replay_manifest_v1.txt" >> "$$REL_DIR/firmware_release_evidence.md"
+
+fw-release-archive: firmware-release-check
+	$(MAKE) fw-release-archive-current VERSION="$(VERSION)" SERIAL="$(SERIAL)"
 
 release-bundle:
 	@test -n "$(VERSION)" || { echo "VERSION is required"; exit 1; }
