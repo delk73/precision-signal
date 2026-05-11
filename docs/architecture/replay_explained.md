@@ -183,15 +183,13 @@ The new audit entrypoint for the full ladder is:
 make replay-demo-audit
 ```
 
-That target composes:
+That target is the single supported Make entrypoint for the retained demo
+ladder. It validates the Demo V2 fixture pair, runs the Demo V3-V5 fixture
+regression scripts, and compares the committed captured divergence pair.
 
-```bash
-make demo-v2-fixture-verify
-make demo-v3-verify
-make demo-v4-verify
-make demo-v5-verify
-make demo-captured-verify
-```
+The historical per-demo Make lifecycle targets for Demo V2, Demo V3, Demo V4,
+and Demo V5 are no longer part of the top-level operator surface. Their
+artifacts, generators, regression tests, and release history remain in the repo.
 
 Its purpose is simple:
 

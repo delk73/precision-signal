@@ -43,7 +43,15 @@ In that firmware path, `STEP` is one output-step increment in the phase domain
 
 First divergence frame is exactly `4096`.
 
-## 5. Validation commands
+## 5. Validation surface
+
+The supported Make entrypoint for the retained demo ladder is:
+
+```bash
+make replay-demo-audit
+```
+
+For direct Demo V2 fixture inspection, use the underlying artifact tools:
 
 ```bash
 # Validate committed fixture pair
@@ -64,6 +72,11 @@ SERIAL=/dev/ttyACM0 python3 scripts/repeat_capture.py \
   --artifacts-dir artifacts/demo_persistent/b_capture
 cp artifacts/demo_persistent/b_capture/run_01.bin artifacts/demo_persistent/run_B_captured.rpl
 ```
+
+The historical `make demo-v2-*` lifecycle targets are no longer part of the
+top-level operator surface. Demo V2 remains retained as committed fixtures,
+direct artifact-tool commands, optional hardware recapture commands, and the
+canonical `make replay-demo-audit` support runner.
 
 Local captured evidence status:
 

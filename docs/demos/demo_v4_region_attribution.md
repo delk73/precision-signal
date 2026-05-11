@@ -87,11 +87,13 @@ combines `timer_delta` plus `sample_payload` at frame `4096`. The
 `header_schema_sample_payload` pair combines header/schema divergence with a
 persistent sample divergence starting at frame `0`.
 
-## 6. Workflow
+## 6. Validation surface
 
 ```bash
-make demo-v4-verify
-make demo-v4-audit-pack
-make demo-v4-record
-make demo-v4-release
+make replay-demo-audit
+python3 tests/test_demo_v4_region_attribution.py
 ```
+
+The historical `make demo-v4-*` lifecycle targets are no longer part of the
+top-level operator surface. Demo V4 remains retained as committed fixtures,
+the generator script, and the regression test above.

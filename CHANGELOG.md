@@ -13,6 +13,7 @@
 - added `make release-proof VERSION=<ver>` as the primary release-proof orchestration path across bench preflight, `make gate`, optional firmware capture/archive, bundle generation, bundle check transcript finalization, and summary generation
 - added automated `summary.md` and `summary.json` release bundle summaries plus validation when summaries are present
 - preserved compatibility for historical retained bundles that do not include generated release summaries
+- consolidated the demo-facing Make surface: `demo-evidence-package`, `demo-divergence`, `replay-demo-audit`, and captured divergence support remain operator-visible, while historical Demo V2-V5 lifecycle flows are retained as fixtures/scripts rather than top-level Make targets
 
 ## [1.8.0] - 2026-05-10
 

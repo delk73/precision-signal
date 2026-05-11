@@ -79,14 +79,16 @@ Fixture intent:
 - `region_transition`: divergence begins in `timer_delta` at frame `4096` and
   first appears in `sample_payload` at frame `4098`.
 
-## 5. Workflow
+## 5. Validation surface
 
 ```bash
-make demo-v5-verify
-make demo-v5-audit-pack
-make demo-v5-record
-make demo-v5-release
+make replay-demo-audit
+python3 tests/test_demo_v5_evolution.py
 ```
+
+The historical `make demo-v5-*` lifecycle targets are no longer part of the
+top-level operator surface. Demo V5 remains retained as committed fixtures,
+the generator script, and the regression test above.
 
 ## 6. Example output
 
