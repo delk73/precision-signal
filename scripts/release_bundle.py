@@ -63,6 +63,20 @@ def run_guard(label: str, command: list[str]) -> None:
         raise SystemExit(result.returncode)
 
 
+def generate_summary(release_dir: Path, requested: str) -> None:
+    run_guard(
+        "[release-bundle] summary.md summary.json",
+        [
+            sys.executable,
+            "scripts/release_summary.py",
+            "--version",
+            requested,
+            "--bundle-dir",
+            str(release_dir),
+        ],
+    )
+
+
 def main() -> int:
     args = parse_args()
     repo_root = Path.cwd()
@@ -121,6 +135,7 @@ def main() -> int:
             str(release_dir),
         ],
     )
+    generate_summary(release_dir, requested)
     print(f"[release-bundle] OK bundle generated: {release_dir}")
     return 0
 

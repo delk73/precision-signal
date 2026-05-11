@@ -37,6 +37,8 @@ REPLAY_BASELINE ?= artifacts/baseline.bin
 REPLAY_RUN ?= artifacts/run.bin
 REPLAY_REPEAT_RUNS ?= 5
 REPLAY_REPEAT_DIR ?= artifacts/replay_runs
+BENCH_CHECK_FW_ARTIFACTS ?= required
+RELEASE_PROOF_FIRMWARE ?= 1
 AUDIT_TARGET ?= substrate://probe/default
 AUDIT_BIN := ./target/debug/substrate_probe
 AUDIT_FIXED_RUN_ID := AUDIT_COLLISION
@@ -103,12 +105,14 @@ space :=
 space +=
 comma := ,
 
-.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-summary firmware-release-check fw-release-archive-current fw-release-archive release release-1.7.0 release-1.8.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
+.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check bench-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-summary firmware-release-check fw-release-archive-current fw-release-archive release release-proof release-summary release-1.7.0 release-1.8.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
 
 help:
 	echo "Active operator / validation path:"
 	echo "  make gate"
 	echo "Generic bundle release path:"
+	echo "  make bench-check"
+	echo "  make release-proof VERSION=1.8.0"
 	echo "  make release VERSION=1.8.0"
 	echo "  make release-bundle VERSION=1.8.0"
 	echo "  make release-bundle-check VERSION=1.8.0"
@@ -121,6 +125,8 @@ help-all:
 	echo "Active operator / validation:"
 	echo "  make gate"
 	echo "Generic bundle release:"
+	echo "  make bench-check"
+	echo "  make release-proof VERSION=1.8.0"
 	echo "  make release VERSION=1.8.0"
 	echo "  make release-bundle VERSION=1.8.0"
 	echo "  make release-bundle-check VERSION=1.8.0"
@@ -197,6 +203,7 @@ help-firmware:
 	echo "    make flash-verify-ur"
 	echo "    make flash-compare-ur"
 	echo "  Active STM32 capture checks:"
+	echo "    make bench-check"
 	echo "    make fw-capture-check"
 	echo "    make fw-repeat-check"
 	echo "    make fw-gate"
@@ -219,8 +226,34 @@ demo-evidence-package:
 	$(XTASK_WORKFLOW) demo-evidence-package
 
 release: release-bundle
-	@test -n "$(VERSION)" || { echo "VERSION is required"; exit 1; }
-	$(MAKE_NO_PRINT) release-bundle-check VERSION="$(VERSION)" > "$(RELEASE_DIR)/make_release_bundle_check.txt"
+	@test -n "$(VERSION)" || { echo "FAIL: VERSION is required. Usage: make release VERSION=<version>"; exit 1; }
+	$(MAKE_NO_PRINT) release-bundle-check VERSION="$(VERSION)" > "$(RELEASE_DIR)/make_release_bundle_check.next"
+	mv "$(RELEASE_DIR)/make_release_bundle_check.next" "$(RELEASE_DIR)/make_release_bundle_check.txt"
+	$(MAKE_NO_PRINT) release-summary VERSION="$(VERSION)"
+
+release-proof:
+	@test -n "$(VERSION)" || { echo "FAIL: VERSION is required. Usage: make release-proof VERSION=<version>"; exit 1; }
+	if [ "$(RELEASE_PROOF_FIRMWARE)" != "0" ]; then
+	  $(PYTHON) scripts/bench_check.py \
+	    --serial "$(SERIAL)" \
+	    --stflash "$(STFLASH)" \
+	    --cargo "$(CARGO)" \
+	    --python "$(PYTHON)" \
+	    --make "$(MAKE_CMD)" \
+	    --fw-elf "$(FW_ELF)" \
+	    --fw-bin "$(FW_BIN)" \
+	    --firmware-artifacts skip
+	fi
+	$(MAKE_NO_PRINT) gate
+	if [ "$(RELEASE_PROOF_FIRMWARE)" != "0" ]; then
+	  $(MAKE_NO_PRINT) fw-gate VERSION="$(VERSION)" SERIAL="$(SERIAL)" STFLASH="$(STFLASH)" FW_GATE_RESET_MODE="$(FW_GATE_RESET_MODE)"
+	  $(MAKE_NO_PRINT) fw-release-archive-current VERSION="$(VERSION)" SERIAL="$(SERIAL)"
+	fi
+	$(MAKE_NO_PRINT) release-bundle VERSION="$(VERSION)"
+	$(MAKE_NO_PRINT) release-summary VERSION="$(VERSION)"
+	$(MAKE_NO_PRINT) release-bundle-check VERSION="$(VERSION)" > "$(RELEASE_DIR)/make_release_bundle_check.next"
+	mv "$(RELEASE_DIR)/make_release_bundle_check.next" "$(RELEASE_DIR)/make_release_bundle_check.txt"
+	$(MAKE_NO_PRINT) release-summary VERSION="$(VERSION)"
 
 release-1.7.0:
 	$(PYTHON) scripts/release_gate.py \
@@ -261,10 +294,21 @@ shell-check:
 	test -x "$(SHELL)"
 
 stflash-check:
-	ST="$$(command -v $(STFLASH))"
-	test -n "$$ST"
-	test -x "$$ST"
+	ST="$$(command -v $(STFLASH) || true)"
+	test -n "$$ST" || { echo "FAIL: missing ST-LINK flash binary: $(STFLASH). Install stlink tools or pass STFLASH=/path/to/st-flash."; exit 1; }
+	test -x "$$ST" || { echo "FAIL: ST-LINK flash binary is not executable: $$ST"; exit 1; }
 	echo "STFLASH=$$ST"
+
+bench-check:
+	$(PYTHON) scripts/bench_check.py \
+	  --serial "$(SERIAL)" \
+	  --stflash "$(STFLASH)" \
+	  --cargo "$(CARGO)" \
+	  --python "$(PYTHON)" \
+	  --make "$(MAKE_CMD)" \
+	  --fw-elf "$(FW_ELF)" \
+	  --fw-bin "$(FW_BIN)" \
+	  --firmware-artifacts "$(BENCH_CHECK_FW_ARTIFACTS)"
 
 fw: shell-check
 	$(CARGO) build -p $(FW_PKG) --target $(FW_TARGET) --locked $(FW_FEATURES_ARG)
@@ -415,7 +459,7 @@ rpl0-replay-repeat-auto: stflash-check
 	  --artifacts-dir "$(REPLAY_REPEAT_DIR)"
 
 fw-gate:
-	@test -n "$(SERIAL)" || { echo "SERIAL is required"; exit 1; }
+	@test -n "$(SERIAL)" || { echo "FAIL: SERIAL is required. Pass SERIAL=/dev/ttyACM<N> for the STM32 ST-LINK VCP."; exit 1; }
 	$(PYTHON) scripts/fw_gate.py \
 	  --serial "$(SERIAL)" \
 	  --reset-mode "$(FW_GATE_RESET_MODE)" \
@@ -445,8 +489,8 @@ firmware-release-summary:
 firmware-release-check: fw-gate firmware-release-summary
 
 fw-release-archive-current: firmware-release-summary
-	@test -n "$(SERIAL)" || { echo "SERIAL is required"; exit 1; }
-	@test -n "$(VERSION)" || { echo "VERSION is required"; exit 1; }
+	@test -n "$(SERIAL)" || { echo "FAIL: SERIAL is required. Pass SERIAL=/dev/ttyACM<N> for the STM32 ST-LINK VCP."; exit 1; }
+	@test -n "$(VERSION)" || { echo "FAIL: VERSION is required. Usage: make fw-release-archive-current VERSION=<version>"; exit 1; }
 	$(PYTHON) scripts/archive_firmware_evidence.py \
 	  --version "$(VERSION)" \
 	  --release-root "$(RELEASE_ROOT)" \
@@ -457,7 +501,7 @@ fw-release-archive: firmware-release-check
 	$(MAKE) fw-release-archive-current VERSION="$(VERSION)" SERIAL="$(SERIAL)"
 
 release-bundle:
-	@test -n "$(VERSION)" || { echo "VERSION is required"; exit 1; }
+	@test -n "$(VERSION)" || { echo "FAIL: VERSION is required. Usage: make release-bundle VERSION=<version>"; exit 1; }
 	$(PYTHON) scripts/release_bundle.py \
 	  --version "$(VERSION)" \
 	  --release-root "$(RELEASE_ROOT)" \
@@ -466,8 +510,14 @@ release-bundle:
 	  --dpw4-pkg "$(DPW4_PKG)" \
 	  --make "$(MAKE_CMD)"
 
+release-summary:
+	@test -n "$(VERSION)" || { echo "FAIL: VERSION is required. Usage: make release-summary VERSION=<version>"; exit 1; }
+	$(PYTHON) scripts/release_summary.py \
+	  --version "$(VERSION)" \
+	  --release-root "$(RELEASE_ROOT)"
+
 release-bundle-check:
-	@test -n "$(VERSION)" || { echo "VERSION is required"; exit 1; }
+	@test -n "$(VERSION)" || { echo "FAIL: VERSION is required. Usage: make release-bundle-check VERSION=<version>"; exit 1; }
 	$(PYTHON) scripts/check_release_bundle.py --version "$(VERSION)"
 
 capture-demo-A: shell-check stflash-check

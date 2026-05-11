@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import sys
 from pathlib import Path
@@ -58,6 +59,8 @@ FIRMWARE_SENTINEL_FILES = frozenset(
         "sha256_summary.txt",
     }
 )
+
+SUMMARY_FILES = ("summary.md", "summary.json")
 
 
 def load_text(path: Path) -> str:
@@ -231,6 +234,59 @@ def sha256_file(path: Path) -> str:
     return digest.hexdigest()
 
 
+def validate_summary_files(bundle_dir: Path, repo_root: Path) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+    summary_md = bundle_dir / "summary.md"
+    summary_json = bundle_dir / "summary.json"
+    if not summary_md.exists() and not summary_json.exists():
+        return errors, warnings
+    for path in (summary_md, summary_json):
+        if not path.is_file():
+            errors.append(f"missing release summary file: {path.name}")
+    if errors:
+        return errors, warnings
+
+    try:
+        summary = json.loads(load_text(summary_json))
+    except json.JSONDecodeError as exc:
+        errors.append(f"summary.json is not valid JSON: {exc}")
+        return errors, warnings
+
+    if summary.get("schema") != "precision.release_summary.v1":
+        errors.append("summary.json schema must be precision.release_summary.v1")
+    if summary.get("version") != bundle_dir.name:
+        errors.append(f"summary.json version must match bundle directory name: {bundle_dir.name}")
+    hashes = summary.get("hashes")
+    if not isinstance(hashes, dict):
+        errors.append("summary.json hashes must be an object")
+        return errors, warnings
+
+    actual_files = {
+        path.relative_to(bundle_dir).as_posix(): sha256_file(path)
+        for path in bundle_dir.rglob("*")
+        if path.is_file() and path.name not in SUMMARY_FILES
+    }
+    if set(hashes) != set(actual_files):
+        missing = sorted(set(actual_files) - set(hashes))
+        extra = sorted(set(hashes) - set(actual_files))
+        if missing:
+            errors.append(f"summary.json missing hash entries: {missing}")
+        if extra:
+            errors.append(f"summary.json has stale hash entries: {extra}")
+    for rel_path, actual_sha in actual_files.items():
+        summary_sha = hashes.get(rel_path)
+        if summary_sha is not None and summary_sha != actual_sha:
+            errors.append(f"summary.json hash mismatch for {rel_path}")
+
+    summary_text = load_text(summary_md)
+    if "# Release Bundle Summary" not in summary_text:
+        errors.append("summary.md missing release summary heading")
+    if "## Hashes" not in summary_text:
+        errors.append("summary.md missing hashes section")
+    return errors, warnings
+
+
 def validate_run_dir(
     run_dir_value: str,
     run_id: str,
@@ -322,10 +378,19 @@ def validate_bundle(bundle_dir: Path, repo_root: Path, strict_paths: bool) -> tu
     if errors:
         return errors, warnings
 
+    summary_errors, summary_warnings = validate_summary_files(bundle_dir, repo_root)
+    errors.extend(summary_errors)
+    warnings.extend(summary_warnings)
+    if errors:
+        return errors, warnings
+
     if bundle_class == "non_firmware":
         return errors, warnings
     if bundle_class == "rpl0_archive_v1":
-        return validate_rpl0_archive_bundle(bundle_dir, repo_root)
+        rpl_errors, rpl_warnings = validate_rpl0_archive_bundle(bundle_dir, repo_root)
+        errors.extend(rpl_errors)
+        warnings.extend(rpl_warnings)
+        return errors, warnings
 
     evidence_text = load_text(required["firmware_release_evidence.md"])
     manifest_text = load_text(required[manifest_name])
