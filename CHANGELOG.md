@@ -7,7 +7,12 @@
 
 ## [Unreleased]
 
-<!-- Next-cut scope goes here -->
+### Maintenance
+
+- added `make bench-check` bench readiness preflight for STM32 release operations, covering serial device presence, ST-LINK probe presence, required host binaries, and optional firmware build artifacts
+- added `make release-proof VERSION=<ver>` as the primary release-proof orchestration path across bench preflight, `make gate`, optional firmware capture/archive, bundle generation, bundle check transcript finalization, and summary generation
+- added automated `summary.md` and `summary.json` release bundle summaries plus validation when summaries are present
+- preserved compatibility for historical retained bundles that do not include generated release summaries
 
 ## [1.8.0] - 2026-05-10
 
