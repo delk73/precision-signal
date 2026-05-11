@@ -50,8 +50,8 @@ def main() -> int:
     if repeat_dst.exists():
         shutil.rmtree(repeat_dst)
 
-    shutil.copy2(args.replay_run, capture_dst)
-    shutil.copytree(args.repeat_dir, repeat_dst)
+    shutil.copy(args.replay_run, capture_dst)
+    shutil.copytree(args.repeat_dir, repeat_dst, copy_function=shutil.copy)
 
     capture_hash = release_dir / "fw_capture_hash_check.txt"
     repeat_hash = release_dir / "fw_repeat_hash_check.txt"
@@ -62,24 +62,17 @@ def main() -> int:
     )
 
     evidence = release_dir / "firmware_release_evidence.md"
-    evidence.write_text(
-        "\n".join(
-            [
-                f"# Firmware Release Evidence ({args.version})",
-                "",
-                f"REPLAY_RUN={args.replay_run}",
-                f"REPLAY_REPEAT_DIR={args.repeat_dir}",
-                "",
-                "## capture hash check",
-                capture_hash.read_text(encoding="utf-8").rstrip(),
-                "",
-                "## repeat manifest",
-                manifest.read_text(encoding="utf-8").rstrip(),
-                "",
-            ]
-        ),
-        encoding="utf-8",
-    )
+    with evidence.open("w", encoding="utf-8") as handle:
+        handle.write(f"# Firmware Release Evidence ({args.version})\n")
+        handle.write("\n")
+        handle.write(f"REPLAY_RUN={args.replay_run}\n")
+        handle.write(f"REPLAY_REPEAT_DIR={args.repeat_dir}\n")
+        handle.write("\n")
+        handle.write("## capture hash check\n")
+        handle.write(capture_hash.read_text(encoding="utf-8"))
+        handle.write("\n")
+        handle.write("## repeat manifest\n")
+        handle.write(manifest.read_text(encoding="utf-8"))
     print(f"Archived firmware evidence in {release_dir}")
     return 0
 

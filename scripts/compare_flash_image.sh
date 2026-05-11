@@ -8,6 +8,10 @@ usage() {
 under_reset=0
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --label)
+      label="$2"
+      shift 2
+      ;;
     --stflash)
       stflash="$2"
       shift 2
@@ -39,6 +43,7 @@ done
 : "${addr:?missing --addr}"
 : "${image:?missing --image}"
 : "${out:?missing --out}"
+label="${label:-flash compare}"
 
 size="$(wc -c < "$image")"
 test "$size" -gt 0
@@ -50,6 +55,6 @@ else
 fi
 test -s "$out"
 cmp -s "$image" "$out" || {
-  echo "flash compare FAIL: device != $image" >&2
+  echo "$label FAIL: device != $image" >&2
   exit 1
 }

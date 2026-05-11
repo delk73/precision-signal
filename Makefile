@@ -106,8 +106,9 @@ comma := ,
 .PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-summary firmware-release-check fw-release-archive-current fw-release-archive release release-1.7.0 release-1.8.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-v2-capture demo-v2-fixture-verify demo-v2-verify demo-v2-audit-pack demo-v2-record demo-v3-verify demo-v3-audit-pack demo-v3-record demo-v3-release demo-v4-verify demo-v4-audit-pack demo-v4-record demo-v4-release demo-v5-verify demo-v5-audit-pack demo-v5-record demo-v5-release demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
 
 help:
-	echo "Active operator / release path:"
+	echo "Active operator / validation path:"
 	echo "  make gate"
+	echo "Generic bundle release path:"
 	echo "  make release VERSION=1.8.0"
 	echo "  make release-bundle VERSION=1.8.0"
 	echo "  make release-bundle-check VERSION=1.8.0"
@@ -117,8 +118,9 @@ help:
 	echo "  make help-all"
 
 help-all:
-	echo "Active operator / release:"
+	echo "Active operator / validation:"
 	echo "  make gate"
+	echo "Generic bundle release:"
 	echo "  make release VERSION=1.8.0"
 	echo "  make release-bundle VERSION=1.8.0"
 	echo "  make release-bundle-check VERSION=1.8.0"
@@ -295,10 +297,10 @@ flash-verify-ur: fw-bin stflash-check
 	$(PYTHON) scripts/check_flash_vectors.py "$(FLASH_HEAD)"
 
 flash-compare: fw-bin stflash-check
-	bash scripts/compare_flash_image.sh --stflash "$(STFLASH)" --addr "$(FLASH_ADDR)" --image "$(FW_BIN)" --out "$(FLASH_FULL)"
+	bash scripts/compare_flash_image.sh --label flash-compare --stflash "$(STFLASH)" --addr "$(FLASH_ADDR)" --image "$(FW_BIN)" --out "$(FLASH_FULL)"
 
 flash-compare-ur: fw-bin stflash-check
-	bash scripts/compare_flash_image.sh --stflash "$(STFLASH)" --addr "$(FLASH_ADDR)" --image "$(FW_BIN)" --out "$(FLASH_FULL)" --under-reset
+	bash scripts/compare_flash_image.sh --label flash-compare-ur --stflash "$(STFLASH)" --addr "$(FLASH_ADDR)" --image "$(FW_BIN)" --out "$(FLASH_FULL)" --under-reset
 
 demo-signal:
 	echo "Signal demo runs on two machines."

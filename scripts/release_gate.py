@@ -122,8 +122,11 @@ def main() -> int:
         )
 
     if args.bundle_check:
+        bundle_label = "--- [GATE {}/{}] Final Bundle Coherence Check ---".format(total, total)
+        if not args.firmware:
+            bundle_label = "--- [AUDIT] Bundle Coherence Check ---"
         run_transcript(
-            f"--- [GATE {total}/{total}] Final Bundle Coherence Check ---",
+            bundle_label,
             [*make, "release-bundle-check", f"VERSION={args.version}"],
             release_dir / "make_release_bundle_check.txt",
         )
