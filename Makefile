@@ -250,7 +250,6 @@ release-proof:
 	  $(MAKE_NO_PRINT) fw-release-archive-current VERSION="$(VERSION)" SERIAL="$(SERIAL)"
 	fi
 	$(MAKE_NO_PRINT) release-bundle VERSION="$(VERSION)"
-	$(MAKE_NO_PRINT) release-summary VERSION="$(VERSION)"
 	$(MAKE_NO_PRINT) release-bundle-check VERSION="$(VERSION)" > "$(RELEASE_DIR)/make_release_bundle_check.next"
 	mv "$(RELEASE_DIR)/make_release_bundle_check.next" "$(RELEASE_DIR)/make_release_bundle_check.txt"
 	$(MAKE_NO_PRINT) release-summary VERSION="$(VERSION)"
