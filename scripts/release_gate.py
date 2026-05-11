@@ -59,6 +59,20 @@ def run(label: str, command: list[str]) -> None:
         raise SystemExit(result.returncode)
 
 
+def generate_summary(version: str, release_dir: Path) -> None:
+    run(
+        "--- [SUMMARY] Release Bundle Summary ---",
+        [
+            sys.executable,
+            "scripts/release_summary.py",
+            "--version",
+            version,
+            "--bundle-dir",
+            str(release_dir),
+        ],
+    )
+
+
 def main() -> int:
     args = parse_args()
     if args.require_serial and not args.serial:
@@ -125,11 +139,14 @@ def main() -> int:
         bundle_label = "--- [GATE {}/{}] Final Bundle Coherence Check ---".format(total, total)
         if not args.firmware:
             bundle_label = "--- [AUDIT] Bundle Coherence Check ---"
+        bundle_check_tmp = release_dir / "make_release_bundle_check.next"
         run_transcript(
             bundle_label,
             [*make, "release-bundle-check", f"VERSION={args.version}"],
-            release_dir / "make_release_bundle_check.txt",
+            bundle_check_tmp,
         )
+        bundle_check_tmp.replace(release_dir / "make_release_bundle_check.txt")
+        generate_summary(args.version, release_dir)
     return 0
 
 

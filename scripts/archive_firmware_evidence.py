@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -30,15 +31,27 @@ def sha256(path: Path) -> str:
 def main() -> int:
     args = parse_args()
     if not args.replay_run.is_file():
-        print(f"missing replay capture: {args.replay_run}", file=sys.stderr)
+        print(
+            f"missing replay capture bundle path: {args.replay_run}. "
+            "Run `make fw-gate` before archiving firmware evidence.",
+            file=sys.stderr,
+        )
         return 1
     manifest = args.repeat_dir / "replay_manifest_v1.txt"
     if not manifest.is_file():
-        print(f"missing repeat manifest: {manifest}", file=sys.stderr)
+        print(
+            f"missing repeat manifest bundle path: {manifest}. "
+            "Run `make fw-gate` before archiving firmware evidence.",
+            file=sys.stderr,
+        )
         return 1
     repeat_runs = sorted(args.repeat_dir.glob("run_*.bin"))
     if not repeat_runs:
-        print(f"missing repeat run artifacts in {args.repeat_dir}", file=sys.stderr)
+        print(
+            f"missing repeat run artifacts in bundle path: {args.repeat_dir}. "
+            "Run `make fw-gate` before archiving firmware evidence.",
+            file=sys.stderr,
+        )
         return 1
 
     release_dir = Path(args.release_root) / args.version
@@ -73,6 +86,19 @@ def main() -> int:
         handle.write("\n")
         handle.write("## repeat manifest\n")
         handle.write(manifest.read_text(encoding="utf-8"))
+    summary_result = subprocess.run(
+        [
+            sys.executable,
+            "scripts/release_summary.py",
+            "--version",
+            args.version,
+            "--bundle-dir",
+            str(release_dir),
+        ],
+        check=False,
+    )
+    if summary_result.returncode != 0:
+        return summary_result.returncode
     print(f"Archived firmware evidence in {release_dir}")
     return 0
 

@@ -14,6 +14,7 @@ Release readiness for a retained repository release record requires:
 
 - retained Kani evidence from the manual preflight to exist under [docs/verification/releases/1.8.0/](verification/releases/1.8.0/)
 - the canonical `1.8.0` release-record orchestration `make release-1.8.0` to pass
+- for new release-proof execution, the unified operator proof path `make release-proof VERSION=<version>` to pass
 - the retained release evidence bundle to live under `docs/verification/releases/<version>/`
 - the canonical operator-facing release gate `make gate` to pass within the retained release-record orchestration
 - `make release-bundle-check VERSION=<version>` to pass against that retained bundle within the retained release-record orchestration
@@ -36,7 +37,9 @@ minimal pre-tag path.
 
 Standalone re-runs remain allowed for reviewer verification or diagnosis:
 
+- `make bench-check`
 - `make gate`
+- `make release-proof VERSION=1.8.0`
 - `make release-bundle-check VERSION=1.8.0`
 
 Not part of the active `1.8.0` pre-tag contract:
@@ -305,7 +308,56 @@ as the canonical release gate and should be retained separately when used.
 For retained release evidence, archive the release-ready gate record under
 `docs/verification/releases/<version>/`.
 
-### 6.2 Normative Determinism Hash Source of Truth
+### 6.2 Release Proof Operator Flow
+
+For new release execution, use the unified release proof path:
+
+```bash
+make release-proof VERSION=<ver>
+```
+
+The flow order is:
+
+1. bench preflight
+2. `make gate`
+3. optional `make fw-gate` plus firmware archive
+4. `make release-bundle VERSION=<ver>`
+5. `make release-bundle-check VERSION=<ver>` with the transcript finalized as
+   `make_release_bundle_check.txt`
+6. `make release-summary VERSION=<ver>`
+
+Firmware capture/archive is enabled by default. For non-firmware proofing or
+operator-limited environments where attached STM32 capture is intentionally not
+validated, run:
+
+```bash
+make release-proof VERSION=<ver> RELEASE_PROOF_FIRMWARE=0
+```
+
+`RELEASE_PROOF_FIRMWARE=0` does not validate attached STM32 capture and must not
+be used as evidence for a firmware-including release claim.
+
+### 6.3 Bench Readiness Check
+
+Before a hardware-backed release proof, operators may run:
+
+```bash
+make bench-check
+```
+
+The bench check fails fast on missing or inaccessible bench prerequisites:
+
+- serial device configured by `SERIAL`
+- ST-LINK probe
+- required host binaries such as Python, Cargo, Make, ST-LINK flash tooling,
+  `timeout`, and `sha256sum`
+- firmware build artifacts when `BENCH_CHECK_FW_ARTIFACTS=required` is active
+
+Firmware artifact checking can be skipped by callers that build firmware inside
+their workflow. `release-proof` uses that mode because it invokes the firmware
+gate after preflight.
+
+### 6.4 Normative Determinism Hash Source of Truth
 
 The normative `.det.csv` baseline hashes are maintained in code at
 `crates/dpw4/src/bin/precision.rs` via `NORMATIVE_DET_HASHES`.
@@ -322,7 +374,7 @@ Historical retained transcripts may quote the hashes observed for a specific
 release, but those retained copies are historical evidence, not the active
 normative table.
 
-### 6.3 Supported Entry Surface
+### 6.5 Supported Entry Surface
 Use `make gate` for routine operator execution of the quick validation gate.
 The underlying normative command is `sig-util validate --mode quick`.
 No other command is an equally authoritative release-admissibility gate.
@@ -334,7 +386,7 @@ schema versions. The `precision.meta.v2` contract is enforced by the `precision`
 binary at record and replay time. Artifact-contract awareness for `sig-util validate`
 is deferred to a future release.
 
-### 6.4 Release Evidence Location
+### 6.6 Release Evidence Location
 
 The canonical retained release-evidence location is:
 
@@ -347,7 +399,7 @@ release record. Supporting checks may exist elsewhere while they run, but
 retained release evidence must be anchored here if it is part of the release
 decision.
 
-### 6.5 Retained Release Record Requirements
+### 6.7 Retained Release Record Requirements
 
 For a retained repository release record under
 `docs/verification/releases/<version>/`, the required evidence set is:
@@ -386,11 +438,24 @@ Additional release-specific outputs may be retained alongside either bundle
 class, but they are additive. They do not replace the class-specific required
 files above.
 
+Future `make release-proof` and `make release-bundle` flows generate release
+summary files in the retained bundle:
+
+```text
+summary.md
+summary.json
+```
+
+These summaries list retained artifacts, validation outputs, hashes, bundle
+paths, and key metadata for the generated bundle. Existing retained bundles
+without generated summaries remain valid. If either summary file is present,
+both must be coherent with the retained bundle.
+
 Reviewer sequence for a retained release bundle: inspect the retained evidence
 summary in `docs/verification/releases/<version>/`, then run
 `make release-bundle-check VERSION=<version>` against that same directory.
 
-### 6.6 Non-Normative Canary Scenario
+### 6.8 Non-Normative Canary Scenario
 
 `phase_wrap_440` is a non-normative determinism canary.
 
