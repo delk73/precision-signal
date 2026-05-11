@@ -23,7 +23,7 @@ This release makes a narrowed Tier-1 claim with the following documented limits:
 - Error/exit mapping: exercised invalid invocations and schema failures map correctly; not exhaustive coverage
 - Schema/class rejection: invalid meta, trace, comparison, divergence, incompatibility cases exercised
 
-Tier-2 Kani proofs are excluded from this retained bundle and remain optional unless separately retained under `VERIFICATION_GUIDE.md`.
+Tier-2/Tier-3 Kani proofs are excluded from this retained bundle and remain optional unless separately retained under `VERIFICATION_GUIDE.md`.
 
 ## What is NOT claimed
 

@@ -36,10 +36,16 @@ Reference commands:
 
 ```bash
 bash scripts/verify_kani.sh
-RUN_HEAVY=1 bash scripts/verify_kani.sh
+RUN_TIER2=1 bash scripts/verify_kani.sh
+RUN_TIER3=1 bash scripts/verify_kani.sh
 ```
 
-Per-harness logs are retained under `kani_logs/<package>__<harness>.log`.
+Tier-1 is the release-retained Kani path. `RUN_TIER2=1` runs optional Tier-2
+exploratory proofs and may schedule independent shards in parallel.
+`RUN_TIER3=1` runs proof-inventory harnesses that are not release-gating unless
+separately reclassified and retained. Tier-1 package logs are retained under
+`kani_logs/<package>__tier1.log`; optional Tier-2/Tier-3 logs use
+`kani_logs/<package>__<harness>.log`.
 
 ## Physical Verification
 

@@ -34,12 +34,12 @@ Tier-1 release-blocking Kani evidence retained for `1.4.0` covers:
 - triangle freeze arithmetic identity and triangle freeze egress identity
 - replay-core wire-layout proofs retained by the canonical runner
 
-Heavy proof disposition for `1.4.0`:
+Optional proof disposition for `1.4.0`:
 
 - Not retained as PASS evidence for this release.
-- Tier-2 surfaces remain optional and skipped for release gating because they exceed the current release-budget target for routine local verification.
-- Skipped heavy proofs do not contribute to the `1.4.0` release claim.
-- The skipped set is bounded to the existing Tier-2 manifest entries in `verify_kani.sh`: `proof_i256_mul_u32_matches_spec` and `proof_atan2_q1` through `proof_atan2_q4`.
+- Tier-2/Tier-3 surfaces remain optional and skipped for release gating.
+- Skipped optional proofs do not contribute to the `1.4.0` release claim.
+- Under the current runner taxonomy, skipped optional proofs include runnable exploratory trig proofs and Tier-3 proof inventory such as `proof_i256_mul_u32_matches_spec`.
 
 ## Limits and Non-Goals
 
@@ -47,7 +47,7 @@ Heavy proof disposition for `1.4.0`:
 
 - global waveform equivalence for all phases, frequencies, gains, or shapes
 - full proof composition from every local harness to every end-to-end system behavior
-- heavy Tier-2 proof completion as part of the retained release gate
+- optional Tier-2/Tier-3 proof completion as part of the retained release gate
 - new CLI, artifact-format, or release-surface capability
 
 `1.4.0` still relies on empirical evidence for:

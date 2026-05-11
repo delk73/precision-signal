@@ -27,7 +27,8 @@ Use these documents in this order:
 | [VERIFICATION_GUIDE.md](docs/VERIFICATION_GUIDE.md) | release-readiness authority and verification contract |
 | [docs/RELEASE_SURFACE.md](docs/RELEASE_SURFACE.md) | release-surface classification and routing |
 | [docs/authority/cli_contract.md](docs/authority/cli_contract.md) | sole active CLI contract authority |
-| [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md) | sole active STM32 capture contract authority |
+| [docs/replay/FW_F446_CAPTURE_v1.md](docs/replay/FW_F446_CAPTURE_v1.md) | active RPL0 STM32 capture contract |
+| [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md) | timing characterization capture contract |
 
 
 See [docs/operator/stm32_replay.md](docs/operator/stm32_replay.md) for the validated STM32 replay procedure.

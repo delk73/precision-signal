@@ -1,6 +1,6 @@
 # precision-signal: Canonical Verification Protocol
-**Version: 1.7.0 (Active Release Baseline)**
-**Status: Frozen Definition**
+**Version: 1.8.0 (Active Release Baseline)**
+**Status: Active Release Definition**
 
 ## Purpose
 
@@ -12,33 +12,36 @@ This document is the canonical release contract for `precision-signal`.
 
 Release readiness for a retained repository release record requires:
 
-- retained Kani evidence from the manual preflight `bash scripts/verify_kani.sh` to exist under [docs/verification/releases/1.7.0/](verification/releases/1.7.0/)
-- the canonical `1.7.0` release-record orchestration `make release-1.7.0` to pass
+- retained Kani evidence from the manual preflight to exist under [docs/verification/releases/1.8.0/](verification/releases/1.8.0/)
+- the canonical `1.8.0` release-record orchestration `make release-1.8.0` to pass
 - the retained release evidence bundle to live under `docs/verification/releases/<version>/`
 - the canonical operator-facing release gate `make gate` to pass within the retained release-record orchestration
 - `make release-bundle-check VERSION=<version>` to pass against that retained bundle within the retained release-record orchestration
+- *(firmware-including)* `make fw-gate` RPL0 capture to pass and evidence archived via `make fw-release-archive VERSION=1.8.0`
 
-For release `1.7.0`, run the pre-tag path in this order:
+For release `1.8.0`, run the pre-tag path in this order:
 
-1. `bash scripts/verify_kani.sh`
-2. `make release-1.7.0`
+1. `mkdir -p docs/verification/releases/1.8.0`
+2. `KEEP_LOGS=1 NO_COLOR=1 bash scripts/verify_kani.sh | tee docs/verification/releases/1.8.0/kani_evidence.txt`
+3. `make release-1.8.0`
 
-Embedded checks for `1.7.0`: `make release-1.7.0` requires existing
-`kani_evidence.txt`, reruns `make gate`, reruns `make doc-link-check`, and
-runs `make release-bundle-check VERSION=1.7.0` while recording retained outputs
-under [docs/verification/releases/1.7.0/](verification/releases/1.7.0/). Those checks remain required for the
-release record, but they are satisfied inside the orchestration rather than as
-additional mandatory operator invocations in the minimal pre-tag path.
+Embedded checks for `1.8.0`: `make release-1.8.0` requires existing
+`kani_evidence.txt`, records the thumb locked check, reruns `make gate`, reruns
+`make replay-tests`, reruns `make doc-link-check`, records reproducibility, and
+runs `make release-bundle-check VERSION=1.8.0` while recording retained outputs
+under [docs/verification/releases/1.8.0/](verification/releases/1.8.0/). Those
+checks remain required for the release record, but they are satisfied inside the
+orchestration rather than as additional mandatory operator invocations in the
+minimal pre-tag path.
 
 Standalone re-runs remain allowed for reviewer verification or diagnosis:
 
 - `make gate`
-- `make release-bundle-check VERSION=1.7.0`
+- `make release-bundle-check VERSION=1.8.0`
 
-Not part of the active `1.7.0` pre-tag contract:
+Not part of the active `1.8.0` pre-tag contract:
 
 - `make gate-full` is supplementary validation only
-- manual STM32 validation and hardware support procedures are supporting/reference material, not release authority
 - changelog timing is not a release-admissibility requirement in this guide
 
 For release-surface questions, use this guide as the source of truth for:
@@ -47,12 +50,11 @@ For release-surface questions, use this guide as the source of truth for:
 - what command is canonical
 - where retained release evidence lives
 
-For release `1.7.0`, reviewers should traverse this path: `bash scripts/verify_kani.sh`
-for the manual once-per-release preflight, `make release-1.7.0` for the
-canonical retained-record orchestration, [docs/replay/tooling.md](replay/tooling.md)
-for released replay-tooling boundaries, and [docs/verification/releases/1.7.0/](verification/releases/1.7.0/)
-for the retained release evidence bundle. Historical retained evidence remains explicit under
-[docs/verification/releases/](verification/releases/).
+For release `1.8.0`, reviewers should inspect
+[docs/verification/releases/1.8.0/](verification/releases/1.8.0/) for the
+retained release evidence bundle and [docs/replay/tooling.md](replay/tooling.md)
+for released replay-tooling boundaries. Historical retained evidence remains
+explicit under [docs/verification/releases/](verification/releases/).
 
 Pre-split historical evidence may still refer to `precision` as the validation
 binary; the current validation entrypoint is `sig-util -- validate`, which implements `make gate`.
@@ -70,7 +72,7 @@ The rest of the release-adjacent documentation is supporting only:
 
 ## 1. Governance & Authority
 
-This document defines the **only** valid interpretation of "precision-signal conformance" for the `precision-signal` repository. To prevent interpretation drift, all signals produced or audited by this system are classified as either **Normative** or **Advisory**.
+This document defines the canonical interpretation of "precision-signal conformance" for the active release baseline. To prevent interpretation drift, all signals produced or audited by this system are classified as either **Normative** or **Advisory**.
 
 ### 1.1 Normative vs. Advisory Signals
 
@@ -127,21 +129,28 @@ Objective: Use formal methods (Kani) to prove that core mathematical and DSP ker
 Use the repository runner for deterministic CI behavior and normative token validation.
 
 ```bash
-# Tier-1 (default): fast harnesses only
+# Tier-1 (default): release-critical harnesses only
 bash scripts/verify_kani.sh
 
-# Tier-2 (heavy): includes atan2 shard proofs (q1-q4)
-RUN_HEAVY=1 bash scripts/verify_kani.sh
+# Tier-2 runnable: exploratory trig proofs
+RUN_TIER2=1 bash scripts/verify_kani.sh
+
+# Tier-3: serial opt-in proof inventory, not release-gating
+RUN_TIER3=1 bash scripts/verify_kani.sh
 ```
 
 Normative evidence boundary: the harness manifest embedded in
 `scripts/verify_kani.sh` is the authoritative runner surface for formal-verification
 claims in this repository. Harnesses present in source but omitted from that
 manifest are implementation inventory, not normative runner evidence.
+Tiers reflect evidentiary role and release maturity, not solver cost. Tier-1
+is release-critical evidence for active contract claims. Tier-2 is runnable
+exploratory evidence that can be retained separately. Tier-3 is proof inventory
+and is not release-gating.
 
 ### 3.2 Environment Controls
 ```bash
-# Conservative shard cap: min(online cores, DEFAULT_MAX_JOBS)
+# Conservative Kani job cap: min(online cores, DEFAULT_MAX_JOBS)
 # Recommended Env defaults:
 #   DEFAULT_MAX_JOBS=4 on >=16 GB RAM runners
 #   DEFAULT_MAX_JOBS=2 on memory-constrained runners
@@ -154,9 +163,10 @@ KEEP_LOGS=1 bash scripts/verify_kani.sh
 - **Implementation**: `dpw4` boundary kernels and `geom-signal` primitives.
 - **Harnesses**: the manifest-defined subset executed by `scripts/verify_kani.sh`
   for Tier-1, with additional manifest-defined Tier-2 harnesses when
-  `RUN_HEAVY=1`.
-- **Status**: Each per-harness log must contain `VERIFICATION:- SUCCESSFUL` and must not contain `** N of M failed` where `N > 0`.
-- **Implication**: Provides panic-safety and invariant evidence for the kernels covered by these harnesses and their assumptions. The active release-scoped proof boundary and exclusions must be read from [docs/verification/releases/1.7.0/](verification/releases/1.7.0/).
+  `RUN_TIER2=1`. Tier-3 harnesses require explicit `RUN_TIER3=1`
+  and do not contribute to release gating unless separately reclassified.
+- **Status**: Each runner log must contain `VERIFICATION:- SUCCESSFUL` and must not contain `** N of M failed` where `N > 0`.
+- **Implication**: Provides panic-safety and invariant evidence for the kernels covered by these harnesses and their assumptions. The active release-scoped proof boundary and exclusions must be read from [docs/verification/releases/1.8.0/](verification/releases/1.8.0/).
 
 ### 3.4 Harness-to-Crate Mapping
 | Harness | Crate | Tier |
@@ -181,31 +191,40 @@ KEEP_LOGS=1 bash scripts/verify_kani.sh
 | `proof_triangle_freeze_invariant` | `dpw4` | Tier-1 |
 | `proof_triangle_freeze_egress_invariant` | `dpw4` | Tier-1 |
 | `proof_sqrt_no_panic` | `geom-signal` | Tier-1 |
-| `proof_sin_cos_no_panic` | `geom-signal` | Tier-1 |
 | `proof_v0_wire_size_constants` | `replay-core` | Tier-1 |
 | `proof_encode_header0_wire_layout_and_le` | `replay-core` | Tier-1 |
 | `proof_encode_event_frame0_wire_layout_and_le` | `replay-core` | Tier-1 |
-| `proof_atan2_q1` | `geom-signal` | Tier-2 |
-| `proof_atan2_q2` | `geom-signal` | Tier-2 |
-| `proof_atan2_q3` | `geom-signal` | Tier-2 |
-| `proof_atan2_q4` | `geom-signal` | Tier-2 |
+| `proof_sin_cos_no_panic` | `geom-signal` | Tier-2 runnable |
+| `proof_atan2_q1` | `geom-signal` | Tier-2 runnable |
+| `proof_atan2_q2` | `geom-signal` | Tier-2 runnable |
+| `proof_atan2_q3` | `geom-signal` | Tier-2 runnable |
+| `proof_atan2_q4` | `geom-signal` | Tier-2 runnable |
+| `proof_i256_mul_u32_matches_spec` | `dpw4` | Tier-3 |
 
 ### 3.5 Diagnostics and Interpretation
-- **Per-harness logs**: Stored under `kani_logs/<package>__<harness>.log`.
-- **Retention policy**: Logs are always kept on failure. On success they are deleted unless `KEEP_LOGS=1`. For `RUN_HEAVY=1`, success logs default to kept unless explicitly overridden.
+- **Logs**: Tier-1 package batches are stored under `kani_logs/<package>__tier1.log`; parallel Tier-2 runnable harnesses are stored under `kani_logs/<package>__<harness>.log`.
+- **Retention policy**: Logs are always kept on failure. On success they are deleted unless `KEEP_LOGS=1`. For `RUN_TIER2=1` or `RUN_TIER3=1`, success logs default to kept unless explicitly overridden.
 - **Output format**: Runner uses `--output-format terse` for all harnesses to improve CI readability.
+- **Parallelism**: Tier-1 is grouped by package and passed to `cargo kani -j`
+  according to `KANI_JOBS` or `min(online cores, DEFAULT_MAX_JOBS)`. Runnable
+  Tier-2 harnesses are optional exploratory proofs and scheduled by the runner
+  as independent workers with per-harness target directories and logs to avoid
+  artifact contention. Tier-3 remains serial opt-in.
 - **Discovery-only (manual, non-normative)**: For Kani 0.67.0, run discovery from the crate directory with target options before `list` (no `-p`):
   - `cd crates/geom-signal && cargo kani --lib list`
   - `cd crates/dpw4 && cargo kani --lib list`
   (`cargo kani list --lib` is rejected by this Kani version.)
-  This is optional local harness discovery only. It is not required by the canonical runner (`bash scripts/verify_kani.sh` / `RUN_HEAVY=1 bash scripts/verify_kani.sh`), may fail in some workspace/feature-gated-bin (`required-features`) layouts, and is not normative evidence. Only runner logs and success token checks are normative evidence.
+  This is optional local harness discovery only. It is not required by the canonical runner (`bash scripts/verify_kani.sh` / `RUN_TIER2=1 bash scripts/verify_kani.sh`), may fail in some workspace/feature-gated-bin (`required-features`) layouts, and is not normative evidence. Only runner logs and success token checks are normative evidence.
 - **"dereference failure ... Status: SUCCESS" lines**: These indicate Kani proved the failing path unreachable under harness constraints; they are successful checks, not proof failures.
 
 ### 3.6 Release-Scoped Correctness and Limits
-- The active release (`1.7.0`) retains its release-scoped correctness claims and limits under [docs/verification/releases/1.7.0/](verification/releases/1.7.0/).
-- That retained `1.7.0` bundle is a narrowed, non-firmware release record for the primary precision CLI surface only, scoped to `crates/dpw4/src/bin/common/mod.rs`, `crates/dpw4/src/bin/precision/mod.rs`, and `crates/dpw4/tests/precision_authoritative_surface.rs`, within the explicit limits documented in the `1.7.0` release directory.
-- That claim is exercised-path and release-scoped, not global.
-- Heavy Tier-2 proofs remain optional unless the active release bundle explicitly retains a heavy proof run. If omitted, the retained release bundle must state the exclusion and the remaining release-claim boundary explicitly.
+- The active release (`1.8.0`) retains its release-scoped correctness claims and limits under [docs/verification/releases/1.8.0/](verification/releases/1.8.0/).
+- `1.8.0` is a firmware-including release: it covers the primary precision CLI surface (`crates/dpw4`) and the RPL0 firmware capture path (`crates/replay-fw-f446`), with the timing characterization fixture separated into `crates/replay-fw-f446-timing`. Claims are exercised-path and release-scoped, not global.
+- Tier-2 and Tier-3 proofs remain optional unless the active release bundle explicitly retains them. If omitted, the retained release bundle must state the exclusion and the remaining release-claim boundary explicitly.
+- `proof_i256_mul_u32_matches_spec` is Tier-3 in its current form. It
+  remains valid proof inventory but does not close full I256 arithmetic proof
+  claims and is not release-gating until decomposed into budget-compatible
+  runnable proofs.
 
 ---
 
@@ -308,6 +327,13 @@ Use `make gate` for routine operator execution of the quick validation gate.
 The underlying normative command is `sig-util validate --mode quick`.
 No other command is an equally authoritative release-admissibility gate.
 
+**`sig-util validate` scope (1.8.0):** `sig-util validate` is a toolchain and
+build-environment gate — it asserts compiler channel pin, version consistency,
+and waveform determinism hashes. It does not inspect recorded artifact `meta.json`
+schema versions. The `precision.meta.v2` contract is enforced by the `precision`
+binary at record and replay time. Artifact-contract awareness for `sig-util validate`
+is deferred to a future release.
+
 ### 6.4 Release Evidence Location
 
 The canonical retained release-evidence location is:
@@ -327,7 +353,7 @@ For a retained repository release record under
 `docs/verification/releases/<version>/`, the required evidence set is:
 
 - Non-firmware retained release bundle:
-  - [index.md](verification/releases/1.7.0/index.md)
+  - [index.md](verification/releases/1.8.0/index.md)
   - `cargo_check_dpw4_thumb_locked.txt`
   - `kani_evidence.txt`
   - `make_demo_evidence_package.txt`
@@ -335,13 +361,13 @@ For a retained repository release record under
   - `make_gate.txt`
   - `make_replay_tests.txt`
   - `release_reproducibility.txt`
-- Firmware-including retained release bundle:
-  - [firmware_release_evidence.md](verification/releases/1.2.2/firmware_release_evidence.md)
-  - `sha256_summary.txt`
-  - `hash_check.txt`
-  - `replay_manifest_v1.txt` for the active RPL0 `version = 1` capture path
-  - `replay_manifest_v0.txt` only for historical retained bundles captured
-    before the `v1` manifest transition
+- Firmware-including retained release bundle (required for `1.8.0`):
+  - [index.md](verification/releases/1.8.0/index.md) — see firmware section
+  - `firmware_release_evidence` (markdown — generated by `make fw-release-archive`)
+  - `fw_capture_hash_check.txt`
+  - `fw_repeat_hash_check.txt`
+  - `fw_repeat/replay_manifest_v1.txt` — active RPL0 `version = 1` capture path
+  - `replay_manifest_v0.txt` — historical bundles only (pre-v1 manifest transition)
 
 For the active RPL0 `version = 1` firmware capture path, the retained
 `replay_manifest_v1.txt` record must preserve the current release-defining
@@ -469,13 +495,13 @@ No additional experimental audit surface is included in this repository.
 
 ## 12. Red Flags & Non-Conformance
 
-Any of the following conditions constitutes an **Immediate Failure** of the Reference Baseline:
+Any of the following conditions constitutes an **Immediate Failure** of the active release baseline:
 1. **Hash Mismatch**: Any deviation in `forensic_audit` SHA-256 output.
 2. **Phase Jitter**: Any deviation from the Scalar phase engine at sample boundaries.
 3. **FP Core**: Inclusion of floating-point math within the core DSP path.
 4. **Floating Point Intrusion**: Use of `f64` or `libm` within the `geom-signal` or `dpw4` tick loops.
 5. **Padding Noise**: Hashes that vary based on compiler optimization levels.
-6. **Proof Failure**: Any failure in the Kani formal verification harnesses.
+6. **Proof Failure**: Failure in required Tier-1 Kani verification harnesses, or failure in optional tiers that were explicitly retained as release evidence.
 
 ---
 

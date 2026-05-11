@@ -9,8 +9,10 @@ Use:
 - [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md) for release classification
 - [docs/authority/cli_contract.md](../authority/cli_contract.md) for the sole
   active CLI contract
+- [docs/replay/FW_F446_CAPTURE_v1.md](FW_F446_CAPTURE_v1.md) for the active
+  RPL0 STM32 capture contract
 - [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md)
-  for the sole active STM32 capture contract
+  for the timing characterization capture contract
 - [docs/verification/releases/index.md](../verification/releases/index.md) for
   historical release records and retained verification material
 
@@ -21,12 +23,13 @@ Terminology used in this document:
 - `RPL` refers to the portable replay binary format, including `.rpl` files,
   parser behavior, and portable replay validation
 
-Replay uses a two-stage model: Stage 1 is the interval CSV capture contract for
-firmware, defined in
+Replay support material includes two separate capture/replay contracts. The
+active RPL0 firmware capture contract is defined in
+[docs/replay/FW_F446_CAPTURE_v1.md](FW_F446_CAPTURE_v1.md). The interval CSV
+contract for timing characterization is defined in
 [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md).
-Stage 2 is the RPL0 portable replay format for replay and diff, defined in
-[docs/spec/rpl0_format_contract.md](../spec/rpl0_format_contract.md). These
-are separate contracts, not one unified format.
+The portable RPL format for replay and diff is defined in
+[docs/spec/rpl0_format_contract.md](../spec/rpl0_format_contract.md).
 
 The Python tooling layer (`artifact_tool.py`, `artifact_diff.py`) is retained as
 historical support/reference tooling. Rust replay remains mostly experimental,
