@@ -36,7 +36,7 @@ surface.
 
 ## Classification
 
-Canonical For Retained Release `1.8.0`
+Canonical Active and Retained Release Commands
 
 - `make gate` (canonical operator-facing release gate)
 - `make release-proof VERSION=<ver>` (unified release-proof orchestration for
