@@ -70,6 +70,14 @@ Support / Reference / Historical Only
 - `make demo-evidence-package` and `artifacts/demo_evidence/retained/`
   (retained replay demo proof/support material, not the active `1.8.0` release
   contract)
+- `make demo-divergence` and `make replay-demo-audit` (active demo/support
+  validation entrypoints for replay explanation material; not release
+  authority)
+- `make demo-captured-verify` and `make demo-captured-release` (support checks
+  for the committed captured divergence pair)
+- historical Demo V2-V5 lifecycle flows (`demo-v2-*`, `demo-v3-*`,
+  `demo-v4-*`, `demo-v5-*`) are retained by git history and by their
+  fixtures/generators/tests, but are no longer top-level Make operator targets
 - interval CSV firmware evidence and timing characterization material are
   support/reference unless explicitly invoked through the timing crate workflows
 

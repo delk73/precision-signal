@@ -86,10 +86,13 @@ RPL0 format, capture path, or Demo V2 fixtures.
 Demo V3 does not claim nondeterminism detection. It classifies deterministic
 artifact divergence shape under explicit rules.
 
-## 6. Demo V3 workflow targets
+## 6. Validation surface
 
 ```bash
-make demo-v3-verify
-make demo-v3-audit-pack
-make demo-v3-record
+make replay-demo-audit
+python3 scripts/test_demo_v3_fixtures.py
 ```
+
+The historical `make demo-v3-*` lifecycle targets are no longer part of the
+top-level operator surface. Demo V3 remains retained as committed fixtures,
+the generator script, and the regression test above.
