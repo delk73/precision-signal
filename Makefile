@@ -392,7 +392,7 @@ fw-repeat-check:
 rpl0-replay-check:
 	export PYTHONPATH="$(CURDIR)$${PYTHONPATH:+:$${PYTHONPATH}}"
 	$(MAKE) flash-ur
-	SERIAL="$(SERIAL)" $(ARTIFACT_TOOL) capture --quick --out "$(REPLAY_RUN)"
+	SERIAL="$(SERIAL)" $(ARTIFACT_TOOL) capture --quick --reset-context stlink --out "$(REPLAY_RUN)"
 	$(ARTIFACT_TOOL) verify "$(REPLAY_RUN)" --signal-model "$(REPLAY_SIGNAL_MODEL)"
 	$(ARTIFACT_TOOL) compare "$(REPLAY_BASELINE)" "$(REPLAY_RUN)"
 

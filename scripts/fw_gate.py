@@ -63,6 +63,8 @@ def main() -> int:
             "scripts/artifact_tool.py",
             "capture",
             "--quick",
+            "--reset-context",
+            args.reset_mode,
             "--out",
             args.replay_run,
         ],

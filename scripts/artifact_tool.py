@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 import argparse
+import contextlib
 import hashlib
+import io
 import re
 import sys
 from pathlib import Path
@@ -11,6 +13,35 @@ import lock_baseline
 import read_artifact
 
 SHA256_HEX_RE = re.compile(r"^[0-9a-f]{64}$")
+RESET_CONTEXTS = ("manual", "stlink", "auto", "unspecified")
+MANUAL_RESET_PROMPT = "Listener active; press reset now"
+RESET_CONTEXT_PROMPTS = {
+    "manual": MANUAL_RESET_PROMPT,
+    "stlink": "Listener active; waiting for target output",
+    "auto": "Listener active; waiting for target output",
+    "unspecified": "Listener active; waiting for target output or reset",
+}
+
+
+class CapturePromptFilter(io.TextIOBase):
+    def __init__(self, wrapped: io.TextIOBase, reset_context: str) -> None:
+        self.wrapped = wrapped
+        self.reset_context = reset_context
+
+    @property
+    def encoding(self) -> str | None:
+        return self.wrapped.encoding
+
+    def writable(self) -> bool:
+        return True
+
+    def write(self, text: str) -> int:
+        replacement = RESET_CONTEXT_PROMPTS[self.reset_context]
+        self.wrapped.write(text.replace(MANUAL_RESET_PROMPT, replacement))
+        return len(text)
+
+    def flush(self) -> None:
+        self.wrapped.flush()
 
 
 def run_with_argv(main_fn, argv: list[str]) -> int:
@@ -20,6 +51,11 @@ def run_with_argv(main_fn, argv: list[str]) -> int:
         return int(main_fn())
     finally:
         sys.argv = old_argv
+
+
+def run_capture_with_argv(argv: list[str], reset_context: str) -> int:
+    with contextlib.redirect_stdout(CapturePromptFilter(sys.stdout, reset_context)):
+        return run_with_argv(read_artifact.main, argv)
 
 
 def cmd_capture(args: argparse.Namespace) -> int:
@@ -34,7 +70,7 @@ def cmd_capture(args: argparse.Namespace) -> int:
         forwarded.extend(["--signal-model", args.signal_model])
     if args.max_sync_bytes is not None:
         forwarded.extend(["--max-sync-bytes", str(args.max_sync_bytes)])
-    return run_with_argv(read_artifact.main, forwarded)
+    return run_capture_with_argv(forwarded, args.reset_context)
 
 
 def cmd_verify(args: argparse.Namespace) -> int:
@@ -186,6 +222,15 @@ def build_parser() -> argparse.ArgumentParser:
         help="Optional input_sample validator: none (default), ramp, phase8.",
     )
     p_capture.add_argument("--max-sync-bytes", type=int)
+    p_capture.add_argument(
+        "--reset-context",
+        choices=RESET_CONTEXTS,
+        default="manual",
+        help=(
+            "Operator prompt context only: manual asks for reset; stlink/auto "
+            "wait for target output; unspecified uses a neutral prompt."
+        ),
+    )
     p_capture.set_defaults(func=cmd_capture)
 
     p_verify = sub.add_parser("verify", help="validate artifact structure")
