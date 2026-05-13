@@ -1,0 +1,9 @@
+run_id,label,status,setpoint_v,measured_v,measured_current_ma,power_source,power_instrument,measurement_time,settle_seconds,power_interaction,input_rail_observation,vdd_rail_observation,supply_path,reset_mode,capture_state,capture_rows,artifact_path,artifact_sha256,replay_result,first_divergence,classification,notes
+000,baseline,pending,,,,,,,,,,,,,,,,,,,,,
+001,down_3v20,pending,,,,,,,,,,,,,,,,,,,,,
+002,down_3v10,pending,,,,,,,,,,,,,,,,,,,,,
+003,down_3v00,pending,,,,,,,,,,,,,,,,,,,,,
+004,down_2v90,pending,,,,,,,,,,,,,,,,,,,,,
+005,boundary_repeat_a,pending,,,,,,,,,,,,,,,,,,,,,
+006,boundary_repeat_b,pending,,,,,,,,,,,,,,,,,,,,,
+007,recovery_3v30,pending,,,,,,,,,,,,,,,,,,,,,
