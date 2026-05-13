@@ -8,14 +8,14 @@ Project direction:
 
 Precision Signal is a deterministic execution validation system centered on replay, operated through the precision CLI against an attached STM32 target over UART.
 
-Replay authority remains:
+## Sweep Evidence Chain
 
-1. CSV capture
-2. precision record
-3. authoritative artifact
-4. precision replay
-5. ResultBlock
-6. artifact hash
+1. binary RPL0 artifact capture
+2. artifact verification
+3. artifact hash
+4. run matrix classification
+
+This sweep does not redefine replay authority, CLI authority, release authority, or release evidence.
 
 Bench provenance only:
 
@@ -54,6 +54,25 @@ Exact dropout threshold not precisely measured.
 ## Planned Runs
 
 Planned runs remain pending. See [run_matrix.csv](run_matrix.csv).
+
+## Sweep Capture Workflow
+
+Capture uses binary RPL0 artifact capture.
+
+Binary RPL0 artifacts are collected with:
+
+`scripts/artifact_tool.py capture`
+
+Captured artifacts are verified with:
+
+`scripts/artifact_tool.py verify`
+
+Artifact hashes are recorded with:
+
+`scripts/artifact_tool.py hash`
+
+Active firmware emits binary RPL0 framing.
+`scripts/csv_capture.py` is incompatible with the active firmware path and is not used for this sweep.
 
 ## Bundle Files
 
