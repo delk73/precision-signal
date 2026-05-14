@@ -35,8 +35,8 @@ COLUMNS = [
     "capture_rows",
     "artifact_path",
     "artifact_sha256",
-    "replay_result",
-    "first_divergence",
+    "validation_result",
+    "validation_detail",
     "classification",
     "notes",
 ]
@@ -79,7 +79,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--stage",
-        choices=["pre_capture", "post_capture", "post_replay"],
+        choices=["pre_capture", "post_capture", "post_validation"],
         help="staged update to perform",
     )
     return parser.parse_args()
@@ -239,13 +239,13 @@ def apply_post_capture(row: dict[str, str]) -> None:
         row["status"] = "post_capture"
 
 
-def apply_post_replay(row: dict[str, str]) -> None:
+def apply_post_validation(row: dict[str, str]) -> None:
     prompt_fields(
         row,
         [
             "artifact_sha256",
-            "replay_result",
-            "first_divergence",
+            "validation_result",
+            "validation_detail",
             "classification",
             "notes",
         ],
@@ -268,7 +268,7 @@ def run_artifact_path(matrix: Path, row: dict[str, str]) -> Path:
 
 
 def print_next_command(matrix: Path, row: dict[str, str], stage: str) -> None:
-    if stage == "post_replay":
+    if stage == "post_validation":
         return
 
     if stage == "pre_capture":
@@ -323,8 +323,8 @@ def apply_stage(row: dict[str, str], stage: str) -> None:
         apply_pre_capture(row)
     elif stage == "post_capture":
         apply_post_capture(row)
-    elif stage == "post_replay":
-        apply_post_replay(row)
+    elif stage == "post_validation":
+        apply_post_validation(row)
     else:
         raise ValueError(f"unsupported stage {stage!r}")
 
