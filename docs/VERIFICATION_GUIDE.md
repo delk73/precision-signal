@@ -69,8 +69,6 @@ The rest of the release-adjacent documentation is supporting only:
 - [docs/verification/build_reproducibility.md](verification/build_reproducibility.md): supporting explanation for pinned builds and dual-build identity checks
 - [docs/verification/CI_EVIDENCE.md](verification/CI_EVIDENCE.md): historical CI evidence, not the release contract
 - [docs/verification/hardware_procedures.md](verification/hardware_procedures.md): manual hardware support procedures, not release authority
-- [docs/physical_characterization/PHYSICAL_CHARACTERIZATION.md](physical_characterization/PHYSICAL_CHARACTERIZATION.md): retained physical characterization routing, bench provenance only
-- [docs/physical_characterization/stm32_power_sweeps/stm32_power_sweeps.md](physical_characterization/stm32_power_sweeps/stm32_power_sweeps.md): STM32 power sweep summaries, not release authority
 - retained files under [docs/verification/releases/](verification/releases/): evidence for a specific release once generated
 
 ---

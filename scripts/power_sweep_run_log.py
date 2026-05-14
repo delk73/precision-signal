@@ -274,11 +274,7 @@ def print_next_command(matrix: Path, row: dict[str, str], stage: str) -> None:
     if stage == "pre_capture":
         path = run_artifact_path(matrix, row)
         print()
-        print("Step 1: Ensure known-good firmware is flashed")
-        print()
-        print("Run:")
-        print("make flash-ur")
-        print("make flash-compare-ur")
+        print("Step 1: Confirm firmware was flashed/verified at sweep start.")
         print()
         print("Step 2: Confirm board remains at intended voltage setpoint")
         print()
