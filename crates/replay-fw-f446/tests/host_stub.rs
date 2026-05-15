@@ -32,10 +32,32 @@ fn firmware_digest_constants_match_metadata_inputs() {
     );
 }
 
+#[cfg(any(
+    feature = "signal-model-phase8",
+    all(
+        not(feature = "signal-model-phase8"),
+        not(feature = "signal-model-burst8"),
+        not(feature = "signal-model-seeded-lfsr8")
+    )
+))]
 #[test]
-fn selected_signal_model_is_phase8_when_default_or_explicit_phase8() {
+fn selected_signal_model_is_phase8_when_configured_or_default() {
     assert_eq!(SELECTED_SIGNAL_MODEL, SignalModel::Phase8);
     assert_eq!(SIGNAL_INITIAL_STATE, 0);
+}
+
+#[cfg(feature = "signal-model-burst8")]
+#[test]
+fn selected_signal_model_is_burst8_when_configured() {
+    assert_eq!(SELECTED_SIGNAL_MODEL, SignalModel::Burst8);
+    assert_eq!(SIGNAL_INITIAL_STATE, 0);
+}
+
+#[cfg(feature = "signal-model-seeded-lfsr8")]
+#[test]
+fn selected_signal_model_is_seeded_lfsr8_when_configured() {
+    assert_eq!(SELECTED_SIGNAL_MODEL, SignalModel::SeededLfsr8);
+    assert_eq!(SIGNAL_INITIAL_STATE, 0xA5);
 }
 
 #[test]
