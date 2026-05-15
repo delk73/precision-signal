@@ -4,10 +4,8 @@ Precision Signal is a deterministic execution validation system centered on
 replay, operated through the `precision` CLI against an attached STM32 target
 over UART.
 
-This file is a router only. It is not an authority document, specification,
-release contract, release record, or evidence artifact. When this router points
-to an authority document or retained evidence location, the linked document or
-record carries the authority.
+This page is a reader router. Follow the linked documents for authoritative
+contracts, retained evidence, and operational details.
 
 ## Core Pillars
 
