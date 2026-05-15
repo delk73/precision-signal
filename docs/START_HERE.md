@@ -4,25 +4,7 @@ Precision Signal is a deterministic execution validation system centered on
 replay, operated through the `precision` CLI against an attached STM32 target
 over UART.
 
-This page is a reader router. Follow the linked documents for authoritative
-contracts, retained evidence, and operational details.
-
-## Core Pillars
-
-- Replay is the center of the system: captured execution evidence is used to
-  validate deterministic behavior.
-- The active operator surface is the `precision` CLI.
-- The canonical hardware path is an attached STM32 target over UART.
-- Authority documents define behavior and release boundaries; retained evidence
-  records observed validation results.
-- Supporting documentation explains architecture, operation, and background
-  without replacing the active authority path.
-
-## Naming
-
-- Product name: **Precision Signal**
-- CLI command: `precision`
-- Hardware path: attached STM32 target over UART
+This page routes readers to the active contracts, evidence, and operational documentation.
 
 ## Active Reading Path
 
