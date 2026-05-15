@@ -31,6 +31,11 @@ contract for timing characterization is defined in
 The portable RPL format for replay and diff is defined in
 [docs/spec/rpl0_format_contract.md](../spec/rpl0_format_contract.md).
 
+`replay-fw-f446` is the active STM32 F446 capture firmware for RPL0 execution
+capture. `replay-host` and broader replay support tooling remain
+support/reference material unless a current authority document explicitly
+states otherwise.
+
 The Python tooling layer (`artifact_tool.py`, `artifact_diff.py`) is retained as
 historical support/reference tooling. Rust replay remains mostly experimental,
 with one bounded historical `replay-host diff` slice retained under
@@ -48,6 +53,11 @@ with one bounded historical `replay-host diff` slice retained under
 ## Historical Rust Replay Slice
 
 - bounded `replay-host diff`
+
+## Active Firmware Capture
+
+- `replay-fw-f446`: active STM32 F446 capture firmware for RPL0 execution
+  capture under [docs/replay/FW_F446_CAPTURE_v1.md](FW_F446_CAPTURE_v1.md)
 
 ### Historical `replay-host diff`
 
@@ -70,7 +80,6 @@ Retained scope:
 - any broader `replay-host` capability outside the retained `artifacts/rpl0/`
   proof corpus and accepted RPL input class
 - schema-aware Rust replay semantics
-- `replay-fw-f446`
 
 Current implementation boundary behind the released `diff` slice:
 

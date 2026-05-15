@@ -10,8 +10,10 @@ Use the active authority path first:
   classification and routing
 - [docs/authority/cli_contract.md](../../authority/cli_contract.md): sole
   active CLI contract authority
+- [docs/replay/FW_F446_CAPTURE_v1.md](../../replay/FW_F446_CAPTURE_v1.md):
+  active STM32 F446 RPL0 execution capture authority
 - [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](../../replay/INTERVAL_CAPTURE_CONTRACT_v1.md):
-  sole active STM32 capture contract authority
+  STM32 timing characterization/support capture contract
 
 ## Active Retained Release Record
 
