@@ -18,6 +18,8 @@ use replay_core::artifact::{
 use stm32f4::stm32f446::{self as pac};
 
 use crate::artifact_metadata::{BUILD_HASH, CONFIG_HASH, RPL0_SCHEMA, SCHEMA_HASH};
+#[cfg(feature = "demo-persistent-divergence")]
+use crate::signal_model::persistent_divergence_state;
 use crate::signal_model::{
     advance_state_for_model, sample_for_model, SELECTED_SIGNAL_MODEL, SIGNAL_INITIAL_STATE,
 };
@@ -128,7 +130,8 @@ pub fn tim2_isr() {
         let mut s = state;
         if idx == DEMO_PERSISTENT_DIVERGENCE_FRAME {
             // One-time state perturbation: shift the selected model trajectory.
-            s = advance_state_for_model(SELECTED_SIGNAL_MODEL, s);
+            s = persistent_divergence_state(SELECTED_SIGNAL_MODEL, s)
+                .expect("demo-persistent-divergence is unsupported for selected signal model");
         }
         s
     };

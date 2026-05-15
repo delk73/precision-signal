@@ -13,6 +13,15 @@ pub enum SignalModel {
 ))]
 compile_error!("select at most one replay signal model feature");
 
+#[cfg(all(
+    feature = "demo-persistent-divergence",
+    feature = "signal-model-burst8"
+))]
+compile_error!(
+    "demo-persistent-divergence is unsupported for signal-model-burst8 \
+     because burst8 is frame-index-derived and has no persistent trajectory"
+);
+
 pub const PHASE8_STEP: u32 = 0x0100_0000;
 pub const BURST8_PERIOD: u32 = 64;
 pub const BURST8_IDLE: u32 = 48;
@@ -65,6 +74,16 @@ pub fn advance_state_for_model(model: SignalModel, state: u32) -> u32 {
         SignalModel::Phase8 => state.wrapping_add(PHASE8_STEP),
         SignalModel::Burst8 => state,
         SignalModel::SeededLfsr8 => u32::from(advance_lfsr8(state as u8)),
+    }
+}
+
+#[cfg_attr(not(test), allow(dead_code))]
+pub fn persistent_divergence_state(model: SignalModel, state: u32) -> Option<u32> {
+    match model {
+        SignalModel::Phase8 | SignalModel::SeededLfsr8 => {
+            Some(advance_state_for_model(model, state))
+        }
+        SignalModel::Burst8 => None,
     }
 }
 

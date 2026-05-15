@@ -5,8 +5,8 @@ mod signal_model;
 
 use sha2::{Digest, Sha256};
 use signal_model::{
-    advance_state_for_model, sample_for_model, SignalModel, SELECTED_SIGNAL_MODEL,
-    SIGNAL_INITIAL_STATE,
+    advance_state_for_model, persistent_divergence_state, sample_for_model, SignalModel,
+    SELECTED_SIGNAL_MODEL, SIGNAL_INITIAL_STATE,
 };
 
 fn sha256_bytes(bytes: &[u8]) -> [u8; 32] {
@@ -61,4 +61,17 @@ fn signal_model_samples_match_contract() {
         );
         state = advance_state_for_model(SignalModel::SeededLfsr8, state);
     }
+}
+
+#[test]
+fn persistent_divergence_state_is_explicit_per_model() {
+    assert_eq!(
+        persistent_divergence_state(SignalModel::Phase8, 0),
+        Some(advance_state_for_model(SignalModel::Phase8, 0))
+    );
+    assert_eq!(
+        persistent_divergence_state(SignalModel::SeededLfsr8, 0xA5),
+        Some(advance_state_for_model(SignalModel::SeededLfsr8, 0xA5))
+    );
+    assert_eq!(persistent_divergence_state(SignalModel::Burst8, 0), None);
 }
