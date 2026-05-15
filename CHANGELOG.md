@@ -14,7 +14,8 @@
 - added automated `summary.md` and `summary.json` release bundle summaries plus validation when summaries are present
 - preserved compatibility for historical retained bundles that do not include generated release summaries
 - consolidated the demo-facing Make surface: `demo-evidence-package`, `demo-divergence`, `replay-demo-audit`, and captured divergence support remain operator-visible, while historical Demo V2-V5 lifecycle flows are retained as fixtures/scripts rather than top-level Make targets
-- added multi-model deterministic RPL0 capture validation packaging for `phase8` baseline plus `burst8` and `seeded_lfsr8` validation models, including feature-aware validation, explicit divergence boundaries, fail-closed invalid combinations, replay self-diff semantics, and retained live STM32 validation artifacts without promoting validation models to release baseline status
+- added multi-model deterministic RPL0 capture validation for the `phase8` baseline plus `burst8` and `seeded_lfsr8` validation models, including feature-aware validation, explicit divergence boundaries, and fail-closed invalid combinations
+- retained live STM32 model-validation evidence with honest replay self-diff semantics, without promoting validation models to release baseline status or claiming independent replay equivalence
 
 ## [1.8.0] - 2026-05-10
 
