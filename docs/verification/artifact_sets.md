@@ -57,6 +57,22 @@ Physical-time observation is documented separately:
 These procedures are evidence and operational guidance. They do not redefine the
 core arithmetic contract.
 
+## RPL0 Model Validation Smoke
+
+The retained RPL0 model-validation smoke bundle is:
+
+- `docs/verification/artifacts/model_validation/2026-05-15-rpl0-multi-model/`
+
+This is retained model-validation evidence, not release-baseline evidence.
+
+It records single-board live STM32 capture validation for `phase8`, `burst8`,
+and `seeded_lfsr8`. phase8 remains the retained baseline capture model; burst8
+and seeded_lfsr8 are validation models for signal-path expansion testing.
+
+Replay evidence is replay self-diff acceptance only. `Independent diff` is
+explicitly `SKIPPED` and requires a second hardware capture path or independently
+produced replay artifact.
+
 ## Historical Verification References
 
 Historical verification material remains preserved behind

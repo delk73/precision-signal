@@ -19,11 +19,16 @@ docs/verification/*
 !docs/verification/*.md
 !docs/verification/cross_context/
 !docs/verification/cross_context/**
+!docs/verification/artifacts/
+!docs/verification/artifacts/model_validation/
+!docs/verification/artifacts/model_validation/2026-05-15-rpl0-multi-model/
+!docs/verification/artifacts/model_validation/2026-05-15-rpl0-multi-model/**
 docs/audits/runlogs/*
 !docs/audits/runlogs/.gitkeep
 !docs/audits/runlogs/ci_local_sample.txt
 # binary artifacts
 *.bin
+!docs/verification/artifacts/model_validation/2026-05-15-rpl0-multi-model/*.bin
 
 # replay canonical artifacts (tracked)
 artifacts/.tmp_*/

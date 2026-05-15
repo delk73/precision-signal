@@ -47,9 +47,9 @@ zero selected features means `phase8`.
 | `burst8` | `signal-model-burst8` | 64-frame cadence: frames `0..47` in each cycle emit `0`; frames `48..63` emit `((frame_idx / 64) + (frame_idx % 64 - 48) + 1) & 0xFF` |
 | `seeded_lfsr8` | `signal-model-seeded-lfsr8` | 8-bit Galois LFSR, read-then-advance, seed `0xA5`, tap mask `0xB8` |
 
-Only `phase8` remains the retained baseline capture model.
-`burst8` and `seeded_lfsr8` are build-time validation models for signal-path
-expansion and are not independently promoted release evidence by this change.
+phase8 remains the retained baseline capture model.
+burst8 and seeded_lfsr8 are validation models used for signal-path expansion testing.
+They are not independently promoted release evidence by this change.
 
 The selected model changes `input_sample` and the deterministic `config_hash`.
 It does not change the RPL0 container layout, schema block, frame count, frame
@@ -113,6 +113,19 @@ Current schema bytes describe the legacy `EventFrame0` payload fields; they do n
 
 No schema-aware replay behavior is introduced by this contract.
 
+## Replay Acceptance Scope
+
+Current live smoke performs replay self-diff acceptance only.
+
+Independent replay equivalence requires:
+- second hardware capture path
+or
+- independently produced replay artifact
+
+The self-diff path proves that a captured artifact is accepted by the current
+parser, replay-hash, and diff machinery. It does not claim independent replay
+validation.
+
 ---
 
 ## Capture Boundary
@@ -138,6 +151,12 @@ Metadata is retained in `artifacts/baseline.json` and `artifacts/baseline.sha256
 
 Identical firmware binary and capture configuration MUST produce byte-identical
 RPL0 v1 artifacts. No nondeterministic fields were permitted in that retained capture path.
+
+## Demo Divergence Boundary
+
+demo-persistent-divergence is only valid for stateful models.
+Frame-index-derived models with no persistent trajectory are unsupported for
+persistent divergence injection.
 
 ---
 
