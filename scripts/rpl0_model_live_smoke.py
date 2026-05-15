@@ -52,6 +52,8 @@ class ModeResult:
     flash_compare_ur: CommandResult
     capture: CommandResult
     verify: CommandResult
+    replay_self_diff: CommandResult
+    independent_diff: CommandResult
     hash_result: CommandResult
 
 
@@ -153,6 +155,34 @@ def verify_args(mode: str, artifact: Path) -> list[str]:
     ]
 
 
+def replay_self_diff_args(artifact: Path) -> list[str]:
+    artifact_arg = markdown_path(artifact)
+    return [
+        "cargo",
+        "run",
+        "-q",
+        "-p",
+        "replay-host",
+        "--bin",
+        "replay-host",
+        "--",
+        "diff",
+        artifact_arg,
+        artifact_arg,
+    ]
+
+
+def run_replay_self_diff(artifact: Path) -> CommandResult:
+    result = run_command(replay_self_diff_args(artifact))
+    if result.rc == 0 and "no divergence" not in result.output:
+        return CommandResult(
+            rc=1,
+            output=result.output
+            + "ERROR: replay self-diff did not report 'no divergence'\n",
+        )
+    return result
+
+
 def hash_args(artifact: Path) -> list[str]:
     return ["python3", "scripts/artifact_tool.py", "hash", markdown_path(artifact)]
 
@@ -188,8 +218,8 @@ def write_summary(path: Path, results: list[ModeResult]) -> None:
         f"- timestamp: `{path.parent.name}`",
         f"- serial: `{SERIAL_PORT}`",
         "",
-        "| Mode | Feature | Artifact | Verify result | Hash result | SHA256 |",
-        "| --- | --- | --- | --- | --- | --- |",
+        "| Mode | Feature | Artifact | Verify | Replay self-diff | Independent diff | Hash | SHA256 |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for result in results:
         digest = hash_digest(result.hash_result)
@@ -199,6 +229,8 @@ def write_summary(path: Path, results: list[ModeResult]) -> None:
             f"`{result.feature}` | "
             f"`{markdown_path(result.artifact)}` | "
             f"{result.verify.status} | "
+            f"{result.replay_self_diff.status} | "
+            f"{result.independent_diff.status} | "
             f"{result.hash_result.status} | "
             f"`{digest}` |"
         )
@@ -208,8 +240,8 @@ def write_summary(path: Path, results: list[ModeResult]) -> None:
             "",
             "## Command Results",
             "",
-            "| Mode | Build | Flash | Flash compare | Capture | Verify | Hash |",
-            "| --- | --- | --- | --- | --- | --- | --- |",
+            "| Mode | Build | Flash | Flash compare | Capture | Verify | Replay self-diff | Independent diff | Hash |",
+            "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
         ]
     )
     for result in results:
@@ -221,6 +253,8 @@ def write_summary(path: Path, results: list[ModeResult]) -> None:
             f"{result.flash_compare_ur.status} | "
             f"{result.capture.status} | "
             f"{result.verify.status} | "
+            f"{result.replay_self_diff.status} | "
+            f"{result.independent_diff.status} | "
             f"{result.hash_result.status} |"
         )
 
@@ -238,6 +272,18 @@ def run_mode(spec: ModeSpec, out_dir: Path) -> ModeResult:
     flash_compare_ur = CommandResult(skipped=True)
     capture = CommandResult(skipped=True)
     verify = CommandResult(skipped=True)
+    replay_self_diff = CommandResult(skipped=True)
+    # Future independent-diff path:
+    # This is intentionally skipped in the single-board smoke path.
+    # It should only be marked PASS when the captured artifact is compared against
+    # an independently produced artifact or replay output, such as:
+    #   - capture from a second STM32 running the same model/configuration
+    #   - replay-output artifact emitted by a separate replay execution path
+    #   - synthesized expected artifact generated without copying the captured frames
+    #
+    # Do not treat replay-host diff <artifact> <artifact> as independent replay
+    # validation. Self-diff proves parser/replay-hash/diff acceptance only.
+    independent_diff = CommandResult(skipped=True)
     hash_result = CommandResult(skipped=True)
 
     if build.rc == 0:
@@ -249,6 +295,8 @@ def run_mode(spec: ModeSpec, out_dir: Path) -> ModeResult:
     if capture.rc == 0:
         verify = run_command(verify_args(spec.mode, artifact), env_extra=python_env())
     if verify.rc == 0:
+        replay_self_diff = run_replay_self_diff(artifact)
+    if replay_self_diff.rc == 0:
         hash_result = run_command(hash_args(artifact), env_extra=python_env())
 
     return ModeResult(
@@ -260,6 +308,8 @@ def run_mode(spec: ModeSpec, out_dir: Path) -> ModeResult:
         flash_compare_ur=flash_compare_ur,
         capture=capture,
         verify=verify,
+        replay_self_diff=replay_self_diff,
+        independent_diff=independent_diff,
         hash_result=hash_result,
     )
 
@@ -285,6 +335,7 @@ def main() -> int:
                     result.flash_compare_ur,
                     result.capture,
                     result.verify,
+                    result.replay_self_diff,
                     result.hash_result,
                 )
             ):
