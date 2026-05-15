@@ -22,9 +22,6 @@ cd precision-signal
 make gate
 ```
 
-See [docs/START_HERE.md](docs/START_HERE.md) before following deeper release,
-replay, or evidence documentation.
-
 ## License
 
 MIT. See `LICENSE`.
