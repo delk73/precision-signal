@@ -6,6 +6,10 @@ authors.workspace = true
 description = "NUCLEO-F446RE replay artifact capture MVP (TIM2 + USART2, PAC only)"
 
 [features]
+# RPL0 capture signal model selection. With no feature selected, phase8 is used.
+signal-model-phase8 = []
+signal-model-burst8 = []
+signal-model-seeded-lfsr8 = []
 # Diagnostic-only ISR probe symbol for low-level debugger sessions.
 # Not part of the canonical release/capture workflow.
 debug-irq-count = []

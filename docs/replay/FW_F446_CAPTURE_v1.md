@@ -29,13 +29,32 @@ Historical release-record routing lives in
 
 ## Signal Contract
 
-The canonical replay signal remains `phase8`:
+The default canonical replay signal remains `phase8`:
 
 ```
 sample = frame_idx & 0xFF
 ```
 
 Mechanism: 32-bit phase accumulator with `STEP = 0x0100_0000`, read-then-advance ordering, output `(phase >> 24) as i32`.
+
+Two additional deterministic build-time signal models are available for RPL0
+model-selection validation. Exactly zero or one Cargo model feature is selected;
+zero selected features means `phase8`.
+
+| Model | Cargo feature | Deterministic rule |
+| --- | --- | --- |
+| `phase8` | `signal-model-phase8` or no model feature | `sample = frame_idx & 0xFF` |
+| `burst8` | `signal-model-burst8` | 64-frame cadence: frames `0..47` in each cycle emit `0`; frames `48..63` emit `((frame_idx / 64) + (frame_idx % 64 - 48) + 1) & 0xFF` |
+| `seeded_lfsr8` | `signal-model-seeded-lfsr8` | 8-bit Galois LFSR, read-then-advance, seed `0xA5`, tap mask `0xB8` |
+
+phase8 remains the retained baseline capture model.
+burst8 and seeded_lfsr8 are validation models used for signal-path expansion testing.
+They are not independently promoted release evidence by this change.
+
+The selected model changes `input_sample` and the deterministic `config_hash`.
+It does not change the RPL0 container layout, schema block, frame count, frame
+size, IRQ id, timer delta, or capture boundary. The default `phase8` metadata
+and sample stream remain the retained baseline.
 
 ---
 
@@ -90,9 +109,22 @@ Current schema bytes describe the legacy `EventFrame0` payload fields; they do n
   - `flags = 0`
   - `rsv = 0`
   - `timer_delta = 1000`
-  - `input_sample = (phase >> 24) as i32`
+  - `input_sample`: selected deterministic signal-model sample
 
 No schema-aware replay behavior is introduced by this contract.
+
+## Replay Acceptance Scope
+
+Current live smoke performs replay self-diff acceptance only.
+
+Independent replay equivalence requires:
+- second hardware capture path
+or
+- independently produced replay artifact
+
+The self-diff path proves that a captured artifact is accepted by the current
+parser, replay-hash, and diff machinery. It does not claim independent replay
+validation.
 
 ---
 
@@ -119,6 +151,12 @@ Metadata is retained in `artifacts/baseline.json` and `artifacts/baseline.sha256
 
 Identical firmware binary and capture configuration MUST produce byte-identical
 RPL0 v1 artifacts. No nondeterministic fields were permitted in that retained capture path.
+
+## Demo Divergence Boundary
+
+demo-persistent-divergence is only valid for stateful models.
+Frame-index-derived models with no persistent trajectory are unsupported for
+persistent divergence injection.
 
 ---
 

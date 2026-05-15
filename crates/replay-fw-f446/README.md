@@ -18,8 +18,10 @@ CSV output), see `crates/replay-fw-f446-timing`.
 
 - Capture source: TIM2 update interrupt at nominal 1 kHz (PSC=15, ARR=999).
 - Sample count: 10,000.
-- Signal model: `phase8` — `(phase >> 24) as i32`, where phase advances by
-  `STEP = 0x0100_0000` per interrupt.
+- Signal model: `phase8` by default or by explicit `signal-model-phase8` —
+  `(phase >> 24) as i32`, where phase advances by `STEP = 0x0100_0000` per
+  interrupt. Optional non-default build-time signal model features are
+  `signal-model-burst8` and `signal-model-seeded-lfsr8`.
 - Capture phase: ISR records samples into a static `[i32; 10_000]` buffer via
   Cortex-M critical sections.
 - Dump phase: TIM2 IRQ disabled, global interrupts disabled, firmware emits
@@ -36,6 +38,14 @@ Or invoke the capture step directly:
 
 ```bash
 PYTHONPATH="$PWD" python3 scripts/artifact_tool.py capture --out artifacts/run.rpl --signal-model phase8
+```
+
+For non-default model smoke captures, build firmware with exactly one model
+feature and pass the same model to the host validator:
+
+```bash
+cargo build -p replay-fw-f446 --target thumbv7em-none-eabihf --features signal-model-burst8 --locked
+PYTHONPATH="$PWD" python3 scripts/artifact_tool.py capture --out artifacts/burst8.rpl --signal-model burst8
 ```
 
 ## Demo perturbation modes
@@ -55,4 +65,3 @@ cargo build -p replay-fw-f446 --features debug-irq-count
 ```
 
 In GDB, inspect with `p IRQ_COUNT_PROBE`.
-

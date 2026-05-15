@@ -7,6 +7,10 @@ import re
 import sys
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
+
 import compare_artifact
 import inspect_artifact
 import lock_baseline
@@ -14,6 +18,12 @@ import read_artifact
 
 SHA256_HEX_RE = re.compile(r"^[0-9a-f]{64}$")
 RESET_CONTEXTS = ("manual", "stlink", "auto", "unspecified")
+SIGNAL_MODELS = ("phase8", "burst8", "seeded_lfsr8")
+BURST8_PERIOD = 64
+BURST8_IDLE = 48
+SEEDED_LFSR8_SEED = 0xA5
+SEEDED_LFSR8_TAP_MASK = 0xB8
+SEEDED_LFSR8_SEQUENCE: tuple[int, ...] | None = None
 MANUAL_RESET_PROMPT = "Listener active; press reset now"
 RESET_CONTEXT_PROMPTS = {
     "manual": MANUAL_RESET_PROMPT,
@@ -21,6 +31,51 @@ RESET_CONTEXT_PROMPTS = {
     "auto": "Listener active; waiting for target output",
     "unspecified": "Listener active; waiting for target output or reset",
 }
+
+
+def _advance_lfsr8(state: int) -> int:
+    shifted = state >> 1
+    if (state & 1) == 0:
+        return shifted
+    return shifted ^ SEEDED_LFSR8_TAP_MASK
+
+
+def _seeded_lfsr8_sequence() -> tuple[int, ...]:
+    global SEEDED_LFSR8_SEQUENCE
+    if SEEDED_LFSR8_SEQUENCE is None:
+        state = SEEDED_LFSR8_SEED
+        samples = []
+        for _ in range(read_artifact.EXPECTED_FRAME_COUNT):
+            samples.append(state)
+            state = _advance_lfsr8(state)
+        SEEDED_LFSR8_SEQUENCE = tuple(samples)
+    return SEEDED_LFSR8_SEQUENCE
+
+
+def expected_sample_for_model(frame_idx: int, model: str) -> int:
+    if model == "phase8":
+        return frame_idx & 0xFF
+    if model == "burst8":
+        cycle_pos = frame_idx % BURST8_PERIOD
+        if cycle_pos < BURST8_IDLE:
+            return 0
+        burst_pos = cycle_pos - BURST8_IDLE
+        burst_epoch = frame_idx // BURST8_PERIOD
+        return (burst_epoch + burst_pos + 1) & 0xFF
+    if model == "seeded_lfsr8":
+        sequence = _seeded_lfsr8_sequence()
+        if frame_idx < len(sequence):
+            return sequence[frame_idx]
+        state = sequence[-1]
+        for _ in range(len(sequence) - 1, frame_idx):
+            state = _advance_lfsr8(state)
+        return state
+    raise ValueError(f"unknown signal model: {model}")
+
+
+def install_read_artifact_model_adapter() -> None:
+    read_artifact.SIGNAL_MODELS = SIGNAL_MODELS
+    read_artifact.expected_sample_for_model = expected_sample_for_model
 
 
 class CapturePromptFilter(io.TextIOBase):
@@ -59,6 +114,7 @@ def run_capture_with_argv(argv: list[str], reset_context: str) -> int:
 
 
 def cmd_capture(args: argparse.Namespace) -> int:
+    install_read_artifact_model_adapter()
     forwarded = ["read_artifact.py"]
     if args.out is not None:
         forwarded.extend(["--out", str(args.out)])
@@ -110,16 +166,15 @@ def cmd_verify(args: argparse.Namespace) -> int:
             )
             return 1
 
-        expected_sample = read_artifact.expected_sample_for_model(expected_idx, signal_model)
-        if expected_sample is not None:
-            got_sample = frame["input_sample"] & 0xFFFFFFFF
-            if got_sample != expected_sample:
-                print(
-                    "FAIL: sample mismatch at frame "
-                    f"{expected_idx} expected 0x{expected_sample:08X} "
-                    f"got 0x{got_sample:08X}"
-                )
-                return 1
+        expected_sample = expected_sample_for_model(expected_idx, signal_model)
+        got_sample = frame["input_sample"] & 0xFFFFFFFF
+        if got_sample != expected_sample:
+            print(
+                "FAIL: sample mismatch at frame "
+                f"{expected_idx} expected 0x{expected_sample:08X} "
+                f"got 0x{got_sample:08X}"
+            )
+            return 1
 
     print("PASS: artifact structure is valid")
     print(f"magic: {artifact['magic'].decode('ascii', errors='replace')}")
@@ -217,9 +272,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_capture.add_argument("--no-verify", action="store_true")
     p_capture.add_argument(
         "--signal-model",
-        choices=read_artifact.SIGNAL_MODELS,
-        default="none",
-        help="Optional input_sample validator: none (default), ramp, phase8.",
+        choices=SIGNAL_MODELS,
+        default="phase8",
+        help="Expected input_sample signal model (default: phase8).",
     )
     p_capture.add_argument("--max-sync-bytes", type=int)
     p_capture.add_argument(
@@ -237,9 +292,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_verify.add_argument("artifact", type=Path)
     p_verify.add_argument(
         "--signal-model",
-        choices=read_artifact.SIGNAL_MODELS,
-        default="none",
-        help="Optional input_sample validator: none (default), ramp, phase8.",
+        choices=SIGNAL_MODELS,
+        default="phase8",
+        help="Expected input_sample signal model (default: phase8).",
     )
     p_verify.set_defaults(func=cmd_verify)
 
@@ -268,8 +323,9 @@ def build_parser() -> argparse.ArgumentParser:
     p_lock.add_argument("--fw-features", type=str)
     p_lock.add_argument(
         "--signal-model",
+        choices=SIGNAL_MODELS,
         required=True,
-        help="Signal model for the artifact being promoted (e.g. phase8, ramp). Required.",
+        help="Signal model for the artifact being promoted. Required.",
     )
     p_lock.add_argument(
         "--manifest-name",
