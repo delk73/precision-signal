@@ -8,6 +8,9 @@ mod artifact_metadata;
 mod fw;
 
 #[cfg(all(target_arch = "arm", target_os = "none"))]
+mod signal_model;
+
+#[cfg(all(target_arch = "arm", target_os = "none"))]
 use cortex_m_rt::entry;
 #[cfg(all(target_arch = "arm", target_os = "none"))]
 use stm32f4::stm32f446::interrupt;

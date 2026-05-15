@@ -17,12 +17,15 @@ use replay_core::artifact::{
 };
 use stm32f4::stm32f446::{self as pac};
 
+use crate::artifact_metadata::{BUILD_HASH, CONFIG_HASH, RPL0_SCHEMA, SCHEMA_HASH};
+use crate::signal_model::{
+    advance_state_for_model, sample_for_model, SELECTED_SIGNAL_MODEL, SIGNAL_INITIAL_STATE,
+};
+
 const FRAME_COUNT: usize = 10_000;
 const IRQ_ID_TIM2: u8 = 0x02;
 const TIMER_DELTA_NOMINAL: u32 = 1_000;
-const STEP: u32 = 0x0100_0000;
 const CAPTURE_BOUNDARY_ISR: u16 = 0;
-use crate::artifact_metadata::{BUILD_HASH, CONFIG_HASH, RPL0_SCHEMA, SCHEMA_HASH};
 
 const BOARD_ID: [u8; 16] = *b"NUCLEO-F446RE\0\0\0";
 const CLOCK_PROFILE: [u8; 16] = *b"reset-16mhz-apb1";
@@ -36,7 +39,7 @@ compile_error!("demo-divergence and demo-persistent-divergence are mutually excl
 
 static CAPTURE_DONE: AtomicBool = AtomicBool::new(false);
 static WRITE_IDX: AtomicU32 = AtomicU32::new(0);
-static SIGNAL_PHASE: AtomicU32 = AtomicU32::new(0);
+static SIGNAL_STATE: AtomicU32 = AtomicU32::new(SIGNAL_INITIAL_STATE);
 #[cfg(feature = "debug-irq-count")]
 #[used]
 #[no_mangle]
@@ -119,31 +122,30 @@ pub fn tim2_isr() {
         return;
     }
 
+    let state = SIGNAL_STATE.load(Ordering::Relaxed);
     #[cfg(feature = "demo-persistent-divergence")]
-    let phase = {
-        let mut p = SIGNAL_PHASE.load(Ordering::Relaxed);
+    let state = {
+        let mut s = state;
         if idx == DEMO_PERSISTENT_DIVERGENCE_FRAME {
-            // One-time state perturbation: shift phase trajectory by one output step.
-            p = p.wrapping_add(STEP);
+            // One-time state perturbation: shift the selected model trajectory.
+            s = advance_state_for_model(SELECTED_SIGNAL_MODEL, s);
         }
-        p
+        s
     };
-    #[cfg(not(feature = "demo-persistent-divergence"))]
-    let phase = SIGNAL_PHASE.load(Ordering::Relaxed);
 
     #[cfg(not(feature = "demo-divergence"))]
-    let sample = (phase >> 24) as i32;
+    let sample = sample_for_model(SELECTED_SIGNAL_MODEL, idx as u32, state);
     #[cfg(feature = "demo-divergence")]
     let sample = {
-        let mut s = (phase >> 24) as i32;
+        let mut s = sample_for_model(SELECTED_SIGNAL_MODEL, idx as u32, state);
         if idx == DEMO_DIVERGENCE_FRAME {
             s = s.wrapping_add(1);
         }
         s
     };
 
-    let next = phase.wrapping_add(STEP);
-    SIGNAL_PHASE.store(next, Ordering::Relaxed);
+    let next_state = advance_state_for_model(SELECTED_SIGNAL_MODEL, state);
+    SIGNAL_STATE.store(next_state, Ordering::Relaxed);
     cortex_m::interrupt::free(|cs| {
         SAMPLES.borrow(cs).borrow_mut()[idx] = sample;
     });

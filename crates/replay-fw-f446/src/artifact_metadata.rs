@@ -2,9 +2,38 @@ pub const RPL0_SCHEMA: &[u8] =
     b"event_frame0:legacy;fields=frame_idx:u32,irq:u8,flags:u8,rsv:u16,delta:u32,input_sample:i32";
 #[cfg(test)]
 pub const BUILD_HASH_INPUT: &[u8] = b"replay-fw-f446:thumbv7em-none-eabihf:rpl0_capture_v1";
-#[cfg(test)]
+#[cfg(all(
+    test,
+    feature = "signal-model-phase8",
+    not(feature = "signal-model-burst8"),
+    not(feature = "signal-model-seeded-lfsr8")
+))]
 pub const CONFIG_HASH_INPUT: &[u8] =
     b"signal=phase8;frames=10000;irq=0x02;timer_delta=1000;frame_size=16;capture_boundary=isr";
+#[cfg(all(
+    test,
+    not(feature = "signal-model-phase8"),
+    not(feature = "signal-model-burst8"),
+    not(feature = "signal-model-seeded-lfsr8")
+))]
+pub const CONFIG_HASH_INPUT: &[u8] =
+    b"signal=phase8;frames=10000;irq=0x02;timer_delta=1000;frame_size=16;capture_boundary=isr";
+#[cfg(all(
+    test,
+    not(feature = "signal-model-phase8"),
+    feature = "signal-model-burst8",
+    not(feature = "signal-model-seeded-lfsr8")
+))]
+pub const CONFIG_HASH_INPUT: &[u8] =
+    b"signal=burst8;frames=10000;irq=0x02;timer_delta=1000;frame_size=16;capture_boundary=isr;burst_period=64;burst_idle=48";
+#[cfg(all(
+    test,
+    not(feature = "signal-model-phase8"),
+    not(feature = "signal-model-burst8"),
+    feature = "signal-model-seeded-lfsr8"
+))]
+pub const CONFIG_HASH_INPUT: &[u8] =
+    b"signal=seeded_lfsr8;frames=10000;irq=0x02;timer_delta=1000;frame_size=16;capture_boundary=isr;seed=0xA5;tap=0xB8";
 
 // These digest constants are intentionally precomputed;
 // tests/host_stub.rs is the authoritative drift guard for them.
@@ -16,7 +45,39 @@ pub const BUILD_HASH: [u8; 32] = [
     0x32, 0xf5, 0xfd, 0x15, 0x0b, 0x21, 0x1b, 0xf4, 0x56, 0xd3, 0x1a, 0xf0, 0xa9, 0x27, 0x92, 0xa4,
     0x4f, 0xb3, 0x5a, 0x73, 0x6c, 0xc9, 0xbc, 0xfb, 0x92, 0x8a, 0x16, 0x2e, 0x01, 0x96, 0xed, 0xf1,
 ];
+#[cfg(all(
+    feature = "signal-model-phase8",
+    not(feature = "signal-model-burst8"),
+    not(feature = "signal-model-seeded-lfsr8")
+))]
 pub const CONFIG_HASH: [u8; 32] = [
     0x48, 0x33, 0x78, 0xb3, 0x44, 0x53, 0x3c, 0x78, 0x87, 0x70, 0xaa, 0xea, 0xbf, 0xc3, 0x37, 0x77,
     0xf9, 0x8c, 0x87, 0xfe, 0xa9, 0xfc, 0x7c, 0xa4, 0x4a, 0xca, 0x2d, 0xb8, 0x25, 0xb7, 0x47, 0x10,
+];
+#[cfg(all(
+    not(feature = "signal-model-phase8"),
+    not(feature = "signal-model-burst8"),
+    not(feature = "signal-model-seeded-lfsr8")
+))]
+pub const CONFIG_HASH: [u8; 32] = [
+    0x48, 0x33, 0x78, 0xb3, 0x44, 0x53, 0x3c, 0x78, 0x87, 0x70, 0xaa, 0xea, 0xbf, 0xc3, 0x37, 0x77,
+    0xf9, 0x8c, 0x87, 0xfe, 0xa9, 0xfc, 0x7c, 0xa4, 0x4a, 0xca, 0x2d, 0xb8, 0x25, 0xb7, 0x47, 0x10,
+];
+#[cfg(all(
+    not(feature = "signal-model-phase8"),
+    feature = "signal-model-burst8",
+    not(feature = "signal-model-seeded-lfsr8")
+))]
+pub const CONFIG_HASH: [u8; 32] = [
+    0xe5, 0x17, 0xf9, 0x09, 0xac, 0x28, 0x8a, 0x34, 0x30, 0x58, 0xfd, 0x18, 0xa5, 0x85, 0x96, 0xee,
+    0x88, 0xcb, 0xaf, 0x9d, 0x34, 0xe8, 0x44, 0x54, 0x9d, 0x74, 0x2f, 0xa3, 0x56, 0xb3, 0xe8, 0x15,
+];
+#[cfg(all(
+    not(feature = "signal-model-phase8"),
+    not(feature = "signal-model-burst8"),
+    feature = "signal-model-seeded-lfsr8"
+))]
+pub const CONFIG_HASH: [u8; 32] = [
+    0xda, 0x72, 0x64, 0xfd, 0xee, 0x3a, 0xaa, 0x90, 0x7a, 0xba, 0xc1, 0xdb, 0x1e, 0xb2, 0xc8, 0x92,
+    0x80, 0x74, 0xfa, 0x41, 0x39, 0x36, 0xe2, 0x6a, 0xbc, 0xb5, 0x10, 0x12, 0x80, 0x33, 0xd2, 0x66,
 ];
