@@ -61,7 +61,7 @@ core arithmetic contract.
 
 The retained RPL0 model-validation smoke bundle is:
 
-- `docs/verification/artifacts/model_validation/2026-05-15-rpl0-multi-model/`
+- [docs/verification/artifacts/model_validation/2026-05-15-rpl0-multi-model](artifacts/model_validation/2026-05-15-rpl0-multi-model/summary.md)
 
 This is retained model-validation evidence, not release-baseline evidence.
 
