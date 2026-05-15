@@ -60,3 +60,4 @@ __pycache__/
 *.pyc
 .codex
 meta/*
+artifacts/model_validation/

@@ -55,13 +55,16 @@ DEMO_CAPTURED_B_TMP := $(DEMO_CAPTURED_B_DIR)/run_01.bin
 # Firmware feature flags (space-separated, passed to cargo --features).
 # Example:
 #   make FW_FEATURES=debug-irq-count flash-ur
+#   make flash-ur REPLAY_FW_FEATURES=signal-model-burst8
+REPLAY_FW_FEATURES ?=
 FW_FEATURES ?=
 
 # Internal helper: expands to "--features a,b,c" or empty.
-FW_FEATURES_ARG := $(if $(strip $(FW_FEATURES)),--features $(subst $(space),$(comma),$(strip $(FW_FEATURES))),)
-space :=
-space +=
+empty :=
+space := $(empty) $(empty)
 comma := ,
+FW_FEATURES_EFFECTIVE = $(if $(strip $(FW_FEATURES)),$(strip $(FW_FEATURES)),$(strip $(REPLAY_FW_FEATURES)))
+FW_FEATURES_ARG = $(if $(strip $(FW_FEATURES_EFFECTIVE)),--features $(subst $(space),$(comma),$(strip $(FW_FEATURES_EFFECTIVE))),)
 
 .PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check bench-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-summary firmware-release-check fw-release-archive-current fw-release-archive release release-proof release-summary release-1.7.0 release-1.8.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
 
