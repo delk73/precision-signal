@@ -17,10 +17,10 @@ at workspace version 1.2.2 (HEAD `e788031`), incorporating all remediation
 from the prior audit at HEAD `498943d`.
 
 Changes since prior audit:
-- W-7 remediated: orphaned docs indexed in `docs/README.md` and `docs/replay/README.md`
+- W-7 remediated: orphaned docs indexed in `docs/DOCS_INDEX.md` and `docs/replay/REPLAY_INDEX.md`
 - W-8 remediated: versioning terminology notes added to `docs/verification/CROSS_CONTEXT_INVARIANCE.md` and `docs/verification/cross_context/comparison_summary.md`
 - Documentation index now includes CLI, Roadmap, and previously missing verification evidence docs
-- `docs/replay/ISR_ADVISORY.md` now indexed in `docs/replay/README.md`
+- `docs/replay/ISR_ADVISORY.md` now indexed in `docs/replay/REPLAY_INDEX.md`
 
 Scope:
 - Cargo workspace (10 crates, 4 default members)
@@ -49,11 +49,11 @@ W-8 (cross-context terminology): **improved** → resolved.
 | Verification discipline | 88 | Multi-tier gate chain; `make release-bundle-check` passes; cross-context invariance retained; Kani fresh for 1.2.2 | command-output: `make gate => PASS`; command-output: `make release-bundle-check VERSION=1.2.2 => PASS`; file: `docs/verification/releases/1.2.2/kani_evidence.md` |
 | Codebase maintainability | 78 | Workspace well-factored (core crates zero-dep); some crates are stubs; 10 members with 4 default | file: `Cargo.toml` workspace members |
 | Architecture clarity | 80 | Clear release/experimental boundary; workspace.md routes well; normative/descriptive documents clearly distinguished | file: `docs/RELEASE_SURFACE.md`; file: `docs/architecture/workspace.md` |
-| Documentation depth | 82 | Normative specs thorough; replay docs cover operator workflows; documentation index now complete with CLI, roadmap, and all verification entries | file: `docs/README.md` (index routing); prior finding W-7 resolved |
-| Documentation organization | 82 | Top-level routing clear; all public docs now reachable from index; ISR_ADVISORY indexed in replay subsystem | file: `docs/README.md`; file: `docs/replay/README.md` |
+| Documentation depth | 82 | Normative specs thorough; replay docs cover operator workflows; documentation index now complete with CLI, roadmap, and all verification entries | file: `docs/DOCS_INDEX.md` (index routing); prior finding W-7 resolved |
+| Documentation organization | 82 | Top-level routing clear; all public docs now reachable from index; ISR_ADVISORY indexed in replay subsystem | file: `docs/DOCS_INDEX.md`; file: `docs/replay/REPLAY_INDEX.md` |
 | Repository presentation | 82 | README terse and correct; no inflated claims; release surface distinct from experimental | file: `README.md` |
-| Developer onboarding | 86 | "First 5 Minutes" block; carry-forward notes eliminate version-label confusion; all versioning terminology blocks present; complete doc index improves discoverability | file: `README.md` §First 5 Minutes; file: `docs/README.md` |
-| Conceptual coherence | 85 | Consistent "deterministic execution analysis infrastructure"; normative/advisory distinction maintained | file: `VERIFICATION_GUIDE.md` §1.1; file: `docs/README.md` |
+| Developer onboarding | 86 | "First 5 Minutes" block; carry-forward notes eliminate version-label confusion; all versioning terminology blocks present; complete doc index improves discoverability | file: `README.md` §First 5 Minutes; file: `docs/DOCS_INDEX.md` |
+| Conceptual coherence | 85 | Consistent "deterministic execution analysis infrastructure"; normative/advisory distinction maintained | file: `VERIFICATION_GUIDE.md` §1.1; file: `docs/DOCS_INDEX.md` |
 | Research / innovation value | 76 | Phase-domain fixed-point oscillator with formal proofs; hardware-backed determinism; cross-context invariance check is novel; narrow domain | file: `docs/MATH_CONTRACT.md`; file: `docs/verification/CROSS_CONTEXT_INVARIANCE.md` |
 | OSS trustworthiness signals | 82 | MIT license, pinned toolchain, hash-locked releases, retained evidence bundles, doc-link CI, all manifests repo-relative | file: `LICENSE`; file: `docs/verification/releases/1.2.2/replay_manifest_v1.txt` |
 
@@ -124,7 +124,7 @@ W-8 (cross-context terminology): **improved** → resolved.
 | 7 | Spec docs applicable to release 1.2.2 | docs/spec/*.md | exact | — | direct | All spec docs carry "Applies to: release 1.2.2 (content unchanged)" and versioning terminology blocks |
 | 8 | Cross-context invariance PASS | docs/verification/CROSS_CONTEXT_INVARIANCE.md | exact | — | direct | Retained evidence under `docs/verification/cross_context/`; comparison_summary.md records byte-identical results |
 | 9 | Dual-build reproducibility | docs/verification/build_reproducibility.md | exact | — | direct | command-output: `bash verify_release_repro.sh => PASS` (observed-this-session) |
-| 10 | Documentation link integrity | docs/README.md, docs/replay/README.md | exact | — | direct | command-output: `python3 scripts/check_doc_links.py => PASS` (observed-this-session) |
+| 10 | Documentation link integrity | docs/DOCS_INDEX.md, docs/replay/REPLAY_INDEX.md | exact | — | direct | command-output: `python3 scripts/check_doc_links.py => PASS` (observed-this-session) |
 
 ---
 
@@ -133,13 +133,13 @@ W-8 (cross-context terminology): **improved** → resolved.
 | Document | Purpose | Category | Public | Overlap | Authority |
 |---|---|---|---|---|---|
 | README.md | Entry routing | entry | public | none | canonical |
-| docs/README.md | Documentation index | index | public | none | canonical |
+| docs/DOCS_INDEX.md | Documentation index | index | public | none | canonical |
 | docs/RELEASE_SURFACE.md | Release classification and routing | release-classification | public | none | canonical |
 | VERIFICATION_GUIDE.md | Release contract and conformance governance | normative | public | none | canonical |
 | docs/MATH_CONTRACT.md | Arithmetic and signal-path contract | normative | public | none | canonical |
 | docs/spec/rpl0_artifact_contract.md | Binary artifact format spec | normative | public | none | canonical |
 | docs/replay/tooling.md | Replay-tooling boundary | release-classification | public | minor with RELEASE_SURFACE.md | supporting |
-| docs/replay/README.md | Replay subsystem index | index | public | none | supporting |
+| docs/replay/REPLAY_INDEX.md | Replay subsystem index | index | public | none | supporting |
 | docs/replay/FW_F446_CAPTURE_v1.md | Capture contract | normative | public | none | canonical |
 | docs/replay/DIVERGENCE_SEMANTICS.md | Divergence explanation contract | normative | public | none | canonical |
 | docs/cli/precision.md | CLI reference | reference | public | none | supporting |
@@ -194,7 +194,7 @@ statement) violations found in public-facing documents.
 | W-4: Performance docs classification | improved | **unchanged** | Reclassified as "Historical reference" with terminology blocks |
 | W-5: Supplementary `--mode full` evidence | improved | **unchanged** | `make gate-full => VERIFICATION PASSED`; retained: `docs/verification/releases/1.2.2/gate_full_evidence.md` |
 | W-6: Kani verification freshness | improved | **unchanged** | `docs/verification/releases/1.2.2/kani_evidence.md` retained; Tier-1 23 harnesses PASS |
-| W-7: Orphaned documentation files | improved | **resolved** | All previously orphaned files now indexed in `docs/README.md` and `docs/replay/README.md`; `python3 scripts/check_doc_links.py => PASS` |
+| W-7: Orphaned documentation files | improved | **resolved** | All previously orphaned files now indexed in `docs/DOCS_INDEX.md` and `docs/replay/REPLAY_INDEX.md`; `python3 scripts/check_doc_links.py => PASS` |
 | W-8: Cross-context docs lack terminology note | improved | **resolved** | Versioning terminology notes added to both `docs/verification/CROSS_CONTEXT_INVARIANCE.md` and `docs/verification/cross_context/comparison_summary.md` |
 
 ---
@@ -216,7 +216,7 @@ statement) violations found in public-facing documents.
    `make release-bundle-check`, `make fixture-drift-check` all pass.
    Evidence: all four observed-this-session.
 
-4. **Documentation routing is clear and complete.** README → docs/README.md →
+4. **Documentation routing is clear and complete.** README → docs/DOCS_INDEX.md →
    RELEASE_SURFACE.md and VERIFICATION_GUIDE.md. Normative vs descriptive
    distinction maintained throughout. All public docs now reachable from the index.
 

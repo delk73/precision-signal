@@ -52,8 +52,8 @@ Scope:
 | Verification discipline | 90 | Multi-tier gate chain; release-bundle-check passes; Kani evidence retained; explicit verification-scope statement with limits and non-goals; packaged proof route reproduces | command-output: `make gate => PASS`; command-output: `make release-bundle-check VERSION=1.4.0 => PASS`; file: `docs/verification/releases/1.4.0/kani_evidence.txt` |
 | Codebase maintainability | 78 | Workspace well-factored (core crates zero-dep); some crates are stubs; 10 members with 4 default; unchanged from prior baseline | file: `Cargo.toml` workspace members |
 | Architecture clarity | 82 | Clear release/experimental boundary; firmware reclassified to Experimental aligns classification with evidence; workspace.md routes well | file: `docs/RELEASE_SURFACE.md`; file: `docs/architecture/workspace.md` |
-| Documentation depth | 84 | Normative specs thorough; verification-scope publication adds explicit limits; demo evidence packaging documented end-to-end; complete doc index | file: `docs/README.md`; file: `docs/demos/demo_evidence_packaging.md`; file: `docs/verification/releases/1.4.0/VERIFICATION_SCOPE.md` |
-| Documentation organization | 83 | Top-level routing clear; all public docs reachable from index; link integrity passes; demo evidence packaging cleanly integrated | file: `docs/README.md`; command-output: `make doc-link-check => PASS` |
+| Documentation depth | 84 | Normative specs thorough; verification-scope publication adds explicit limits; demo evidence packaging documented end-to-end; complete doc index | file: `docs/DOCS_INDEX.md`; file: `docs/demos/demo_evidence_packaging.md`; file: `docs/verification/releases/1.4.0/VERIFICATION_SCOPE.md` |
+| Documentation organization | 83 | Top-level routing clear; all public docs reachable from index; link integrity passes; demo evidence packaging cleanly integrated | file: `docs/DOCS_INDEX.md`; command-output: `make doc-link-check => PASS` |
 | Repository presentation | 84 | README terse, correct, and evidence-backed; manual release checklist present; no inflated claims; packaged proof route referenced | file: `README.md` |
 | Developer onboarding | 87 | "First 5 Minutes" block works; `make gate => VERIFICATION PASSED` on first try; verification-scope document provides explicit limits for new readers | file: `README.md` §First 5 Minutes; file: `docs/verification/releases/1.4.0/VERIFICATION_SCOPE.md` |
 | Conceptual coherence | 86 | Consistent "deterministic execution analysis infrastructure"; normative/advisory maintained; new correctness claims explicitly bounded | file: `VERIFICATION_GUIDE.md` §1.1; file: `docs/verification/releases/1.4.0/VERIFICATION_SCOPE.md` |
@@ -141,7 +141,7 @@ Scope:
 | 8 | MATH_CONTRACT locked at v1.2.1, carried forward to 1.4.0 | docs/MATH_CONTRACT.md | exact | — | direct | Carry-forward note, versioning terminology block, "Applies to: release 1.4.0 (content unchanged)" |
 | 9 | All spec docs applicable to 1.4.0 | docs/spec/*.md | exact | — | direct | All 6 spec docs carry "Applies to: release 1.4.0 (content unchanged)" |
 | 10 | Dual-build reproducibility | docs/verification/build_reproducibility.md | exact | — | direct | command-output: `bash verify_release_repro.sh => PASS` — SHA256 `c3a051aa…` (observed-this-session) |
-| 11 | Documentation link integrity | docs/README.md | exact | — | direct | command-output: `make doc-link-check => PASS` (observed-this-session) |
+| 11 | Documentation link integrity | docs/DOCS_INDEX.md | exact | — | direct | command-output: `make doc-link-check => PASS` (observed-this-session) |
 | 12 | "Verification-depth release only; no new capability surface" | CHANGELOG.md 1.4.0 Notes | exact | — | direct | No new CLI commands, no artifact format change; only correctness claims and proof evidence added |
 | 13 | workspace version = 1.4.0 | Cargo.toml, VERIFICATION_GUIDE.md | exact | — | direct | `workspace.package.version = "1.4.0"`; VERIFICATION_GUIDE.md Version header: "1.4.0" |
 | 14 | "The public v1 release boundary is the deterministic replay infrastructure" | Cargo.toml line 2 | partial | credibility | direct | NAM-004: bare "v1" is ambiguous (format version vs release version); low severity, pre-existing from prior baselines |
@@ -153,7 +153,7 @@ Scope:
 | Document | Purpose | Category | Public | Overlap | Overlap Severity | Authority |
 |---|---|---|---|---|---|---|
 | README.md | Entry routing | entry | public | none | — | canonical |
-| docs/README.md | Documentation index | index | public | none | — | canonical |
+| docs/DOCS_INDEX.md | Documentation index | index | public | none | — | canonical |
 | docs/RELEASE_SURFACE.md | Release classification and routing | release-classification | public | none | — | canonical |
 | VERIFICATION_GUIDE.md | Release contract and conformance governance | normative | public | none | — | canonical |
 | docs/MATH_CONTRACT.md | Arithmetic and signal-path contract | normative | public | none | — | canonical |
@@ -164,7 +164,7 @@ Scope:
 | docs/spec/pulse_implementation_spec.md | Pulse/square spec | normative | public | none | — | supporting |
 | docs/spec/header_layout_addendum.md | Header layout spec | normative | public | none | — | supporting |
 | docs/replay/tooling.md | Replay-tooling boundary | release-classification | public | minor with RELEASE_SURFACE.md | minor | supporting |
-| docs/replay/README.md | Replay subsystem index | index | public | none | — | supporting |
+| docs/replay/REPLAY_INDEX.md | Replay subsystem index | index | public | none | — | supporting |
 | docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md | STM32 self-stimulus capture contract | normative | public | none | — | canonical |
 | docs/replay/DIVERGENCE_SEMANTICS.md | Divergence explanation contract | normative | public | none | — | canonical |
 | docs/demos/demo_evidence_packaging.md | Canonical packaged proof route | workflow | public | none | — | canonical |
@@ -252,7 +252,7 @@ New observations (1.4.0):
    `make release-bundle-check VERSION=1.4.0` passes cleanly.
    Evidence: command-output: observed-this-session.
 
-6. **Documentation routing is clear.** README → docs/README.md →
+6. **Documentation routing is clear.** README → docs/DOCS_INDEX.md →
    RELEASE_SURFACE.md and VERIFICATION_GUIDE.md. Normative vs descriptive
    distinction maintained. All links resolve.
    Evidence: command-output: `make doc-link-check => PASS`.

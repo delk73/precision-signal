@@ -1,19 +1,30 @@
-# Deterministic Replay Divergence Demo
+# Demo Landing
 
-## 1. What this demo proves
+Demo material explains and exercises replay divergence behavior. It is
+support/reference material only. Active authority remains with
+[docs/START_HERE.md](../START_HERE.md), especially
+[docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md),
+[docs/replay/FW_F446_CAPTURE_v1.md](../replay/FW_F446_CAPTURE_v1.md), and
+[docs/replay/DIVERGENCE_SEMANTICS.md](../replay/DIVERGENCE_SEMANTICS.md).
 
-This demo proves that deterministic execution artifacts can be compared directly and the exact first divergence frame can be located mechanically.
+## Demo Routes
 
-For deterministic execution under identical conditions, artifacts must be byte-identical.
+| Route | Class | Scope |
+| --- | --- | --- |
+| [demo_capture_perturbation.md](demo_capture_perturbation.md) | historical/demo | One-frame deterministic perturbation walkthrough. |
+| [demo_persistent_divergence.md](demo_persistent_divergence.md) | historical/demo | Persistent divergence demonstration. |
+| [demo_v3_divergence_classification.md](demo_v3_divergence_classification.md) | historical/demo | Shape classification fixture route. |
+| [demo_v4_region_attribution.md](demo_v4_region_attribution.md) | historical/demo | Region attribution fixture route. |
+| [demo_v5_evolution.md](demo_v5_evolution.md) | historical/demo | Evolution classification fixture route. |
+| [demo_captured_divergence.md](demo_captured_divergence.md) | historical/demo | Captured divergence pair support material. |
+| [demo_evidence_packaging.md](demo_evidence_packaging.md) | active support | Packaged replay proof/support route, not release authority. |
+| [demo_claim_matrix.md](demo_claim_matrix.md) | active support | Demo claim/evidence boundary. |
+| [demo_visual.html](demo_visual.html) | historical/demo | Visual support page. |
 
-## 2. Demo files
+## Minimal Reproduction
 
-- `artifacts/demo/run_A.rpl`: baseline artifact.
-- `artifacts/demo/run_B.rpl`: same artifact with one deterministic sample perturbation at frame `8321` (`sample += 1`).
-- `scripts/mutate_frame.py`: deterministic one-frame mutation utility.
-- `scripts/artifact_diff.py`: first-divergence comparator.
-
-## 3. Reproduction commands
+The original one-frame perturbation walkthrough remains reproducible from the
+repository root:
 
 ```bash
 python3 scripts/artifact_tool.py verify artifacts/demo/run_A.rpl --signal-model none
@@ -23,15 +34,15 @@ python3 scripts/artifact_tool.py inspect artifacts/demo/run_A.rpl --frames 8318:
 python3 scripts/artifact_tool.py inspect artifacts/demo/run_B.rpl --frames 8318:8324
 ```
 
-Optional: recreate `run_B.rpl` from `run_A.rpl` exactly.
+Optional recreation of `run_B.rpl` from `run_A.rpl`:
 
 ```bash
 python3 scripts/mutate_frame.py artifacts/demo/run_A.rpl 8321 +1 --out artifacts/demo/run_B.rpl
 ```
 
-## 4. Expected output
+## Expected Output
 
-Comparison reports exact first divergence:
+The comparison reports exact first divergence:
 
 ```text
 DIVERGENCE DETECTED
@@ -41,7 +52,3 @@ Sample B: 0x00000082
 ```
 
 Inspection of `8318:8324` shows identical frames before `8321`, the changed frame at `8321`, then continued suffix frames.
-
-## 5. Why this matters
-
-It turns deterministic execution into a concrete artifact-level debugging primitive: compare two runs and immediately jump to the first exact divergence point.

@@ -102,9 +102,9 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory(prefix="dpw_doc_links_") as tmp:
         root = Path(tmp)
-        write(root / "README.md", "See [docs](docs/README.md).\n")
+        write(root / "README.md", "See [docs](docs/DOCS_INDEX.md).\n")
         write(
-            root / "docs" / "README.md",
+            root / "docs" / "DOCS_INDEX.md",
             "- Active retained release summary routes:\n"
             "- Active retained release summary route:\n"
             "  [docs/verification/releases/1.7.0/index.md](verification/releases/1.7.0/index.md)\n",

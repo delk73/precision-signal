@@ -48,11 +48,11 @@ New findings identified in this session: W-7, W-8.
 | Verification discipline | 88 | Multi-tier gate chain; `make release-bundle-check` passes cleanly; cross-context invariance check retained; Kani fresh for 1.2.2 | command-output: `make gate => PASS`; command-output: `make release-bundle-check VERSION=1.2.2 => PASS`; file: `docs/verification/releases/1.2.2/kani_evidence.md` |
 | Codebase maintainability | 78 | Workspace well-factored (core crates zero-dep); some crates are stubs; 10 members with 4 default | file: `Cargo.toml` workspace members |
 | Architecture clarity | 80 | Clear release/experimental boundary; workspace.md routes well | file: `docs/RELEASE_SURFACE.md`; file: `docs/architecture/workspace.md` |
-| Documentation depth | 79 | Normative specs thorough; replay docs cover operator workflows; several verification docs are orphaned from index | file: `docs/README.md` (index routing); finding: W-7 |
-| Documentation organization | 77 | Top-level routing clear but several new and existing docs are unreachable from the documentation index | file: `docs/README.md`; finding: W-7, W-8 |
+| Documentation depth | 79 | Normative specs thorough; replay docs cover operator workflows; several verification docs are orphaned from index | file: `docs/DOCS_INDEX.md` (index routing); finding: W-7 |
+| Documentation organization | 77 | Top-level routing clear but several new and existing docs are unreachable from the documentation index | file: `docs/DOCS_INDEX.md`; finding: W-7, W-8 |
 | Repository presentation | 82 | README terse and correct; no inflated claims; release surface distinct from experimental | file: `README.md` |
 | Developer onboarding | 85 | "First 5 Minutes" block; carry-forward notes eliminate version-label confusion; all versioning terminology blocks present in specs | file: `README.md` §First 5 Minutes; file: `docs/MATH_CONTRACT.md` carry-forward note |
-| Conceptual coherence | 85 | Consistent "deterministic execution analysis infrastructure"; normative/advisory distinction maintained | file: `VERIFICATION_GUIDE.md` §1.1; file: `docs/README.md` |
+| Conceptual coherence | 85 | Consistent "deterministic execution analysis infrastructure"; normative/advisory distinction maintained | file: `VERIFICATION_GUIDE.md` §1.1; file: `docs/DOCS_INDEX.md` |
 | Research / innovation value | 76 | Phase-domain fixed-point oscillator with formal proofs; hardware-backed determinism; cross-context invariance check is novel; narrow domain | file: `docs/MATH_CONTRACT.md`; file: `docs/verification/CROSS_CONTEXT_INVARIANCE.md` |
 | OSS trustworthiness signals | 82 | MIT license, pinned toolchain, hash-locked releases, retained evidence bundles, doc-link CI, all manifests repo-relative, cross-context evidence retained | file: `LICENSE`; file: `docs/verification/releases/1.2.2/replay_manifest_v1.txt` |
 
@@ -131,13 +131,13 @@ New findings identified in this session: W-7, W-8.
 | Document | Purpose | Category | Public | Overlap | Authority |
 |---|---|---|---|---|---|
 | README.md | Entry routing | entry | public | none | canonical |
-| docs/README.md | Documentation index | index | public | none | canonical |
+| docs/DOCS_INDEX.md | Documentation index | index | public | none | canonical |
 | docs/RELEASE_SURFACE.md | Release classification and routing | release-classification | public | none | canonical |
 | VERIFICATION_GUIDE.md | Release contract and conformance governance | normative | public | none | canonical |
 | docs/MATH_CONTRACT.md | Arithmetic and signal-path contract | normative | public | none | canonical |
 | docs/spec/rpl0_artifact_contract.md | Binary artifact format spec | normative | public | none | canonical |
 | docs/replay/tooling.md | Replay-tooling boundary | release-classification | public | minor with RELEASE_SURFACE.md | supporting |
-| docs/replay/README.md | Replay subsystem index | index | public | none | supporting |
+| docs/replay/REPLAY_INDEX.md | Replay subsystem index | index | public | none | supporting |
 | docs/replay/FW_F446_CAPTURE_v1.md | Capture contract | normative | public | none | canonical |
 | docs/replay/DIVERGENCE_SEMANTICS.md | Divergence explanation contract | normative | public | none | canonical |
 | docs/cli/precision.md | CLI reference | reference | public | none | supporting |
@@ -214,7 +214,7 @@ above are informational.
    `make release-bundle-check`, `make fixture-drift-check` all pass.
    Evidence: all four observed-this-session.
 
-4. **Documentation routing is clear at top level.** README → docs/README.md →
+4. **Documentation routing is clear at top level.** README → docs/DOCS_INDEX.md →
    RELEASE_SURFACE.md and VERIFICATION_GUIDE.md. Normative vs descriptive
    distinction maintained throughout.
 
@@ -236,7 +236,7 @@ above are informational.
 
 ### Finding W-7 (new): Orphaned documentation files not reachable from index
 
-Several public documentation files are not linked from `docs/README.md` or
+Several public documentation files are not linked from `docs/DOCS_INDEX.md` or
 any document in the index reading path:
 
 - `docs/verification/CROSS_CONTEXT_INVARIANCE.md` — not indexed
@@ -250,11 +250,11 @@ any document in the index reading path:
 - `docs/roadmap/witness_model_direction.md` — not indexed
 
 Evidence:
-- file: `docs/README.md` — does not contain links to the above files
+- file: `docs/DOCS_INDEX.md` — does not contain links to the above files
 - grep: no inbound links found for `ISR_ADVISORY.md`, `CROSS_CONTEXT_INVARIANCE.md`,
   `chaos_probes.md`, `FIRMWARE_CAPTURE_EVIDENCE.md`, `D-03_TriangleDPW4_Audit.md`,
   `cli/precision.md`, `cli/examples.md`, `demo_visual.html`, or `witness_model_direction.md`
-  in `docs/README.md`
+  in `docs/DOCS_INDEX.md`
 
 Note: Some files (e.g., `CROSS_CONTEXT_INVARIANCE.md`) are structurally reachable
 via `docs/verification/` directory listing but not via any clickable link from the
@@ -266,10 +266,10 @@ Classification: `topology`
 Confidence: `direct`
 
 Recommended Direction:
-Add entries for the above files to the appropriate section of `docs/README.md`.
+Add entries for the above files to the appropriate section of `docs/DOCS_INDEX.md`.
 Group verification evidence docs under the existing Verification section.
 Group CLI docs under a new CLI section. Group the roadmap doc under a new Roadmap section.
-For `ISR_ADVISORY.md`, add it to the replay section of `docs/replay/README.md` or
+For `ISR_ADVISORY.md`, add it to the replay section of `docs/replay/REPLAY_INDEX.md` or
 the main index.
 
 ### Finding W-8 (new): New cross-context docs lack versioning terminology block
@@ -302,7 +302,7 @@ scope section of both files.
 
 | Priority | Finding | Effort | Impact |
 |---:|---|---|---|
-| 1 | W-7: Index orphaned docs in `docs/README.md` | low (add ~10 index entries) | onboarding |
+| 1 | W-7: Index orphaned docs in `docs/DOCS_INDEX.md` | low (add ~10 index entries) | onboarding |
 | 2 | W-8: Add versioning note to cross-context docs | trivial (two one-line additions) | maintainability |
 
 ---
@@ -368,7 +368,7 @@ onboarding efficiency.
 
 ### 3. What single sprint would most improve repository credibility and clarity?
 
-**Index completeness.** Adding the orphaned docs (W-7) to `docs/README.md`
+**Index completeness.** Adding the orphaned docs (W-7) to `docs/DOCS_INDEX.md`
 would make all public verification evidence, CLI reference, and roadmap
 material discoverable from the canonical reading path. This is a low-effort
 change with direct onboarding impact. The optional versioning note (W-8) can

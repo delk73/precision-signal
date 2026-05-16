@@ -64,7 +64,7 @@ not current authoritative replay inputs.
 - [docs/replay/RPL0_PARSER_TRACEABILITY.md](RPL0_PARSER_TRACEABILITY.md): rule-level spec -> parser -> tests -> CI traceability matrix
 - [docs/replay/ARTIFACT_VALIDATION_WORKFLOW.md](ARTIFACT_VALIDATION_WORKFLOW.md): operator/local/CI validation workflow for artifact parser + toolchain
 - [docs/replay/CI_GATES.md](CI_GATES.md): replay-related CI checks that must remain true
-- [docs/demos/demo_evidence_packaging.md](../demos/demo_evidence_packaging.md): reference packaged proof route and retained bundle for the completed replay pipeline
+- [docs/demos/demo_evidence_packaging.md](../demos/demo_evidence_packaging.md): packaged replay proof/support route
 - [docs/replay/ISR_ADVISORY.md](ISR_ADVISORY.md): advisory note on ISR behavior and current replay capture limitations
 
 ## Historical Replay and Capture References

@@ -9,7 +9,7 @@ for the active retained release record.
 
 Use these documents as retained background reference only.
 For active release and authority routing, return to
-[docs/README.md](../../README.md),
+[DOCS_INDEX.md](../../DOCS_INDEX.md),
 [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md), and
 [docs/RELEASE_SURFACE.md](../../RELEASE_SURFACE.md).
 

@@ -64,7 +64,7 @@ binary; the current validation entrypoint is `sig-util -- validate`, which imple
 
 The rest of the release-adjacent documentation is supporting only:
 
-- [docs/README.md](README.md): entry routing
+- [DOCS_INDEX.md](DOCS_INDEX.md): entry routing
 - [docs/RELEASE_SURFACE.md](RELEASE_SURFACE.md): release-surface classification and routing
 - [docs/verification/build_reproducibility.md](verification/build_reproducibility.md): supporting explanation for pinned builds and dual-build identity checks
 - [docs/verification/CI_EVIDENCE.md](verification/CI_EVIDENCE.md): historical CI evidence, not the release contract

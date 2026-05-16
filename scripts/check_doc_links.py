@@ -122,8 +122,8 @@ def iter_non_fenced_lines(path: Path) -> list[tuple[int, str]]:
 
 INDEX_ROOTS = {
     "README.md",
-    "docs/README.md",
-    "docs/replay/README.md",
+    "docs/DOCS_INDEX.md",
+    "docs/replay/REPLAY_INDEX.md",
 }
 
 

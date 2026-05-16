@@ -6,8 +6,8 @@
 
 This guide is retained historical performance background only.
 It is not part of the active authority path, does not define release claims,
-and remains behind the active routing. Use [README.md](README.md)
-and [architecture/performance/README.md](architecture/performance/README.md)
+and remains behind the active routing. Use [DOCS_INDEX.md](DOCS_INDEX.md)
+and [architecture/performance/PERFORMANCE_INDEX.md](architecture/performance/PERFORMANCE_INDEX.md)
 for routing.
 
 ## Overview

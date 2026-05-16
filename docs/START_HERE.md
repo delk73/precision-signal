@@ -5,6 +5,8 @@ replay, operated through the `precision` CLI against an attached STM32 target
 over UART.
 
 This page routes readers to the active contracts, evidence, and operational documentation.
+It is the only active reader path. Folder README files and indexes are routing
+aids only.
 
 ## Active Reading Path
 
@@ -26,8 +28,19 @@ Read these documents in order:
 8. [verification/releases/index.md](verification/releases/index.md): retained
    release records and historical verification landing.
 
-After the active reading path, use [README.md](README.md) only as a thin docs
+After the active reading path, use [DOCS_INDEX.md](DOCS_INDEX.md) only as a thin docs
 directory index for readers who land directly in `docs/`.
+
+## Documentation Classes
+
+| Class | Route | Use |
+| --- | --- | --- |
+| Authority | [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md), [RELEASE_SURFACE.md](RELEASE_SURFACE.md), [authority/cli_contract.md](authority/cli_contract.md) | Active release, CLI, and replay authority. These route to lower-level contracts where required. |
+| Active operator | [operator/stm32_replay.md](operator/stm32_replay.md), [operations/USB_WORKFLOW.md](operations/USB_WORKFLOW.md), [hardware/REFERENCE_HARDWARE.md](hardware/REFERENCE_HARDWARE.md), [replay/ARTIFACT_VALIDATION_WORKFLOW.md](replay/ARTIFACT_VALIDATION_WORKFLOW.md) | Operator procedures that must defer to authority documents. |
+| Active support | [replay/REPLAY_INDEX.md](replay/REPLAY_INDEX.md), [architecture/workspace.md](architecture/workspace.md), [governance/ARTIFACT_POLICY.md](governance/ARTIFACT_POLICY.md), [demos/demo.md](demos/demo.md), [audits/AUDIT_INDEX.md](audits/AUDIT_INDEX.md), [BENCHMARK_GUIDE.md](BENCHMARK_GUIDE.md) | Explanatory, diagnostic, governance, and demo material. |
+| Retained release evidence | [verification/releases/index.md](verification/releases/index.md) | Release-scoped records. Leave retained evidence in place. |
+| Historical/demo | [demos/demo.md](demos/demo.md), [archive/verification/CLI_SURFACE_EVIDENCE.md](archive/verification/CLI_SURFACE_EVIDENCE.md), [replay/REPLAY_CAPTURE_CONTRACT_v0.md](replay/REPLAY_CAPTURE_CONTRACT_v0.md) | Historical or demonstration material that does not override the active path. |
+| Internal/wip | [wip/WIP_INDEX.md](wip/WIP_INDEX.md), [internal/DOC_SYSTEM_CATEGORY_AUDIT.md](internal/DOC_SYSTEM_CATEGORY_AUDIT.md), [archive/wip/1.6.0_surface_inventory.md](archive/wip/1.6.0_surface_inventory.md) | Provisional notes and archived exploratory material. |
 
 ## Boundary Notes
 

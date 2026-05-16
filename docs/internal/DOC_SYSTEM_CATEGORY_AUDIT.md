@@ -15,7 +15,7 @@ Proposed Fix:
 Rationale:
 This restores the canonical system-category phrase in a first-impression line without changing document authority.
 Evidence:
-`./README.md`:57-61; `docs/README.md`:6-11; `docs/architecture/architecture_whitepaper.md`:1-3
+`./README.md`:57-61; `docs/DOCS_INDEX.md`:6-11; `docs/architecture/architecture_whitepaper.md`:1-3
 
 ## Finding 2
 
@@ -34,4 +34,4 @@ Proposed Fix:
 Rationale:
 This is a local wording normalization that keeps the workspace framing while aligning the category statement with the rest of the public docs.
 Evidence:
-`./README.md`:3-5, 57-61; `docs/README.md`:6-11
+`./README.md`:3-5, 57-61; `docs/DOCS_INDEX.md`:6-11

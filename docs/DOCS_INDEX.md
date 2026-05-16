@@ -21,7 +21,7 @@ or any linked authority document.
 
 ## Replay
 
-- [replay/README.md](replay/README.md)
+- [replay/REPLAY_INDEX.md](replay/REPLAY_INDEX.md)
 - [replay/FW_F446_CAPTURE_v1.md](replay/FW_F446_CAPTURE_v1.md)
 - [replay/DIVERGENCE_SEMANTICS.md](replay/DIVERGENCE_SEMANTICS.md)
 
@@ -41,13 +41,15 @@ or any linked authority document.
 - [architecture/workspace.md](architecture/workspace.md)
 - [governance/ARTIFACT_POLICY.md](governance/ARTIFACT_POLICY.md)
 - [demos/demo.md](demos/demo.md)
-- [audits/README.md](audits/README.md)
-- [wip/README.md](wip/README.md)
+- [audits/AUDIT_INDEX.md](audits/AUDIT_INDEX.md)
+- [wip/WIP_INDEX.md](wip/WIP_INDEX.md)
 
 ## Additional Public Pages
 
-These links preserve direct discoverability for public pages that do not yet
-have folder-level landing pages.
+These links preserve direct discoverability for public pages. Demo and audit
+material is routed through its folder landing page so it stays visibly
+supporting, historical, or retained evidence rather than a parallel reader
+path.
 
 - Architecture: [architecture/architecture_whitepaper.md](architecture/architecture_whitepaper.md),
   [architecture/replay_explained.md](architecture/replay_explained.md),
@@ -55,13 +57,6 @@ have folder-level landing pages.
   [architecture/float_boundary.md](architecture/float_boundary.md),
   [architecture/system_surfaces.md](architecture/system_surfaces.md),
   [system_architecture_disclosure.md](system_architecture_disclosure.md)
-- Demos: [demos/demo_capture_perturbation.md](demos/demo_capture_perturbation.md),
-  [demos/demo_persistent_divergence.md](demos/demo_persistent_divergence.md),
-  [demos/demo_v3_divergence_classification.md](demos/demo_v3_divergence_classification.md),
-  [demos/demo_v4_region_attribution.md](demos/demo_v4_region_attribution.md),
-  [demos/demo_v5_evolution.md](demos/demo_v5_evolution.md),
-  [demos/demo_captured_divergence.md](demos/demo_captured_divergence.md),
-  [demos/demo_claim_matrix.md](demos/demo_claim_matrix.md)
 - Specs: [spec/dpw_gain.md](spec/dpw_gain.md),
   [spec/oscillator_api.md](spec/oscillator_api.md),
   [spec/pulse_implementation_spec.md](spec/pulse_implementation_spec.md),
@@ -74,5 +69,5 @@ have folder-level landing pages.
 - Governance: [governance/DESIGN_AXIOMS.md](governance/DESIGN_AXIOMS.md),
   [governance/DEBT.md](governance/DEBT.md),
   [CONTRIBUTING.md](CONTRIBUTING.md)
-- Performance: [architecture/performance/README.md](architecture/performance/README.md),
+- Performance: [architecture/performance/PERFORMANCE_INDEX.md](architecture/performance/PERFORMANCE_INDEX.md),
   [BENCHMARK_GUIDE.md](BENCHMARK_GUIDE.md)

@@ -1,7 +1,7 @@
 ## Finding 1
 
 File:
-docs/README.md
+docs/DOCS_INDEX.md
 Section / Line:
 Intro, lines 9-11
 Category:
@@ -20,7 +20,7 @@ Evidence:
 ## Finding 2
 
 File:
-docs/README.md
+docs/DOCS_INDEX.md
 Section / Line:
 Claim Classes / Start Here, lines 31-37
 Category:
@@ -39,7 +39,7 @@ Evidence:
 ## Finding 3
 
 File:
-docs/replay/README.md
+docs/replay/REPLAY_INDEX.md
 Section / Line:
 Intro, lines 6-13
 Category:
