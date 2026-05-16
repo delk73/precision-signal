@@ -6,7 +6,7 @@ Nothing under `docs/wip/` changes release surface, specification, or verificatio
 
 Canonical authority remains with:
 
-- [README.md](../../README.md)
+- [Repository entrypoint](../../README.md)
 - [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md)
 - [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
 - [docs/spec/](../spec/) or [docs/MATH_CONTRACT.md](../MATH_CONTRACT.md), as applicable
