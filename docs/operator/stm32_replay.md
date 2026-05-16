@@ -6,6 +6,11 @@
 - Interface: `precision` CLI
 - Path: STM32 over UART
 
+Scope: this is an interval CSV-oriented operator procedure for
+support/characterization. It is not the primary RPL0 release capture authority;
+current STM32 F446 RPL0 execution capture authority is
+[docs/replay/FW_F446_CAPTURE_v1.md](../replay/FW_F446_CAPTURE_v1.md).
+
 ## Operator Procedure
 
 CRITICAL PRECONDITION

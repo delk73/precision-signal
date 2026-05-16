@@ -9,6 +9,7 @@ Use the active authority path first:
 
 - [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md)
 - [docs/authority/cli_contract.md](../authority/cli_contract.md)
+- [docs/replay/FW_F446_CAPTURE_v1.md](FW_F446_CAPTURE_v1.md)
 - [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md)
 - [docs/verification/releases/index.md](../verification/releases/index.md)
 
@@ -52,10 +53,12 @@ not current authoritative replay inputs.
 - [docs/authority/cli_contract.md](../authority/cli_contract.md): sole active
   CLI authority, including the published `ARTIFACT: artifacts/<run_id>` result
   path consumed by current authoritative `precision replay`
-- [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md): canonical STM32 self-stimulus interval CSV capture contract
-  (`crates/replay-fw-f446-timing`)
-- [docs/replay/FW_F446_CAPTURE_v1.md](FW_F446_CAPTURE_v1.md): active RPL0 hardware capture contract
+- [docs/replay/FW_F446_CAPTURE_v1.md](FW_F446_CAPTURE_v1.md): active STM32
+  RPL0 execution capture contract
   (`crates/replay-fw-f446`)
+- [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md): timing
+  characterization/support contract for STM32 self-stimulus interval CSV
+  capture (`crates/replay-fw-f446-timing`)
 - [docs/spec/rpl0_format_contract.md](../spec/rpl0_format_contract.md): normative portable RPL format authority (support/reference)
 - [docs/replay/tooling.md](tooling.md): support/reference replay tooling boundary and local validation guidance
 - [docs/replay/RPL0_PARSER_TRACEABILITY.md](RPL0_PARSER_TRACEABILITY.md): rule-level spec -> parser -> tests -> CI traceability matrix
