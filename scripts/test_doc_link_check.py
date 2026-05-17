@@ -84,6 +84,13 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory(prefix="dpw_doc_links_") as tmp:
         root = Path(tmp)
+        write(root / "README.md", "Literal path example: `docs/guide.md`.\n")
+        write(root / "docs" / "guide.md", "# Guide\n")
+        proc = run_check(root)
+        assert_ok("quoted_non_navigation_path_ignored", proc)
+
+    with tempfile.TemporaryDirectory(prefix="dpw_doc_links_") as tmp:
+        root = Path(tmp)
         write(root / "README.md", "See crates/dpw4/src/ for implementation details.\n")
         write(root / "docs" / "guide.md", "# Guide\n")
         proc = run_check(root)
@@ -112,6 +119,34 @@ def main() -> int:
         write(root / "docs" / "verification" / "releases" / "1.7.0" / "index.md", "# 1.7.0\n")
         proc = run_check(root)
         assert_fail("dangling_bullet_fails", proc, "dangling_bullet")
+
+    with tempfile.TemporaryDirectory(prefix="dpw_doc_links_") as tmp:
+        root = Path(tmp)
+        write(root / "README.md", "See [docs](docs/DOCS_INDEX.md).\n")
+        write(root / "docs" / "DOCS_INDEX.md", "See [audits](audits/AUDIT_INDEX.md).\n")
+        write(root / "docs" / "audits" / "AUDIT_INDEX.md", "Use [missing](missing.md).\n")
+        write(root / "docs" / "audits" / "runlogs" / "payload.md", "Use [missing](missing.md).\n")
+        proc = run_check(root)
+        assert_fail("linked_audit_index_checked", proc, "docs/audits/AUDIT_INDEX.md")
+
+    with tempfile.TemporaryDirectory(prefix="dpw_doc_links_") as tmp:
+        root = Path(tmp)
+        write(root / "README.md", "See [docs](docs/DOCS_INDEX.md).\n")
+        write(root / "docs" / "DOCS_INDEX.md", "See [wip](wip/WIP_INDEX.md).\n")
+        write(root / "docs" / "wip" / "WIP_INDEX.md", "Use [missing](missing.md).\n")
+        write(root / "docs" / "wip" / "scratch.md", "Use [missing](missing.md).\n")
+        proc = run_check(root)
+        assert_fail("linked_wip_index_checked", proc, "docs/wip/WIP_INDEX.md")
+
+    with tempfile.TemporaryDirectory(prefix="dpw_doc_links_") as tmp:
+        root = Path(tmp)
+        write(root / "README.md", "See [docs](docs/DOCS_INDEX.md).\n")
+        write(root / "docs" / "DOCS_INDEX.md", "See [audits](audits/AUDIT_INDEX.md).\n")
+        write(root / "docs" / "audits" / "AUDIT_INDEX.md", "Audit index.\n")
+        write(root / "docs" / "audits" / "runlogs" / "payload.md", "Use [missing](missing.md).\n")
+        write(root / "docs" / "archive" / "historical.md", "Use [missing](missing.md).\n")
+        proc = run_check(root)
+        assert_ok("ignored_payload_dirs_not_broadly_checked", proc)
 
     print("PASS: documentation link integrity regression suite")
     return 0

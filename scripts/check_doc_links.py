@@ -40,11 +40,24 @@ def repo_facing_label(path: Path, root: Path) -> str:
     return path.relative_to(root).as_posix()
 
 
+ROUTED_SUPPORT_INDEXES = {
+    "docs/audits/AUDIT_INDEX.md",
+    "docs/wip/WIP_INDEX.md",
+}
+
+
+def is_routed_support_index(rel: str) -> bool:
+    return rel in ROUTED_SUPPORT_INDEXES
+
+
 def iter_public_docs(root: Path) -> list[Path]:
     files = [root / "README.md"]
     docs_dir = root / "docs"
     for path in sorted(docs_dir.rglob("*.md")):
         rel = path.relative_to(root).as_posix()
+        if is_routed_support_index(rel):
+            files.append(path)
+            continue
         if rel.startswith("docs/wip/"):
             continue
         if rel.startswith("docs/audits/"):
@@ -99,7 +112,7 @@ def looks_like_navigation(line: str, match: re.Match[str]) -> bool:
         return True
     if stripped.startswith(("- ", "* ")) and ":" in line[match.end() :]:
         return True
-    return match.group("quoted") is not None
+    return False
 
 
 def remove_markdown_links(line: str) -> str:

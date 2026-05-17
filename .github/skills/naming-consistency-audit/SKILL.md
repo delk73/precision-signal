@@ -59,7 +59,8 @@ Use one classification per row:
 
 1. Start with canonical routing and normative documents:
    - root README
-   - docs index pages
+   - explicit `*_INDEX.md` routing pages such as `docs/DOCS_INDEX.md`
+     and `docs/replay/REPLAY_INDEX.md`
    - release-surface docs
    - files under `docs/spec/`
    - other normative contracts such as `docs/MATH_CONTRACT.md` and `VERIFICATION_GUIDE.md`
@@ -118,7 +119,7 @@ Preferred row shape:
 ```text
 | Rule ID | File | Line | Classification | Severity | Evidence | Notes |
 |---|---|---:|---|---|---|---|
-| NAM-004 | docs/replay/README.md | 29 | ambiguous-version | warn | `normative RPL0 artifact contract v1` | Bare `v1` appears without explicitly naming the axis in surrounding prose. |
+| NAM-004 | docs/replay/REPLAY_INDEX.md | 29 | ambiguous-version | warn | `normative RPL0 artifact contract v1` | Bare `v1` appears without explicitly naming the axis in surrounding prose. |
 ```
 
 `File` must be a repository-relative path.
@@ -143,6 +144,8 @@ Allowed values:
 
 - Every row must cite direct textual evidence from the file.
 - Repository path references used for navigation in findings must be evaluated by whether they resolve correctly from the containing file; do not downgrade already-correct file-relative links for style alone.
+- Under `docs/`, prefer explicit `*_INDEX.md` routing paths. Do not recommend
+  nested `README.md` paths for docs directories.
 - Prefer canonical and public-facing docs first, then supporting docs, then internal docs.
 - A filename-only finding is allowed for NAM-003 if the filename is itself the evidence.
 - Use `warn` only for ambiguity or missing terminology blocks.
