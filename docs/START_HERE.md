@@ -5,8 +5,7 @@ replay, operated through the `precision` CLI against an attached STM32 target
 over UART.
 
 This page routes readers to the active contracts, evidence, and operational documentation.
-It is the only active reader path. Folder README files and indexes are routing
-aids only.
+It is the only active reader path. Folder indexes are routing aids only.
 
 ## Active Reading Path
 
