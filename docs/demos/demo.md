@@ -9,17 +9,17 @@ support/reference material only. Active authority remains with
 
 ## Demo Routes
 
-| Route | Class | Scope |
-| --- | --- | --- |
-| [demo_capture_perturbation.md](demo_capture_perturbation.md) | historical/demo | One-frame deterministic perturbation walkthrough. |
-| [demo_persistent_divergence.md](demo_persistent_divergence.md) | historical/demo | Persistent divergence demonstration. |
-| [demo_v3_divergence_classification.md](demo_v3_divergence_classification.md) | historical/demo | Shape classification fixture route. |
-| [demo_v4_region_attribution.md](demo_v4_region_attribution.md) | historical/demo | Region attribution fixture route. |
-| [demo_v5_evolution.md](demo_v5_evolution.md) | historical/demo | Evolution classification fixture route. |
-| [demo_captured_divergence.md](demo_captured_divergence.md) | historical/demo | Captured divergence pair support material. |
-| [demo_evidence_packaging.md](demo_evidence_packaging.md) | active support | Packaged replay proof/support route, not release authority. |
-| [demo_claim_matrix.md](demo_claim_matrix.md) | active support | Demo claim/evidence boundary. |
-| [demo_visual.html](demo_visual.html) | historical/demo | Visual support page. |
+| Route | Scope |
+| --- | --- |
+| [demo_capture_perturbation.md](demo_capture_perturbation.md) | One-frame deterministic perturbation walkthrough. |
+| [demo_persistent_divergence.md](demo_persistent_divergence.md) | Persistent divergence demonstration. |
+| [demo_v3_divergence_classification.md](demo_v3_divergence_classification.md) | Shape classification fixture route. |
+| [demo_v4_region_attribution.md](demo_v4_region_attribution.md) | Region attribution fixture route. |
+| [demo_v5_evolution.md](demo_v5_evolution.md) | Evolution classification fixture route. |
+| [demo_captured_divergence.md](demo_captured_divergence.md) | Captured divergence pair support material. |
+| [demo_evidence_packaging.md](demo_evidence_packaging.md) | Packaged replay proof/support route, not release authority. |
+| [demo_claim_matrix.md](demo_claim_matrix.md) | Demo claim/evidence boundary. |
+| [demo_visual.html](demo_visual.html) | Visual support page. |
 
 ## Minimal Reproduction
 
