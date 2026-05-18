@@ -1,9 +1,8 @@
 # Audits Landing
 
-Audit material is support, retained evidence, or historical close-out material.
-It does not override the active authority path in
-[START_HERE.md](../START_HERE.md). Release decisions route through
-[VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md) and
+Audits route here.
+Authority remains with [START_HERE.md](../START_HERE.md),
+[VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md), and
 [RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
 
 ## Audit Routes

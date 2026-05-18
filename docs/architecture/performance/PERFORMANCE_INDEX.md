@@ -1,4 +1,4 @@
-# Performance Docs Classification
+# Performance Index
 
 This directory contains historical benchmarking and roadmap material from the
 `v1.0.0-rc5` planning era.

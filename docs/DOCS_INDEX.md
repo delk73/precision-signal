@@ -47,9 +47,8 @@ or any linked authority document.
 ## Additional Public Pages
 
 These links preserve direct discoverability for public pages. Demo and audit
-material is routed through its folder landing page so it stays visibly
-supporting, historical, or retained evidence rather than a parallel reader
-path.
+material routes through folder landing pages to avoid creating parallel reader
+paths.
 
 - Architecture: [architecture/architecture_whitepaper.md](architecture/architecture_whitepaper.md),
   [architecture/replay_explained.md](architecture/replay_explained.md),
