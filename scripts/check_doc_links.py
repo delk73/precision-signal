@@ -139,6 +139,44 @@ INDEX_ROOTS = {
     "docs/replay/REPLAY_INDEX.md",
 }
 
+ROUTING_PAGES = {
+    "README.md",
+    "docs/DOCS_INDEX.md",
+    "docs/replay/REPLAY_INDEX.md",
+    "docs/audits/AUDIT_INDEX.md",
+    "docs/wip/WIP_INDEX.md",
+    "docs/architecture/performance/PERFORMANCE_INDEX.md",
+    "docs/demos/demo.md",
+}
+
+PARALLEL_ROUTE_ALLOWLIST = {
+    "docs/START_HERE.md",
+    "docs/VERIFICATION_GUIDE.md",
+    "docs/RELEASE_SURFACE.md",
+}
+
+PARALLEL_ROUTE_TARGETS = {
+    "docs/DOCS_INDEX.md",
+    "docs/replay/REPLAY_INDEX.md",
+    "docs/audits/AUDIT_INDEX.md",
+    "docs/wip/WIP_INDEX.md",
+    "docs/architecture/performance/PERFORMANCE_INDEX.md",
+    "docs/demos/demo.md",
+}
+
+
+def normalize_markdown_target(source: Path, target: str, root: Path) -> str | None:
+    if is_external_target(target):
+        return None
+    clean = unquote(target.split("#", 1)[0]).strip()
+    if not clean or not clean.endswith(".md"):
+        return None
+    resolved = (source.parent / clean).resolve()
+    try:
+        return resolved.relative_to(root).as_posix()
+    except ValueError:
+        return None
+
 
 def _outbound_targets(path: Path, root: Path) -> set[Path]:
     """Return resolved Markdown-link targets from a single file."""
@@ -198,6 +236,41 @@ def collect_orphan_findings(root: Path) -> list[Finding]:
                     reason="public doc not reachable from any index",
                 )
             )
+    return findings
+
+
+def collect_parallel_reader_path_findings(root: Path) -> list[Finding]:
+    route_sources_by_target: dict[str, set[str]] = {}
+    for rel_source in sorted(ROUTING_PAGES):
+        source = root / rel_source
+        if not source.exists():
+            continue
+        for _, line in iter_non_fenced_lines(source):
+            for match in MARKDOWN_LINK_RE.finditer(line):
+                target = normalize_markdown_target(source, match.group("target").strip(), root)
+                if target is None:
+                    continue
+                route_sources_by_target.setdefault(target, set()).add(rel_source)
+
+    findings: list[Finding] = []
+    for target, sources in sorted(route_sources_by_target.items()):
+        if len(sources) < 2:
+            continue
+        if target in PARALLEL_ROUTE_ALLOWLIST:
+            continue
+        if target not in PARALLEL_ROUTE_TARGETS:
+            continue
+        source_list = ", ".join(sorted(sources))
+        first_source = sorted(sources)[0]
+        findings.append(
+            Finding(
+                path=root / first_source,
+                line_no=0,
+                defect_class="parallel_reader_path",
+                reference_text=target,
+                reason=f"directly linked from multiple routing sources: {source_list}",
+            )
+        )
     return findings
 
 
@@ -274,6 +347,7 @@ def collect_findings(root: Path) -> list[Finding]:
                     )
                 )
     findings.extend(collect_orphan_findings(root))
+    findings.extend(collect_parallel_reader_path_findings(root))
     return findings
 
 

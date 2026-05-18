@@ -122,6 +122,25 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory(prefix="dpw_doc_links_") as tmp:
         root = Path(tmp)
+        write(root / "README.md", "See [docs](docs/DOCS_INDEX.md) and [demos](docs/demos/demo.md).\n")
+        write(root / "docs" / "DOCS_INDEX.md", "See [demos](demos/demo.md).\n")
+        write(root / "docs" / "demos" / "demo.md", "# Demo Landing\n")
+        proc = run_check(root)
+        assert_fail("parallel_reader_path_fails", proc, "parallel_reader_path")
+
+    with tempfile.TemporaryDirectory(prefix="dpw_doc_links_") as tmp:
+        root = Path(tmp)
+        write(
+            root / "README.md",
+            "See [docs](docs/DOCS_INDEX.md) and [guide](docs/VERIFICATION_GUIDE.md).\n",
+        )
+        write(root / "docs" / "DOCS_INDEX.md", "See [guide](VERIFICATION_GUIDE.md).\n")
+        write(root / "docs" / "VERIFICATION_GUIDE.md", "# Guide\n")
+        proc = run_check(root)
+        assert_ok("parallel_authority_links_pass", proc)
+
+    with tempfile.TemporaryDirectory(prefix="dpw_doc_links_") as tmp:
+        root = Path(tmp)
         write(root / "README.md", "See [docs](docs/DOCS_INDEX.md).\n")
         write(root / "docs" / "DOCS_INDEX.md", "See [audits](audits/AUDIT_INDEX.md).\n")
         write(root / "docs" / "audits" / "AUDIT_INDEX.md", "Use [missing](missing.md).\n")
