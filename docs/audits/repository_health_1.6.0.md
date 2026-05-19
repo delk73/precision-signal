@@ -32,8 +32,8 @@ Evidence was gathered from static file inspection and live command execution.
 | Verification discipline | 90 | 22 Tier-1 + 4 Tier-2 Kani harnesses, `precision_authoritative_surface` (20 tests), retained Kani evidence, make gate canonical entrypoint, parser adversarial suite | file: `docs/verification/releases/1.6.0/kani_evidence.txt`; command-output: `make gate => VERIFICATION PASSED`; file: `docs/verification/releases/1.6.0/make_replay_tests.txt` |
 | Codebase maintainability | 80 | modular bin layout with common/precision/sig_util split, 10 workspace crates, clear feature gating | file: `crates/dpw4/src/bin/precision.rs`; file: `Cargo.toml` |
 | Architecture clarity | 82 | clear separation between normative core and CLI layer, float quarantine enforced at build surface, replay tooling boundary documented, authority hierarchy explicit | file: `docs/system_architecture_disclosure.md`; file: `docs/architecture/workspace.md`; file: `VERIFICATION_GUIDE.md` |
-| Documentation depth | 83 | extensive normative contracts, verification guide, replay subsystem docs, demo lifecycle, evidence packaging, retained release bundles across 7 releases | file: `docs/DOCS_INDEX.md`; file: `docs/replay/tooling.md`; file: `docs/verification/releases/index.md` |
-| Documentation organization | 75 | clear authority hierarchy (VERIFICATION_GUIDE > README > RELEASE_SURFACE), but large doc tree with some overlap between architecture docs and replay docs; `docs/DOCS_INDEX.md` index is comprehensive | file: `docs/DOCS_INDEX.md`; file: `docs/RELEASE_SURFACE.md` |
+| Documentation depth | 83 | extensive normative contracts, verification guide, replay subsystem docs, demo lifecycle, evidence packaging, retained release bundles across 7 releases | file: `docs/README.md`; file: `docs/replay/tooling.md`; file: `docs/verification/releases/index.md` |
+| Documentation organization | 75 | clear authority hierarchy (VERIFICATION_GUIDE > README > RELEASE_SURFACE), but large doc tree with some overlap between architecture docs and replay docs; `docs/README.md` index is comprehensive | file: `docs/README.md`; file: `docs/RELEASE_SURFACE.md` |
 | Repository presentation | 82 | root README is concise with correct authority routing table; release surface classification is accurate and narrowed; clean root directory | file: `README.md` |
 | Developer onboarding | 76 | Quick Start section works (`make gate` confirmed), authority routing table present, but no CONTRIBUTING.md, no architecture decision records, large document tree requires orientation | file: `README.md`; command-output: `make gate => VERIFICATION PASSED` |
 | Conceptual coherence | 85 | consistent model: deterministic execution analysis infrastructure, clear separation of release/experimental/reference, normative vs advisory signals well-defined | file: `VERIFICATION_GUIDE.md §1.1`; file: `docs/RELEASE_SURFACE.md` |
@@ -244,7 +244,7 @@ Confidence: direct
 | `README.md` | Entry routing | entry | public | none | — | canonical |
 | `docs/RELEASE_SURFACE.md` | Release-surface classification | release-classification | public | none | — | canonical |
 | `CHANGELOG.md` | Release-facing shipped summary | release-classification | public | minor with RELEASE_SURFACE | minor | supporting |
-| `docs/DOCS_INDEX.md` | Documentation index | index | public | none | — | canonical |
+| `docs/README.md` | Documentation index | index | public | none | — | canonical |
 | `docs/MATH_CONTRACT.md` | Arithmetic and signal-path contract | normative | public | none | — | canonical |
 | `docs/spec/rpl0_artifact_contract.md` | RPL0 binary artifact format | normative | public | none | — | canonical |
 | `docs/authority/cli_contract.md` | CLI schema and operational contract | normative | public | none | — | canonical |
@@ -255,10 +255,10 @@ Confidence: direct
 | `docs/verification/releases/1.6.0/index.md` | 1.6.0 bundle routing | index | public | none | — | supporting |
 | `docs/verification/CLI_SURFACE_EVIDENCE.md` | Historical CLI promotion evidence | historical-audit | public | none | — | historical |
 | `docs/demos/demo_evidence_packaging.md` | Packaged proof route | workflow | public | none | — | supporting |
-| `docs/replay/REPLAY_INDEX.md` | Replay subsystem scope index | index | public | none | — | supporting |
+| `docs/replay/README.md` | Replay subsystem scope index | index | public | none | — | supporting |
 | `docs/governance/DESIGN_AXIOMS.md` | Design principles | normative | public | none | — | supporting |
-| `docs/wip/WIP_INDEX.md` | WIP routing | index | internal | none | — | supporting |
-| `docs/audits/AUDIT_INDEX.md` | Audit ledger index | index | public | none | — | supporting |
+| `docs/wip/README.md` | WIP routing | index | internal | none | — | supporting |
+| `docs/audits/README.md` | Audit ledger index | index | public | none | — | supporting |
 
 ---
 
@@ -331,12 +331,12 @@ No axis-mixing or ambiguous bare `vX` usage found in normative or release-facing
 
 **Recommended Direction:** Add a minimal `CONTRIBUTING.md` covering build prerequisites, test expectations, and the authority hierarchy.
 
-### W-3: `docs/demos/demo_evidence_packaging.md` described as "canonical packaged proof route" in `docs/DOCS_INDEX.md`
+### W-3: `docs/demos/demo_evidence_packaging.md` described as "canonical packaged proof route" in `docs/README.md`
 
-**Finding:** `docs/DOCS_INDEX.md` index describes `demo_evidence_packaging.md` as "canonical packaged proof route and retained bundle for the completed replay pipeline." This phrasing could imply it is part of the release contract, but `docs/RELEASE_SURFACE.md` explicitly classifies it as "not the canonical 1.6.0 operator release surface."
+**Finding:** `docs/README.md` index describes `demo_evidence_packaging.md` as "canonical packaged proof route and retained bundle for the completed replay pipeline." This phrasing could imply it is part of the release contract, but `docs/RELEASE_SURFACE.md` explicitly classifies it as "not the canonical 1.6.0 operator release surface."
 
 **Evidence:**
-- file: `docs/DOCS_INDEX.md` line 19
+- file: `docs/README.md` line 19
 - file: `docs/RELEASE_SURFACE.md` lines 56–59
 
 **Impact:** credibility
@@ -344,7 +344,7 @@ No axis-mixing or ambiguous bare `vX` usage found in normative or release-facing
 **Classification:** documentation
 **Confidence:** direct
 
-**Recommended Direction:** Downgrade the `docs/DOCS_INDEX.md` index description to "reference packaged proof route" or add a qualifier such as "for the replay demo pipeline (not the 1.6.0 release contract)."
+**Recommended Direction:** Downgrade the `docs/README.md` index description to "reference packaged proof route" or add a qualifier such as "for the replay demo pipeline (not the 1.6.0 release contract)."
 
 ### W-4: Large accumulated artifacts directory
 
@@ -482,4 +482,4 @@ Very accurately. The authority hierarchy (`VERIFICATION_GUIDE.md` > `README.md` 
 
 ### 3. What single sprint would most improve repository credibility and clarity?
 
-Harmonize the Python tooling language across `docs/replay/tooling.md`, `docs/system_architecture_disclosure.md`, and `docs/RELEASE_SURFACE.md`; qualify the demo evidence packaging description in `docs/DOCS_INDEX.md`; and add a minimal `CONTRIBUTING.md`. This is all low-effort documentation cleanup that would eliminate the remaining cold-reviewer friction without any code changes.
+Harmonize the Python tooling language across `docs/replay/tooling.md`, `docs/system_architecture_disclosure.md`, and `docs/RELEASE_SURFACE.md`; qualify the demo evidence packaging description in `docs/README.md`; and add a minimal `CONTRIBUTING.md`. This is all low-effort documentation cleanup that would eliminate the remaining cold-reviewer friction without any code changes.

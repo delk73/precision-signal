@@ -5,6 +5,12 @@ Authority remains with [START_HERE.md](../START_HERE.md),
 [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md), and
 [RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
 
+Historical audit snapshots preserve the path names that existed when each
+audit was written. Current routing pages use explicit index names:
+`docs/README.md` is now `docs/DOCS_INDEX.md`,
+`docs/replay/README.md` is now `docs/replay/REPLAY_INDEX.md`,
+and `docs/wip/README.md` is now `docs/wip/WIP_INDEX.md`.
+
 ## Audit Routes
 
 | Route | Scope |

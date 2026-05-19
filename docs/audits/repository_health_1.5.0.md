@@ -153,7 +153,7 @@ Scope:
 | 5 | Packaged proof route reproduces retained bundle byte-for-byte | `README.md`; `docs/demos/demo_evidence_packaging.md` | `exact` | — | direct | retained: `docs/verification/releases/1.5.0/make_demo_evidence_package.txt`: "retained bundle matches" |
 | 6 | Workspace version = 1.5.0 across all crates | `Cargo.toml`; `VERIFICATION_GUIDE.md` | `exact` | — | direct | `workspace.package.version = "1.5.0"`; lock bumped all 10 crates; `make_gate.txt`: `version_consistency: workspace=1.5.0 lock=1.5.0` |
 | 7 | Dual-build reproducibility | `docs/verification/build_reproducibility.md` | `exact` | — | direct | retained: SHA256 `7da5387c…` both builds identical |
-| 8 | Documentation link integrity passes | `docs/DOCS_INDEX.md` | `exact` | — | direct | retained: `docs/verification/releases/1.5.0/make_doc_link_check.txt`: PASS |
+| 8 | Documentation link integrity passes | `docs/README.md` | `exact` | — | direct | retained: `docs/verification/releases/1.5.0/make_doc_link_check.txt`: PASS |
 | 9 | "Minor release because this cut adds one new released command surface" | `CHANGELOG.md` [1.5.0] Notes | `exact` | — | direct | Only `replay-host diff` promoted; no CLI, artifact format, or golden hash changes |
 | 10 | Active release-scoped proof boundary in `docs/verification/releases/1.5.0/` | `VERIFICATION_GUIDE.md` §3.3 | `partial` | credibility | direct | Directory exists and contains `RUST_REPLAY_DIFF_SCOPE.md`; no `VERIFICATION_SCOPE.md` for inherited sine correctness bounds (see F-1) |
 | 11 | "The active release (1.5.0) retains one explicit bounded correctness claim for the released sine path … documented in `docs/verification/releases/1.5.0/`" | `VERIFICATION_GUIDE.md` §3.6 | `partial` | credibility | direct | Sine correctness evidence lives in `docs/verification/releases/1.4.0/VERIFICATION_SCOPE.md`; 1.5.0 bundle has no sine scope document (see F-1) |
@@ -167,7 +167,7 @@ Scope:
 | Document | Purpose | Category | Public | Overlap | Overlap Severity | Authority | Change vs 1.4.0 |
 |---|---|---|---|---|---|---|---|
 | `README.md` | Entry routing | entry | public | none | — | canonical | 1.5.0 paragraph added |
-| `docs/DOCS_INDEX.md` | Documentation index | index | public | none | — | canonical | unchanged |
+| `docs/README.md` | Documentation index | index | public | none | — | canonical | unchanged |
 | `docs/RELEASE_SURFACE.md` | Release classification and routing | release-classification | public | none | — | canonical | 1.5.0 version refs; `replay-host diff` added |
 | `VERIFICATION_GUIDE.md` | Release contract and conformance governance | normative | public | none | — | canonical | Version header + routing updated; §3.6 updated; firmware procedure noise present at end (W-L4) |
 | `docs/MATH_CONTRACT.md` | Arithmetic and signal-path contract | normative | public | none | — | canonical | unchanged (carry-forward at 1.4.0) |
