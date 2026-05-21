@@ -5,9 +5,9 @@
 # Authority Hierarchy
 
 - Precedence: [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md) > [RELEASE_SURFACE.md](RELEASE_SURFACE.md) > retained release records > this file
-- Treat [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md) as the canonical release contract.
+- Treat [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md) as the core verification authority and path router.
 - Treat [RELEASE_SURFACE.md](RELEASE_SURFACE.md) as the release-classification anchor.
-- Treat retained evidence under [verification/releases/](verification/releases/) as release-scoped record material.
+- Treat [verification/releases/index.md](verification/releases/index.md) as the retained-release mechanics owner and retained evidence under [verification/releases/](verification/releases/) as release-scoped record material.
 - Do not let this file override those authorities.
 
 # Required Commands

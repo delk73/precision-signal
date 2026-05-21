@@ -66,5 +66,5 @@ hardware-backed retained release record remains explicit under
 ## Workspace Routing
 
 - [docs/architecture/workspace.md](workspace.md): high-level workspace framing
-- [docs/replay/README.md](../replay/README.md): replay subsystem scope and document index
+- [docs/replay/REPLAY_INDEX.md](../replay/REPLAY_INDEX.md): replay subsystem scope and document index
 - [docs/verification/build_reproducibility.md](../verification/build_reproducibility.md): reproducibility and release checks

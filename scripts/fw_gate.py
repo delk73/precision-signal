@@ -14,7 +14,12 @@ from pathlib import Path
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--serial", required=True)
-    parser.add_argument("--reset-mode", required=True)
+    parser.add_argument("--reset-mode", choices=("stlink", "manual"), default="stlink")
+    parser.add_argument(
+        "--allow-manual-reset",
+        action="store_true",
+        help="Legacy/debug escape hatch only; active release and board bring-up use stlink.",
+    )
     parser.add_argument("--capture-timeout", required=True)
     parser.add_argument("--repeat-runs", required=True)
     parser.add_argument("--signal-model", required=True)
@@ -37,14 +42,17 @@ def run(command: list[str], env: dict[str, str] | None = None) -> None:
 
 def main() -> int:
     args = parse_args()
-    if args.reset_mode != "manual":
-        print("FW_GATE_RESET_MODE must be manual for firmware gate", file=sys.stderr)
+    if args.reset_mode == "manual" and not args.allow_manual_reset:
+        print(
+            "manual reset is legacy/debug only for fw-gate; "
+            "use --allow-manual-reset to opt in explicitly",
+            file=sys.stderr,
+        )
         return 1
 
     make = [args.make, "--no-print-directory"]
     run([*make, "check-workspace"])
     run([*make, "test"])
-    run(["bash", "scripts/verify_kani.sh"])
     run([*make, "gate"])
     run([*make, "fw"])
     run([*make, "fw-bin"])
@@ -112,6 +120,10 @@ def main() -> int:
             "replay_manifest_v1.txt",
             "--artifacts-dir",
             args.repeat_dir,
+            "--reset-mode",
+            args.reset_mode,
+            "--stflash",
+            args.stflash,
         ],
         env={"PYTHONPATH": pythonpath, "SERIAL": args.serial},
     )

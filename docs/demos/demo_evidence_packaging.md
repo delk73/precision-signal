@@ -9,10 +9,9 @@ It does not change the replay contract, the capture contract, firmware
 behavior, or divergence semantics. It packages already-retained inputs and
 expected outputs into one reproducibility path.
 
-This is the canonical packaged proof route for the completed replay pipeline.
-It does not expand the release surface. Released operator tooling remains the
-Python replay toolchain and the `precision` validation CLI surface classified in
-[docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
+This is a packaged replay proof/support route, not release authority. It does
+not expand the release surface. Release classification and retained-record
+routing are defined in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
 
 ## Canonical locations
 
@@ -21,9 +20,8 @@ Python replay toolchain and the `precision` validation CLI surface classified in
 - generated verification output: `artifacts/demo_evidence/_generated/`
 
 The generated directory is scratch space recreated by the operator command.
-The retained directory is the canonical evidence bundle checked into the repo.
-That retained bundle is the canonical proof bundle for this packaged replay
-path.
+The retained directory is the evidence bundle checked into the repo for this
+support path.
 
 ## Operator path
 

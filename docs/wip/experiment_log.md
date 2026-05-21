@@ -496,7 +496,7 @@ Constraints
 - Must not create release-surface, specification, or verification authority claims
 
 Planned Artifacts
-- `docs/wip/bbb_prudent_bringup.md`
+- `docs/archive/wip/bbb_prudent_bringup.md`
 - `docs/wip/templates/bringup_evidence_checklist.md`
 
 Evidence Produced

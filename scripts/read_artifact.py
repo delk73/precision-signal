@@ -313,6 +313,8 @@ def main() -> int:
 
     try:
         with open_serial_port() as ser:
+            # Legacy/manual prompt. Active board bring-up wraps this through
+            # artifact_tool.py with the stlink reset context.
             print("Listener active; press reset now", flush=True)
             sync_buffer = bytearray()
             total_scanned = 0

@@ -10,7 +10,7 @@ This page is descriptive only.
 Release status is classified in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
 Verification authority is defined in [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md).
 Replay-tooling boundary routing lives in [docs/replay/tooling.md](../replay/tooling.md).
-The canonical packaged proof route for the completed replay pipeline is
+Packaged replay proof/support routing lives in
 [docs/demos/demo_evidence_packaging.md](../demos/demo_evidence_packaging.md).
 
 Workspace framing:
@@ -21,7 +21,7 @@ Workspace framing:
 - The authoritative replay operator interface is the `precision` CLI, and the
   canonical attached-hardware route is an STM32 target over UART.
 - Demo and evidence walkthroughs live under [docs/demos/](../demos/); the
-  canonical retained proof bundle for the completed replay pipeline is
+  packaged replay evidence bundle for the demo support path is
   `artifacts/demo_evidence/retained/`.
 - Experimental replay-adjacent work remains subject to the release classifications
   in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).

@@ -6,10 +6,10 @@ Nothing under `docs/wip/` changes release surface, specification, or verificatio
 
 Canonical authority remains with:
 
-- [README.md](../../README.md)
+- [Repository entrypoint](../../README.md)
 - [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md)
 - [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
-- [docs/spec/](../spec/) or [docs/MATH_CONTRACT.md](../MATH_CONTRACT.md), as applicable
+- the applicable specification or math contract
 
 Use [experiment_log.md](experiment_log.md) as the append-only WIP index and
 [templates/experiment_entry.md](templates/experiment_entry.md) for new entries.
