@@ -51,6 +51,7 @@ material routes through folder landing pages to avoid creating parallel reader
 paths.
 
 - Architecture: [architecture/architecture_whitepaper.md](architecture/architecture_whitepaper.md),
+  [architecture/repository_mapping.md](architecture/repository_mapping.md),
   [architecture/replay_explained.md](architecture/replay_explained.md),
   [architecture/signal_path.md](architecture/signal_path.md),
   [architecture/float_boundary.md](architecture/float_boundary.md),
