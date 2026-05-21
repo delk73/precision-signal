@@ -27,7 +27,7 @@ SIGNAL_OBSERVED_CSV ?= observed.csv
 SIGNAL_FRAMES ?= 128
 SIGNAL_PERTURB_FRAME ?= 50
 SIGNAL_REPEAT_SECONDS ?=
-FW_GATE_RESET_MODE ?= manual
+FW_GATE_RESET_MODE ?= stlink
 FW_CAPTURE_TIMEOUT ?= 10
 REPLAY_CAPTURE_TIMEOUT ?= 60
 FW_CAPTURE_DIR ?= artifacts/fw_capture_runs
@@ -138,11 +138,12 @@ help-firmware:
 	echo "    make flash-compare-ur"
 	echo "  Active STM32 capture checks:"
 	echo "    make bench-check"
-	echo "    make fw-capture-check"
-	echo "    make fw-repeat-check"
 	echo "    make fw-gate"
 	echo "    make firmware-release-check"
 	echo "    make fw-release-archive VERSION=<version>"
+	echo "  Legacy / support timing capture:"
+	echo "    make fw-capture-check"
+	echo "    make fw-repeat-check"
 	echo "  Historical / support replay capture:"
 	echo "    make rpl0-replay-check"
 	echo "    make rpl0-replay-repeat-check"
@@ -213,7 +214,6 @@ release-1.8.0:
 	  --dpw4-pkg "$(DPW4_PKG)" \
 	  --make "$(MAKE_CMD)" \
 	  --require-serial \
-	  --require-manual-reset \
 	  --thumb-check \
 	  --functional \
 	  --demo-evidence \

@@ -26,6 +26,7 @@ def parse_args() -> argparse.Namespace:
         "--reset-mode",
         choices=("manual", "stlink"),
         default="manual",
+        help="Reset trigger mode for this CSV support tool; manual is legacy/debug only.",
     )
     parser.add_argument("--stflash", default=DEFAULT_STFLASH)
     parser.add_argument("--reset-delay", type=float, default=0.25)
@@ -116,6 +117,8 @@ def main() -> int:
             time.sleep(args.reset_delay)
             trigger_stlink_reset(args.stflash)
         else:
+            # Legacy/debug CSV capture path only. Active RPL0 board bring-up uses
+            # ST-LINK reset through make fw-gate.
             print("Listener active; press reset now", flush=True)
 
         state_line, prefix, state_line_raw = read_valid_state_line(ser, args.timeout)

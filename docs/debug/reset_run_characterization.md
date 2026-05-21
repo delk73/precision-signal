@@ -1,14 +1,16 @@
 # Reset / Run Characterization (STM32F446)
 
 ## Scope
-This runbook defines the known-good reset/attach model for replay capture on STM32F446.
-It is operational guidance for board bring-up, flash/debug/capture sequencing, and recovery from bad states.
+This historical debug runbook records a legacy reset/attach characterization for
+STM32F446. It is not the active newcomer board-bringup path and does not define
+release capture authority. Use [docs/VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md)
+for active board bring-up, which uses ST-LINK reset through `make fw-gate`.
 
 ## 1. Reset Classes
 
 ### A. Hardware reset button
 - What it does: reboots the MCU and starts firmware from reset vector without changing USB cabling.
-- When to use: validated UART capture runs for the self-stimulus flow.
+- When to use: legacy/debug UART capture runs for the self-stimulus flow.
 - Expected behavior: one `STATE,...` line is emitted first; successful runs emit `STATE,CAPTURE_DONE,138` followed by CSV.
 
 ### B. ST-LINK / `st-flash --reset`
@@ -17,7 +19,9 @@ It is operational guidance for board bring-up, flash/debug/capture sequencing, a
 - Known caveats:
   - If another process holds ST-LINK, flash/readback fails.
   - If attach state is bad, `connect-under-reset` may still require the observed recovery sequence below.
-  - `--reset-mode stlink` is present in tooling, but not validated as reliable for UART capture in this session.
+- Historical note: `--reset-mode stlink` was not validated as reliable for the
+  legacy CSV UART capture session documented here. This does not apply to the
+  active RPL0 `make fw-gate` board-bringup path.
 
 ### C. `connect-under-reset` / `st-util`
 - What it does: attaches debugger while reset is asserted to recover from unstable target states.
@@ -47,7 +51,7 @@ Expected outcome:
 - flash write succeeds
 - flash readback compare succeeds (device image equals local bin)
 
-### B. Validated self-stimulus capture run
+### B. Legacy/debug self-stimulus capture run
 Operator sequence:
 1. Run `make flash-ur`.
 2. Run `make flash-compare-ur`.
@@ -60,7 +64,7 @@ Operator sequence:
 Operational notes:
 - one reset press per capture run
 - do not keep active debug server attached during UART capture
-- manual reset is canonical for UART capture on this flow
+- manual reset is canonical only for this legacy/debug CSV flow
 - this self-stimulus lane requires a physical loopback from `PA6` (`TIM3_CH1`
   stimulus) to `PA0` (`TIM2_CH1` capture); it is not an internal-only route
 - success is indicated first by `STATE,CAPTURE_DONE,138`, followed by CSV with header `index,interval_us` and 138 rows
@@ -75,9 +79,9 @@ make fw-repeat-check SERIAL=/dev/ttyACM0 REPLAY_REPEAT_RUNS=3
 make firmware-release-check SERIAL=/dev/ttyACM0
 ```
 
-Gate notes:
-- gate/reset authority is manual reset only
-- current validated firmware release gate is manual-reset, human-in-the-loop
+Legacy gate notes:
+- this historical CSV gate/reset note used manual reset only
+- this historical note is not the current firmware release gate
 - gate capture must fail fast if no UART emission arrives within the configured timeout
 - no default gate path may wait for `RPL0`
 
@@ -137,13 +141,15 @@ Meaning:
 - `0`: no capture edge reached `PA0` / `TIM2_CH1` after arming; check the `PA6 -> PA0` loopback first
 - `0 < N < 138`: capture started but did not complete
 
-### G. ST-LINK reset mode produces no `STATE,...` line
+### G. Historical CSV ST-LINK reset mode produces no `STATE,...` line
 Symptom:
 - `python3 scripts/csv_capture.py ... --reset-mode stlink` does not print a `STATE,...` line in this board/session
 
 Meaning:
-- ST-LINK auto-reset is not validated as reliable for UART capture on this flow
-- use the validated manual reset path instead
+- ST-LINK auto-reset was not validated as reliable for the legacy CSV capture
+  flow in this debug session
+- use the legacy manual reset path only when intentionally reproducing this
+  historical CSV debug flow
 
 ## 4. Recovery Procedures
 
@@ -186,10 +192,12 @@ make flash-compare-ur
 2. Restart debug session cleanly.
 3. Re-check register dump.
 
-## 5. Preferred Operational Rules (Operator Contract)
-- Use hardware reset button for UART capture runs on this self-stimulus flow.
+## 5. Historical Operational Rules
+- Use hardware reset button only when reproducing UART capture runs on this
+  legacy self-stimulus flow.
 - Use `flash-ur` and `flash-compare-ur` for programming/verification.
-- Treat manual reset as the validated operator path.
+- Treat manual reset as the validated historical operator path for this
+  legacy/debug flow only.
 - Treat `STATE,CAPTURE_DONE,138` as capture complete.
 - Treat `STATE,CAPTURE_INCOMPLETE,<N>` as explicit capture failure.
 - Treat `--reset-mode stlink` as convenience tooling, not a validated UART capture path in this session.

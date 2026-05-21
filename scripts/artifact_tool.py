@@ -24,6 +24,8 @@ BURST8_IDLE = 48
 SEEDED_LFSR8_SEED = 0xA5
 SEEDED_LFSR8_TAP_MASK = 0xB8
 SEEDED_LFSR8_SEQUENCE: tuple[int, ...] | None = None
+# Legacy/manual prompt text retained for explicit debug contexts. Active
+# firmware bring-up routes use the stlink reset context.
 MANUAL_RESET_PROMPT = "Listener active; press reset now"
 RESET_CONTEXT_PROMPTS = {
     "manual": MANUAL_RESET_PROMPT,

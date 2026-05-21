@@ -15,13 +15,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--version", required=True)
     parser.add_argument("--release-root", default="docs/verification/releases")
     parser.add_argument("--serial", default="")
-    parser.add_argument("--reset-mode", default="manual")
+    parser.add_argument("--reset-mode", choices=("stlink", "manual"), default="stlink")
     parser.add_argument("--fw-target", default="thumbv7em-none-eabihf")
     parser.add_argument("--cargo", default="cargo")
     parser.add_argument("--dpw4-pkg", default="dpw4")
     parser.add_argument("--make", default="make")
     parser.add_argument("--require-serial", action="store_true")
-    parser.add_argument("--require-manual-reset", action="store_true")
     parser.add_argument("--thumb-check", action="store_true")
     parser.add_argument("--functional", action="store_true")
     parser.add_argument("--demo-evidence", action="store_true")
@@ -78,10 +77,6 @@ def main() -> int:
     if args.require_serial and not args.serial:
         print(f"[release-{args.version}] SERIAL is required for firmware-including release", file=sys.stderr)
         return 1
-    if args.require_manual_reset and args.reset_mode != "manual":
-        print(f"[release-{args.version}] FW_GATE_RESET_MODE must be manual", file=sys.stderr)
-        return 1
-
     release_dir = Path(args.release_root) / args.version
     kani_evidence = release_dir / "kani_evidence.txt"
     if not kani_evidence.is_file() or kani_evidence.stat().st_size == 0:
@@ -129,7 +124,10 @@ def main() -> int:
         run_transcript(f"--- [GATE {index}/{total}] {name} ---", command, output, env)
 
     if args.firmware:
-        run("--- [FIRMWARE] RPL0 Capture Gate ---", [*make, "fw-gate", f"SERIAL={args.serial}", "FW_GATE_RESET_MODE=manual"])
+        run(
+            "--- [FIRMWARE] RPL0 Capture Gate ---",
+            [*make, "fw-gate", f"SERIAL={args.serial}", f"FW_GATE_RESET_MODE={args.reset_mode}"],
+        )
         run(
             "--- [FIRMWARE] Archive Evidence ---",
             [*make, "fw-release-archive-current", f"VERSION={args.version}", f"SERIAL={args.serial}"],

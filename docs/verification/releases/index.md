@@ -5,7 +5,8 @@ and historical verification references.
 
 Use the active authority path first:
 
-- [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md): release contract
+- [VERIFICATION_GUIDE.md](../../VERIFICATION_GUIDE.md): verification router and
+  compact core authority
 - [docs/RELEASE_SURFACE.md](../../RELEASE_SURFACE.md): release-surface
   classification and routing
 - [docs/authority/cli_contract.md](../../authority/cli_contract.md): sole
@@ -22,6 +23,92 @@ Active retained release record: `1.8.0`
 - [Release 1.8.0](1.8.0/): firmware-including release — RPL0 restore, precision.meta.v2, dpw4 streaming hash
 - [Release 1.8.0 index.md](1.8.0/index.md): primary human-readable release
   summary and retained file inventory
+
+## Retained-Release Mechanics
+
+This page owns retained-release mechanics. `VERIFICATION_GUIDE.md` routes
+release-focused readers here and does not duplicate the detailed release
+procedure.
+
+Retained release evidence lives under:
+
+```text
+docs/verification/releases/<version>/
+```
+
+For the active retained release record, inspect:
+
+```text
+docs/verification/releases/1.8.0/
+docs/verification/releases/1.8.0/index.md
+```
+
+Use the retained bundle, not transient workspace artifacts, when evaluating a
+release claim.
+
+## Release Preparation Routes
+
+Current release tooling exposes two retained-release preparation routes:
+
+- `make release-1.8.0`: compatibility retained-record orchestration for the
+  active `1.8.0` firmware-including record.
+- `make release-proof VERSION=<ver>`: generic release-proof orchestration for
+  new release execution.
+
+After a retained bundle exists, check it with:
+
+```text
+make release-bundle-check VERSION=<version>
+```
+
+The bundle check validates retained-bundle coherence. It does not replace the
+evidence-producing release route.
+
+## Retained Kani Evidence
+
+Kani evidence is retained release/proof-boundary evidence. It is not a board
+bring-up step.
+
+The active `1.8.0` retained-record route requires
+`docs/verification/releases/1.8.0/kani_evidence.txt` to exist before
+`make release-1.8.0` runs. Other release-bundle tooling may produce
+`kani_evidence.txt` directly as part of bundle generation. Follow the current
+tooling behavior for the route being used; do not assume every downstream
+release command reruns Kani.
+
+The canonical Tier-1 runner is:
+
+```text
+bash scripts/verify_kani.sh
+```
+
+Optional proof tiers are retained only when a release record explicitly includes
+them.
+
+## Firmware-Including Release Evidence
+
+Firmware-including release claims require retained firmware evidence for the
+active STM32 RPL0 capture path. For `1.8.0`, that evidence is under:
+
+```text
+docs/verification/releases/1.8.0/
+```
+
+The firmware evidence set includes the archived capture artifact, capture hash
+check, repeat-capture manifest, repeat hash check, and firmware release evidence
+summary when present in that per-version directory.
+
+`make release-proof VERSION=<ver> RELEASE_PROOF_FIRMWARE=0` is a non-firmware
+proof route. It must not be used as evidence for a firmware-including release
+claim.
+
+## Historical Retained Record Policy
+
+Historical retained records are preserved as release-scoped evidence for the
+version that produced them. Do not copy evidence forward from older releases
+into a new retained bundle. If a historical record lacks newer generated summary
+files, the record remains valid as historical evidence when its per-version
+index explains the retained contents.
 
 ## Historical Verification References
 
@@ -47,6 +134,6 @@ Active retained release record: `1.8.0`
 
 - [Release 1.3.0](1.3.0/): tag/changelog entry exists, but no retained release bundle was committed; explanatory note only, with no reconstructed historical evidence
 
-Release-scoped verification policy and packaging rules live in
-[`VERIFICATION_GUIDE.md`](../../VERIFICATION_GUIDE.md) and
-[`docs/RELEASE_SURFACE.md`](../../RELEASE_SURFACE.md).
+Release-scoped classification remains in
+[`docs/RELEASE_SURFACE.md`](../../RELEASE_SURFACE.md). Core verification routing
+remains in [`VERIFICATION_GUIDE.md`](../../VERIFICATION_GUIDE.md).

@@ -33,7 +33,7 @@ def parse_args() -> argparse.Namespace:
         "--reset-mode",
         choices=("manual", "stlink"),
         default=DEFAULT_RESET_MODE,
-        help="Reset trigger mode per run: manual (default) or stlink.",
+        help="Reset trigger mode per run; manual is legacy/debug for the CSV support path.",
     )
     parser.add_argument(
         "--stflash",

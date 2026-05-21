@@ -1,7 +1,7 @@
 # Release Surface
 
 This document is a routing and classification aid for `precision-signal`.
-It is not the release contract.
+It does not define detailed release procedure.
 
 Normative behavior still comes from:
 
@@ -9,13 +9,14 @@ Normative behavior still comes from:
 - [docs/spec/rpl0_format_contract.md](spec/rpl0_format_contract.md)
 - [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md)
 
-For release decisions, use:
+For release and verification routing, use:
 
-- contract: [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md)
+- core verification authority: [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md)
+- detailed retained-release mechanics:
+  [docs/verification/releases/index.md](verification/releases/index.md)
+- per-version retained records:
+  [docs/verification/releases/<version>/](verification/releases/)
 - canonical operator path: `make gate`
-- unified release proof path for new release execution:
-  `make release-proof VERSION=<ver>`
-- canonical retained-record orchestration: `make release-1.8.0`
 - retained release records: [docs/verification/releases/](verification/releases/)
 - active workspace/package version: `1.8.0`
 - active retained release record: `1.8.0`
@@ -36,21 +37,18 @@ surface.
 
 ## Classification
 
-Canonical Active and Retained Release Commands
+Canonical Active Commands And Routes
 
 - `make gate` (canonical operator-facing release gate)
-- `make release-proof VERSION=<ver>` (unified release-proof orchestration for
-  new release execution; see [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md))
 - `make bench-check` (bench readiness preflight for hardware-backed release
   operations)
-- `make release-1.8.0` (canonical retained-record orchestration for the active
-  firmware-including release)
 - `make fw-gate` as the firmware capture gate executed inside the retained
   `1.8.0` release orchestration
+- retained-release preparation commands are routed through
+  [docs/verification/releases/index.md](verification/releases/index.md)
 - the primary precision CLI surface and RPL0 firmware capture path retained for
   `1.8.0`; read the exact release boundary, limits, and retained evidence under
-  [docs/verification/releases/1.8.0/](verification/releases/1.8.0/) and
-  [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md)
+  [docs/verification/releases/1.8.0/](verification/releases/1.8.0/)
 - active RPL0 firmware capture contract:
   [docs/replay/FW_F446_CAPTURE_v1.md](replay/FW_F446_CAPTURE_v1.md)
 - authority and retained-evidence routing under
@@ -98,10 +96,10 @@ not part of the current release surface
 ## Release Routing
 
 - Canonical operator entrypoint: `make gate`
-- Unified release proof path for new release execution:
-  `make release-proof VERSION=<ver>`
+- Core verification authority: [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md)
+- Detailed retained-release mechanics:
+  [docs/verification/releases/index.md](verification/releases/index.md)
 - Bench readiness preflight: `make bench-check`
-- Canonical retained-record orchestration: `make release-1.8.0`
 - Firmware capture gate for this release: `make fw-gate`
 - Underlying support command: `sig-util validate --mode quick`
 - Canonical retained release-evidence location for release records:

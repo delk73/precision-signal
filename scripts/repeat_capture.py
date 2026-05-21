@@ -50,7 +50,7 @@ def parse_args() -> argparse.Namespace:
         "--reset-mode",
         choices=("manual", "stlink"),
         default=DEFAULT_RESET_MODE,
-        help="Reset trigger mode per run: manual (default) or stlink.",
+        help="Reset trigger mode per run; manual is legacy/debug only.",
     )
     parser.add_argument(
         "--stflash",
@@ -138,6 +138,8 @@ def build_capture_cmd(
         "scripts/artifact_tool.py",
         "capture",
         "--quick",
+        "--reset-context",
+        reset_mode,
         "--out",
         str(out_path),
     ]
@@ -184,7 +186,7 @@ def run_capture(
             contract == "rpl0"
             and reset_mode == "stlink"
             and not auto_reset_fired
-            and "Listener active; press reset now" in line
+            and "Listener active;" in line
         ):
             rc, out = trigger_stlink_reset(stflash)
             lines.append(out)
@@ -263,7 +265,7 @@ def main() -> int:
         out_path = artifacts_dir / out_name
 
         if args.reset_mode == "manual":
-            prompt = "wait for listener readiness, then press reset once."
+            prompt = "legacy/debug: wait for listener readiness, then press reset once."
         else:
             prompt = "waiting for listener readiness; reset will be triggered via stlink."
         print(
