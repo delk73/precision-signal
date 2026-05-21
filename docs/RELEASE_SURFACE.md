@@ -12,7 +12,7 @@ Normative behavior still comes from:
 For release and verification routing, use:
 
 - core verification authority: [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md)
-- detailed retained-release mechanics:
+- retained-release mechanics:
   [docs/verification/releases/index.md](verification/releases/index.md)
 - per-version retained records:
   [docs/verification/releases/<version>/](verification/releases/)
@@ -95,34 +95,13 @@ not part of the current release surface
 
 ## Release Routing
 
-- Canonical operator entrypoint: `make gate`
-- Core verification authority: [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md)
-- Detailed retained-release mechanics:
+- Select verification path: [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md)
+- Classify active release surface: this document
+- Inspect retained records: [docs/verification/releases/](verification/releases/)
+- Prepare retained releases:
   [docs/verification/releases/index.md](verification/releases/index.md)
-- Bench readiness preflight: `make bench-check`
-- Firmware capture gate for this release: `make fw-gate`
-- Underlying support command: `sig-util validate --mode quick`
-- Canonical retained release-evidence location for release records:
-  [docs/verification/releases/](verification/releases/)
-- Active retained release record: `1.8.0`
-- Active retained release route:
-  [docs/verification/releases/1.8.0/](verification/releases/1.8.0/) for the
-  firmware-including release record
-- Active retained release summary route:
-  [docs/verification/releases/1.8.0/index.md](verification/releases/1.8.0/index.md)
-- Future generated bundle summaries are retained under
-  `docs/verification/releases/<version>/`; historical bundles without generated
-  summaries remain valid
-- Active RPL0 firmware capture contract route:
+- Read firmware contract:
   [docs/replay/FW_F446_CAPTURE_v1.md](replay/FW_F446_CAPTURE_v1.md)
-- Timing characterization route:
-  [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](replay/INTERVAL_CAPTURE_CONTRACT_v1.md)
-  for `replay-fw-f446-timing`, support/reference relative to the active release
-- Replay demo packaging material and the historical `1.5.0` `replay-host diff`
-  slice are reference routes, not active `1.8.0` release authority
-- Retained verification scope for this release surface includes the `1.8.0`
-  release-checklist outputs and archived RPL0 firmware evidence. Historical
-  `1.7.0`, `1.5.0`, `1.4.0`, `1.3.1`, and
-  hardware-backed `1.2.2` retained evidence remains explicit under [docs/verification/releases/](verification/releases/).
-- This document classifies surfaced tools and routes proof bundles; it does not
-  define release admissibility
+
+This document classifies surfaced tools and routes readers. It does not define
+release procedure or release admissibility.

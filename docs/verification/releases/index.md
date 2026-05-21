@@ -98,6 +98,10 @@ The firmware evidence set includes the archived capture artifact, capture hash
 check, repeat-capture manifest, repeat hash check, and firmware release evidence
 summary when present in that per-version directory.
 
+Firmware release flows use the active `make fw-gate` path. Its default reset
+mode is ST-LINK reset through `FW_GATE_RESET_MODE ?= stlink`; manual reset is
+legacy/debug support only, not the normal release path.
+
 `make release-proof VERSION=<ver> RELEASE_PROOF_FIRMWARE=0` is a non-firmware
 proof route. It must not be used as evidence for a firmware-including release
 claim.
