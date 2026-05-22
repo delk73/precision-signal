@@ -41,8 +41,9 @@ This contract does not change firmware capture logic.
 3. Schema interpretation is RPL file-level only.
 4. RPL identity hash is deterministic: `SHA256(header + schema_block + frame_data)`.
 5. Unknown header fields are skippable using `header_len`.
-6. Backward-incompatible RPL layout changes require a header `version` increment.
-7. Firmware capture logic is out of scope and unchanged by this contract.
+6. For current RPL0 v1, `flags` MUST equal `0`.
+7. Backward-incompatible RPL layout changes require a header `version` increment.
+8. Firmware capture logic is out of scope and unchanged by this contract.
 
 ## Byte order
 
@@ -83,7 +84,7 @@ For `version = 1`, the minimum header size is `0x98` (`152`) bytes.
 | `0x06` | 2 | `header_len` | `u16` | Full header size in bytes |
 | `0x08` | 4 | `frame_count` | `u32` | Number of frames in frame data |
 | `0x0C` | 2 | `frame_size` | `u16` | MUST be `16` for v1 |
-| `0x0E` | 2 | `flags` | `u16` | RPL-level flags; opaque to framing |
+| `0x0E` | 2 | `flags` | `u16` | MUST be `0` for current RPL0 v1 |
 | `0x10` | 4 | `schema_len` | `u32` | Schema block length in bytes |
 | `0x14` | 32 | `schema_hash` | `[u8;32]` | `SHA256(schema_block)` |
 | `0x34` | 32 | `build_hash` | `[u8;32]` | Producer build identity (opaque bytes) |
@@ -109,6 +110,12 @@ For `version = 1`, the minimum header size is `0x98` (`152`) bytes.
 - `2`: Peripheral bus ingress
 
 Readers SHOULD preserve/report unknown values without reinterpretation.
+
+### `flags` rule
+
+For the current RPL0 v1 contract, `flags` MUST equal `0`.
+Nonzero flag semantics are reserved for a future explicit contract revision.
+A current compliant reader MUST reject v1 files with `flags != 0`.
 
 ## Schema block
 
@@ -179,6 +186,7 @@ A reader MUST reject when any of the following holds:
 - `version` unsupported by the reader
 - `header_len < 0x98`
 - `frame_size != 16` (for `version = 1`)
+- `flags != 0` (for current `version = 1`)
 - `schema_offset + schema_len > file_len`
 - `schema_hash != SHA256(schema_block)`
 - `file_len != header_len + schema_len + frame_count * frame_size`
@@ -193,7 +201,8 @@ A reader MUST reject when any of the following holds:
 
 1. Read bytes at offsets `0x00..0x98`; fail if file shorter than `0x98`.
 2. Decode little-endian header fields.
-3. Validate `magic`, `version`, `header_len`, and `frame_size`.
+3. Validate `magic`, `version`, `header_len`, `frame_size`, and current v1
+   `flags == 0`.
 4. Compute `expected_len` and validate exact file length.
 5. Slice `schema_block` and validate `schema_hash`.
 6. Slice `frame_data` as `frame_count` contiguous `16`-byte frames.
