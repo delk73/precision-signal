@@ -26,6 +26,8 @@ Core contracts and references:
   replay divergence model
 - [docs/verification/releases/index.md](docs/verification/releases/index.md) —
   retained release evidence and release mechanics
+- [docs/physical_characterization/PHYSICAL_CHARACTERIZATION.md](docs/physical_characterization/PHYSICAL_CHARACTERIZATION.md) —
+  bench power, timing, and stability observations
 - [docs/architecture/repository_mapping.md](docs/architecture/repository_mapping.md) —
   repository structure and implementation map
 
