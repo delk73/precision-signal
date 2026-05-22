@@ -1,7 +1,7 @@
 # Audits Landing
 
 Audits route here.
-Authority remains with [START_HERE.md](../START_HERE.md),
+Authority remains with the repository [README](../../README.md),
 [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md), and
 [RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
 

@@ -16,7 +16,7 @@
 - consolidated the demo-facing Make surface: `demo-evidence-package`, `demo-divergence`, `replay-demo-audit`, and captured divergence support remain operator-visible, while historical Demo V2-V5 lifecycle flows are retained as fixtures/scripts rather than top-level Make targets
 - added multi-model deterministic RPL0 capture validation for the `phase8` baseline plus `burst8` and `seeded_lfsr8` validation models, including feature-aware validation, explicit divergence boundaries, and fail-closed invalid combinations
 - retained live STM32 model-validation evidence with honest replay self-diff semantics, without promoting validation models to release baseline status or claiming independent replay equivalence
-- compressed the active documentation graph around explicit index surfaces (`DOCS_INDEX.md`, `REPLAY_INDEX.md`, `WIP_INDEX.md`, `AUDIT_INDEX.md`, and `PERFORMANCE_INDEX.md`) and added `docs/architecture/repository_mapping.md` as the structural map for stream layouts, firmware capture tasks, and host replay models
+- made the repository README the first-reader documentation entrypoint, kept folder indexes as routing aids, and added `docs/architecture/repository_mapping.md` as the structural map for stream layouts, firmware capture tasks, and host replay models
 - made ST-LINK reset the default firmware gate behavior
 - hardened documentation link checks with parallel-reader-path validation so non-authority documents resolve through a single active index path
 

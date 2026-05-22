@@ -2,7 +2,7 @@
 
 Demo material explains and exercises replay divergence behavior. It is
 support/reference material only. Active authority remains with
-[docs/START_HERE.md](../START_HERE.md), especially
+[docs/VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md),
 [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md),
 [docs/replay/FW_F446_CAPTURE_v1.md](../replay/FW_F446_CAPTURE_v1.md), and
 [docs/replay/DIVERGENCE_SEMANTICS.md](../replay/DIVERGENCE_SEMANTICS.md).
