@@ -95,7 +95,7 @@ not part of the current release surface
 
 ## Release Routing
 
-- Select verification path: [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md)
+- Run active verification flow: [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md)
 - Classify active release surface: this document
 - Inspect retained records: [docs/verification/releases/](verification/releases/)
 - Prepare retained releases:

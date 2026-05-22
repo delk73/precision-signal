@@ -6,12 +6,30 @@ over UART.
 
 ## Documentation
 
-Start with the canonical documentation router:
+Start here. The primary operator path is:
 
-- [docs/START_HERE.md](docs/START_HERE.md)
+1. [docs/VERIFICATION_GUIDE.md](docs/VERIFICATION_GUIDE.md) — local validation,
+   STM32 bench preflight, firmware gate, proof boundary, and release evidence
+   routing.
+2. [docs/RELEASE_SURFACE.md](docs/RELEASE_SURFACE.md) — released command
+   surface and support/experimental boundaries.
+3. [docs/authority/cli_contract.md](docs/authority/cli_contract.md) — command
+   line interface definitions and grammars.
 
-That router points to the active reading path and separates authority documents,
-supporting documentation, retained evidence, and transient artifacts.
+Core contracts and references:
+
+- [docs/replay/FW_F446_CAPTURE_v1.md](docs/replay/FW_F446_CAPTURE_v1.md) —
+  active firmware telemetry contract
+- [docs/spec/rpl0_format_contract.md](docs/spec/rpl0_format_contract.md) —
+  RPL0 serialization format
+- [docs/replay/DIVERGENCE_SEMANTICS.md](docs/replay/DIVERGENCE_SEMANTICS.md) —
+  replay divergence model
+- [docs/verification/releases/index.md](docs/verification/releases/index.md) —
+  retained release evidence and release mechanics
+- [docs/physical_characterization/PHYSICAL_CHARACTERIZATION.md](docs/physical_characterization/PHYSICAL_CHARACTERIZATION.md) —
+  bench power, timing, and stability observations
+- [docs/architecture/repository_mapping.md](docs/architecture/repository_mapping.md) —
+  repository structure and implementation map
 
 ## Local Verification
 

@@ -1,14 +1,13 @@
 # Documentation Index
 
-The canonical documentation entrypoint is [START_HERE.md](START_HERE.md).
+The canonical documentation entrypoint is the repository [README](../README.md).
 
 This file is only a directory index for readers who land directly in `docs/`.
-It is not a reading order and does not override [START_HERE.md](START_HERE.md)
-or any linked authority document.
+It is not a reading order and does not override the README or any linked
+authority document.
 
 ## Core Entry Points
 
-- [START_HERE.md](START_HERE.md)
 - [VERIFICATION_GUIDE.md](VERIFICATION_GUIDE.md)
 - [RELEASE_SURFACE.md](RELEASE_SURFACE.md)
 - [authority/cli_contract.md](authority/cli_contract.md)
