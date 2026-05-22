@@ -66,6 +66,25 @@ fn make_record_artifact(temp_root: &std::path::Path) -> String {
     artifact_path_from_stdout(&record.stdout)
 }
 
+fn assert_contract_success(output: &std::process::Output, command: &str) {
+    assert_eq!(
+        output.status.code(),
+        Some(0),
+        "stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert!(
+        output.stderr.is_empty(),
+        "unexpected stderr: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
+    assert_stdout_has_exactly_seven_lines(&output.stdout);
+    let stdout = String::from_utf8(output.stdout.clone()).expect("stdout must be utf8");
+    assert!(stdout.contains(&format!("COMMAND: {command}\n")));
+    assert!(stdout.contains("RESULT: PASS\n"));
+    assert!(stdout.contains("MODE: runtime_mode\n"));
+}
+
 fn assert_stdout_has_exactly_seven_lines(stdout: &[u8]) {
     let stdout = String::from_utf8(stdout.to_vec()).expect("stdout must be utf8");
     assert_eq!(
@@ -73,6 +92,50 @@ fn assert_stdout_has_exactly_seven_lines(stdout: &[u8]) {
         7,
         "stdout must contain exactly 7 lines"
     );
+}
+
+#[test]
+fn precision_mode_option_may_precede_positional_targets() {
+    let temp_root = unique_temp_root("precision-reordered-mode");
+
+    let record_a = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["record", "--mode", "runtime_mode", "fixture://target"])
+        .output()
+        .expect("precision record should run");
+    assert_contract_success(&record_a, "record");
+    let artifact_a = artifact_path_from_stdout(&record_a.stdout);
+
+    let record_b = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["record", "fixture://target", "--mode", "runtime_mode"])
+        .output()
+        .expect("precision record should run");
+    assert_contract_success(&record_b, "record");
+    let artifact_b = artifact_path_from_stdout(&record_b.stdout);
+
+    let replay = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["replay", "--mode", "runtime_mode", &artifact_a])
+        .output()
+        .expect("precision replay should run");
+    assert_contract_success(&replay, "replay");
+
+    let envelope = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["envelope", "--mode", "runtime_mode", &artifact_a])
+        .output()
+        .expect("precision envelope should run");
+    assert_contract_success(&envelope, "envelope");
+
+    let diff = Command::new(env!("CARGO_BIN_EXE_precision"))
+        .current_dir(&temp_root)
+        .args(["diff", "--mode", "runtime_mode", &artifact_a, &artifact_b])
+        .output()
+        .expect("precision diff should run");
+    assert_contract_success(&diff, "diff");
+
+    fs::remove_dir_all(&temp_root).expect("temp root cleanup");
 }
 
 fn scrub_volatile_result_block_fields(stdout: &[u8]) -> String {

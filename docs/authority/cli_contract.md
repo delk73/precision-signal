@@ -27,9 +27,13 @@ The authoritative invocation grammar is command-specific and fixed as follows:
 
 ```text
 precision record <target> --mode <mode>
+precision record --mode <mode> <target>
 precision replay <target> --mode <mode>
+precision replay --mode <mode> <target>
 precision envelope <target> --mode <mode>
+precision envelope --mode <mode> <target>
 precision diff <target_a> <target_b> --mode <mode>
+precision diff --mode <mode> <target_a> <target_b>
 ```
 
 The command position is fixed.
@@ -39,6 +43,9 @@ For `diff`, the target positions are fixed to two positional targets in the
 order `<target_a> <target_b>`.
 The spelling `--mode` is fixed.
 The mode domain is fixed to `runtime_mode|mock|none`.
+The `--mode <mode>` option MAY appear either before or after the positional
+target set for the selected command. This is the only permitted option
+reordering.
 No aliases are valid.
 No alternate authoritative invocation grammar exists.
 

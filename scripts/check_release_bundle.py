@@ -13,6 +13,7 @@ from pathlib import Path
 RUN_ID_RE = re.compile(r"run_\d{8}T\d{6}Z")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 RUN_DIR_REL_RE = re.compile(r"^artifacts/replay_runs/(run_\d{8}T\d{6}Z)$")
+RPL0_MANUAL_RESET_MAX_VERSION = (1, 8, 0)
 
 NON_FIRMWARE_REQUIRED_FILES = (
     "index.md",
@@ -143,6 +144,23 @@ def parse_repeat_manifest(path: Path) -> tuple[dict[str, str], list[dict[str, st
     return header, runs
 
 
+def parse_version_tuple(version: str) -> tuple[int, int, int] | None:
+    parts = version.split(".")
+    if len(parts) != 3:
+        return None
+    try:
+        return tuple(int(part) for part in parts)  # type: ignore[return-value]
+    except ValueError:
+        return None
+
+
+def required_rpl0_reset_mode(version: str) -> str:
+    parsed = parse_version_tuple(version)
+    if parsed is not None and parsed <= RPL0_MANUAL_RESET_MAX_VERSION:
+        return "manual"
+    return "stlink"
+
+
 def validate_rpl0_archive_bundle(bundle_dir: Path, repo_root: Path) -> tuple[list[str], list[str]]:
     errors: list[str] = []
     warnings: list[str] = []
@@ -178,8 +196,12 @@ def validate_rpl0_archive_bundle(bundle_dir: Path, repo_root: Path) -> tuple[lis
     manifest_header, manifest_runs = parse_repeat_manifest(manifest_path)
     if manifest_header.get("contract") != "rpl0":
         errors.append("fw_repeat/replay_manifest_v1.txt contract must be rpl0")
-    if manifest_header.get("reset_mode") != "manual":
-        errors.append("fw_repeat/replay_manifest_v1.txt reset_mode must be manual")
+    expected_reset_mode = required_rpl0_reset_mode(bundle_dir.name)
+    if manifest_header.get("reset_mode") != expected_reset_mode:
+        errors.append(
+            "fw_repeat/replay_manifest_v1.txt reset_mode must be "
+            f"{expected_reset_mode} for release {bundle_dir.name}"
+        )
     if manifest_header.get("signal_model") != "phase8":
         errors.append("fw_repeat/replay_manifest_v1.txt signal_model must be phase8")
     try:
