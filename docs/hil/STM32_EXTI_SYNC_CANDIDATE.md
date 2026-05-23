@@ -10,7 +10,7 @@ This is a measurement candidate, not a guaranteed `< 100 ns` solution.
 
 ```sh
 FW_FEATURES="self_stim" make fw
-FW_FEATURES="self_stim" make flash
+FW_FEATURES="self_stim" make flash-ur
 ```
 
 ## Wiring
