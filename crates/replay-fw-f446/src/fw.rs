@@ -2,6 +2,7 @@
 // This crate is embedded-only (cfg arm/none).
 // Unsafe usage is limited to:
 // - NVIC unmask
+// - direct PAC peripheral pointer access in the latency measurement ISR
 // - PAC register .bits() writes
 // - USART DR write
 // These are required by current PAC APIs and are quarantined to this firmware crate.
@@ -28,9 +29,18 @@ const FRAME_COUNT: usize = 10_000;
 const IRQ_ID_TIM2: u8 = 0x02;
 const TIMER_DELTA_NOMINAL: u32 = 1_000;
 const CAPTURE_BOUNDARY_ISR: u16 = 0;
+#[cfg(not(any(feature = "self_stim", feature = "pru_orchestration")))]
+const DEFAULT_APB1_HZ: u32 = 16_000_000;
+#[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+const SYNC_APB1_HZ: u32 = 45_000_000;
+#[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+const SYNC_TIM2_HZ: u32 = 90_000_000;
 
 const BOARD_ID: [u8; 16] = *b"NUCLEO-F446RE\0\0\0";
+#[cfg(not(any(feature = "self_stim", feature = "pru_orchestration")))]
 const CLOCK_PROFILE: [u8; 16] = *b"reset-16mhz-apb1";
+#[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+const CLOCK_PROFILE: [u8; 16] = *b"hse-pll-180mhz\0\0";
 #[cfg(feature = "demo-divergence")]
 const DEMO_DIVERGENCE_FRAME: usize = 4_096;
 #[cfg(feature = "demo-persistent-divergence")]
@@ -64,7 +74,12 @@ pub fn fw_main() -> ! {
         }
     };
 
+    #[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+    init_hse_pll_180mhz_or_fault(&dp);
+
     init_gpioa_for_usart2_tx(&dp);
+    #[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+    init_trigger_boundary(&dp);
     init_usart2(&dp);
     dp.RCC.apb1enr().modify(|_, w| w.tim2en().set_bit());
 
@@ -78,6 +93,8 @@ pub fn fw_main() -> ! {
     // Enable TIM2 IRQ at NVIC. IRQs are globally enabled after reset.
     unsafe {
         cortex_m::peripheral::NVIC::unmask(pac::Interrupt::TIM2);
+        #[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+        cortex_m::peripheral::NVIC::unmask(pac::Interrupt::EXTI0);
     }
 
     while !CAPTURE_DONE.load(Ordering::Acquire) {
@@ -160,6 +177,132 @@ pub fn tim2_isr() {
     }
 }
 
+// self_stim and pru_orchestration intentionally select the same firmware
+// synchronization path. They differ only by external HIL orchestration.
+#[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+pub fn exti0_isr() {
+    unsafe {
+        let gpioa = &*pac::GPIOA::ptr();
+        let exti = &*pac::EXTI::ptr();
+
+        gpioa.bsrr().write(|w| w.bs1().set_bit());
+        // EXTI PR is write-one-to-clear; bit 0 clears pending EXTI0.
+        exti.pr().write(|w| w.bits(1));
+        gpioa.bsrr().write(|w| w.br1().set_bit());
+    }
+}
+
+#[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+fn init_hse_pll_180mhz_or_fault(dp: &pac::Peripherals) {
+    dp.RCC.apb1enr().modify(|_, w| w.pwren().set_bit());
+    dp.PWR.cr().modify(|_, w| w.vos().scale1());
+
+    dp.FLASH.acr().modify(|_, w| {
+        w.icen().set_bit();
+        w.dcen().set_bit();
+        w.prften().set_bit();
+        w.latency().ws5()
+    });
+
+    dp.RCC.cr().modify(|_, w| w.hsebyp().set_bit());
+    dp.RCC.cr().modify(|_, w| w.hseon().set_bit());
+    wait_until_or_clock_fault(|| dp.RCC.cr().read().hserdy().bit_is_set());
+
+    dp.RCC.pllcfgr().write(|w| unsafe {
+        w.pllm().bits(4);
+        w.plln().bits(180);
+        w.pllp().div2();
+        w.pllsrc().hse();
+        w.pllq().bits(7)
+    });
+
+    dp.PWR.cr().modify(|_, w| w.oden().set_bit());
+    wait_until_or_clock_fault(|| dp.PWR.csr().read().odrdy().bit_is_set());
+    dp.PWR.cr().modify(|_, w| w.odswen().set_bit());
+    wait_until_or_clock_fault(|| dp.PWR.csr().read().odswrdy().bit_is_set());
+
+    dp.RCC.cfgr().modify(|_, w| {
+        w.hpre().div1();
+        w.ppre1().div4();
+        w.ppre2().div2()
+    });
+
+    dp.RCC.cr().modify(|_, w| w.pllon().set_bit());
+    wait_until_or_clock_fault(|| dp.RCC.cr().read().pllrdy().bit_is_set());
+
+    dp.RCC.cfgr().modify(|_, w| w.sw().pll());
+    wait_until_or_clock_fault(|| dp.RCC.cfgr().read().sws().is_pll());
+
+    if !dp.RCC.cfgr().read().sws().is_pll() {
+        clock_fault_loop();
+    }
+}
+
+#[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+fn wait_until_or_clock_fault(mut ready: impl FnMut() -> bool) {
+    for _ in 0..2_000_000 {
+        if ready() {
+            return;
+        }
+        cortex_m::asm::nop();
+    }
+    clock_fault_loop();
+}
+
+#[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+fn clock_fault_loop() -> ! {
+    // In sync feature builds, PA1 has two mutually exclusive observable roles:
+    // - repeating blink here means clock initialization fault before HIL operation;
+    // - short pulse from exti0_isr() means EXTI acknowledgment during validation.
+    unsafe {
+        let rcc = &*pac::RCC::ptr();
+        let gpioa = &*pac::GPIOA::ptr();
+
+        rcc.ahb1enr().modify(|_, w| w.gpioaen().set_bit());
+        gpioa.moder().modify(|_, w| w.moder1().output());
+        gpioa.otyper().modify(|_, w| w.ot1().clear_bit());
+        gpioa
+            .ospeedr()
+            .modify(|_, w| w.ospeedr1().very_high_speed());
+        gpioa.pupdr().modify(|_, w| w.pupdr1().floating());
+
+        loop {
+            gpioa.bsrr().write(|w| w.bs1().set_bit());
+            cortex_m::asm::delay(180_000);
+            gpioa.bsrr().write(|w| w.br1().set_bit());
+            cortex_m::asm::delay(180_000);
+        }
+    }
+}
+
+#[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+fn init_trigger_boundary(dp: &pac::Peripherals) {
+    dp.RCC.ahb1enr().modify(|_, w| w.gpioaen().set_bit());
+    dp.RCC.apb2enr().modify(|_, w| w.syscfgen().set_bit());
+
+    dp.GPIOA.moder().modify(|_, w| {
+        w.moder0().input();
+        w.moder1().output()
+    });
+    dp.GPIOA.otyper().modify(|_, w| w.ot1().clear_bit());
+    dp.GPIOA
+        .ospeedr()
+        .modify(|_, w| w.ospeedr1().very_high_speed());
+    dp.GPIOA.pupdr().modify(|_, w| {
+        w.pupdr0().floating();
+        w.pupdr1().floating()
+    });
+    dp.GPIOA.bsrr().write(|w| w.br1().set_bit());
+
+    dp.SYSCFG.exticr1().modify(|_, w| w.exti0().pa());
+    dp.EXTI.imr().modify(|_, w| w.mr0().clear_bit());
+    dp.EXTI.rtsr().modify(|_, w| w.tr0().set_bit());
+    dp.EXTI.ftsr().modify(|_, w| w.tr0().clear_bit());
+    // EXTI PR is write-one-to-clear; bit 0 clears pending EXTI0.
+    dp.EXTI.pr().write(|w| unsafe { w.bits(1) });
+    dp.EXTI.imr().modify(|_, w| w.mr0().set_bit());
+}
+
 fn init_gpioa_for_usart2_tx(dp: &pac::Peripherals) {
     dp.RCC.ahb1enr().modify(|_, w| w.gpioaen().set_bit());
 
@@ -176,13 +319,18 @@ fn init_gpioa_for_usart2_tx(dp: &pac::Peripherals) {
 fn init_usart2(dp: &pac::Peripherals) {
     dp.RCC.apb1enr().modify(|_, w| w.usart2en().set_bit());
 
-    // Reset clocks: APB1 = 16 MHz, oversampling by 16.
-    // USARTDIV = 16_000_000 / (16 * 115200) = 8.6805
-    // Mantissa = 8, Fraction = 11.
+    let apb1_hz = usart2_apb1_hz();
+    let usartdiv_x16 = (apb1_hz + 57_600) / 115_200;
+    let mantissa = (usartdiv_x16 / 16) as u16;
+    let fraction = (usartdiv_x16 % 16) as u8;
+
     dp.USART2.cr1().modify(|_, w| w.ue().clear_bit());
-    dp.USART2
-        .brr()
-        .write(|w| unsafe { w.div_mantissa().bits(8).div_fraction().bits(11) });
+    dp.USART2.brr().write(|w| unsafe {
+        w.div_mantissa()
+            .bits(mantissa)
+            .div_fraction()
+            .bits(fraction)
+    });
     dp.USART2.cr2().reset();
     dp.USART2.cr3().reset();
     dp.USART2
@@ -193,14 +341,14 @@ fn init_usart2(dp: &pac::Peripherals) {
 fn init_tim2_1khz() {
     cortex_m::interrupt::free(|cs| {
         if let Some(tim2) = TIM2_DEV.borrow(cs).borrow_mut().as_mut() {
-            // Timer clock assumed 16 MHz (reset clocks):
-            // update_hz = 16_000_000 / (PSC + 1) / (ARR + 1)
-            // PSC=15 and ARR=999 => 1,000 Hz update interrupt.
+            let psc = (tim2_clock_hz() / 1_000_000) - 1;
+            let arr = 999;
+
             // Force a known base state: disabled, continuous mode.
             tim2.cr1()
                 .modify(|_, w| w.cen().clear_bit().opm().clear_bit());
-            tim2.psc().write(|w| unsafe { w.psc().bits(15) });
-            tim2.arr().write(|w| unsafe { w.arr().bits(999) });
+            tim2.psc().write(|w| unsafe { w.psc().bits(psc as u16) });
+            tim2.arr().write(|w| unsafe { w.arr().bits(arr) });
             tim2.egr().write(|w| w.ug().set_bit());
             tim2.sr().modify(|_, w| w.uif().clear_bit());
             tim2.dier().modify(|_, w| w.uie().set_bit());
@@ -209,6 +357,28 @@ fn init_tim2_1khz() {
                 .modify(|_, w| w.opm().clear_bit().cen().set_bit());
         }
     });
+}
+
+fn usart2_apb1_hz() -> u32 {
+    #[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+    {
+        SYNC_APB1_HZ
+    }
+    #[cfg(not(any(feature = "self_stim", feature = "pru_orchestration")))]
+    {
+        DEFAULT_APB1_HZ
+    }
+}
+
+fn tim2_clock_hz() -> u32 {
+    #[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+    {
+        SYNC_TIM2_HZ
+    }
+    #[cfg(not(any(feature = "self_stim", feature = "pru_orchestration")))]
+    {
+        DEFAULT_APB1_HZ
+    }
 }
 
 fn stop_tim2() {
