@@ -34,6 +34,7 @@ authority document.
 - [operator/stm32_replay.md](operator/stm32_replay.md)
 - [operations/USB_WORKFLOW.md](operations/USB_WORKFLOW.md)
 - [hardware/REFERENCE_HARDWARE.md](hardware/REFERENCE_HARDWARE.md)
+- [hil/STM32_EXTI_SYNC_CANDIDATE.md](hil/STM32_EXTI_SYNC_CANDIDATE.md)
 - [physical_characterization/PHYSICAL_CHARACTERIZATION.md](physical_characterization/PHYSICAL_CHARACTERIZATION.md)
 
 ## Supporting Areas
