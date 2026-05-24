@@ -27,5 +27,11 @@ fn TIM2() {
     fw::tim2_isr()
 }
 
+#[cfg(all(target_arch = "arm", target_os = "none", feature = "sync_trigger_in"))]
+#[interrupt]
+fn EXTI0() {
+    fw::exti0_isr()
+}
+
 #[cfg(not(all(target_arch = "arm", target_os = "none")))]
 fn main() {}

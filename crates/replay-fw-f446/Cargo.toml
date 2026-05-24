@@ -10,6 +10,9 @@ description = "NUCLEO-F446RE replay artifact capture MVP (TIM2 + USART2, PAC onl
 signal-model-phase8 = []
 signal-model-burst8 = []
 signal-model-seeded-lfsr8 = []
+# Hardware synchronization trigger I/O candidates for HIL timing validation.
+sync_trigger_out = []
+sync_trigger_in = []
 # Diagnostic-only ISR probe symbol for low-level debugger sessions.
 # Not part of the canonical release/capture workflow.
 debug-irq-count = []
