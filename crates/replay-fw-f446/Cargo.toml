@@ -13,6 +13,7 @@ signal-model-seeded-lfsr8 = []
 # Hardware synchronization trigger I/O candidates for HIL timing validation.
 sync_trigger_out = []
 sync_trigger_in = []
+sync_timing_capture = []
 # Diagnostic-only ISR probe symbol for low-level debugger sessions.
 # Not part of the canonical release/capture workflow.
 debug-irq-count = []
