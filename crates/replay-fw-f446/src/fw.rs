@@ -2,7 +2,7 @@
 // This crate is embedded-only (cfg arm/none).
 // Unsafe usage is limited to:
 // - NVIC unmask
-// - direct PAC peripheral pointer access in the latency measurement ISR
+// - direct PAC peripheral pointer access in the latency ISR and trigger pulse helper
 // - PAC register .bits() writes
 // - USART DR write
 // These are required by current PAC APIs and are quarantined to this firmware crate.
@@ -29,17 +29,17 @@ const FRAME_COUNT: usize = 10_000;
 const IRQ_ID_TIM2: u8 = 0x02;
 const TIMER_DELTA_NOMINAL: u32 = 1_000;
 const CAPTURE_BOUNDARY_ISR: u16 = 0;
-#[cfg(not(any(feature = "self_stim", feature = "pru_orchestration")))]
+#[cfg(not(any(feature = "sync_trigger_out", feature = "sync_trigger_in")))]
 const DEFAULT_APB1_HZ: u32 = 16_000_000;
-#[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+#[cfg(any(feature = "sync_trigger_out", feature = "sync_trigger_in"))]
 const SYNC_APB1_HZ: u32 = 45_000_000;
-#[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+#[cfg(any(feature = "sync_trigger_out", feature = "sync_trigger_in"))]
 const SYNC_TIM2_HZ: u32 = 90_000_000;
 
 const BOARD_ID: [u8; 16] = *b"NUCLEO-F446RE\0\0\0";
-#[cfg(not(any(feature = "self_stim", feature = "pru_orchestration")))]
+#[cfg(not(any(feature = "sync_trigger_out", feature = "sync_trigger_in")))]
 const CLOCK_PROFILE: [u8; 16] = *b"reset-16mhz-apb1";
-#[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+#[cfg(any(feature = "sync_trigger_out", feature = "sync_trigger_in"))]
 const CLOCK_PROFILE: [u8; 16] = *b"hse-pll-180mhz\0\0";
 #[cfg(feature = "demo-divergence")]
 const DEMO_DIVERGENCE_FRAME: usize = 4_096;
@@ -74,12 +74,14 @@ pub fn fw_main() -> ! {
         }
     };
 
-    #[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+    #[cfg(any(feature = "sync_trigger_out", feature = "sync_trigger_in"))]
     init_hse_pll_180mhz_or_fault(&dp);
 
     init_gpioa_for_usart2_tx(&dp);
-    #[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+    #[cfg(feature = "sync_trigger_in")]
     init_trigger_boundary(&dp);
+    #[cfg(feature = "sync_trigger_out")]
+    init_sync_trigger_output(&dp);
     init_usart2(&dp);
     dp.RCC.apb1enr().modify(|_, w| w.tim2en().set_bit());
 
@@ -93,12 +95,24 @@ pub fn fw_main() -> ! {
     // Enable TIM2 IRQ at NVIC. IRQs are globally enabled after reset.
     unsafe {
         cortex_m::peripheral::NVIC::unmask(pac::Interrupt::TIM2);
-        #[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+        #[cfg(feature = "sync_trigger_in")]
         cortex_m::peripheral::NVIC::unmask(pac::Interrupt::EXTI0);
     }
 
+    #[cfg(feature = "sync_trigger_out")]
+    let mut sync_trigger_out_div: u32 = 0;
+
     while !CAPTURE_DONE.load(Ordering::Acquire) {
         cortex_m::asm::wfi();
+
+        #[cfg(feature = "sync_trigger_out")]
+        {
+            sync_trigger_out_div = sync_trigger_out_div.wrapping_add(1);
+            if sync_trigger_out_div >= 100 {
+                sync_trigger_out_div = 0;
+                pulse_sync_trigger_output();
+            }
+        }
     }
 
     // Halt capture and enter dump-only phase.
@@ -177,9 +191,7 @@ pub fn tim2_isr() {
     }
 }
 
-// self_stim and pru_orchestration intentionally select the same firmware
-// synchronization path. They differ only by external HIL orchestration.
-#[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+#[cfg(feature = "sync_trigger_in")]
 pub fn exti0_isr() {
     unsafe {
         let gpioa = &*pac::GPIOA::ptr();
@@ -192,7 +204,7 @@ pub fn exti0_isr() {
     }
 }
 
-#[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+#[cfg(any(feature = "sync_trigger_out", feature = "sync_trigger_in"))]
 fn init_hse_pll_180mhz_or_fault(dp: &pac::Peripherals) {
     dp.RCC.apb1enr().modify(|_, w| w.pwren().set_bit());
     dp.PWR.cr().modify(|_, w| w.vos().scale1());
@@ -238,7 +250,7 @@ fn init_hse_pll_180mhz_or_fault(dp: &pac::Peripherals) {
     }
 }
 
-#[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+#[cfg(any(feature = "sync_trigger_out", feature = "sync_trigger_in"))]
 fn wait_until_or_clock_fault(mut ready: impl FnMut() -> bool) {
     for _ in 0..2_000_000 {
         if ready() {
@@ -249,11 +261,11 @@ fn wait_until_or_clock_fault(mut ready: impl FnMut() -> bool) {
     clock_fault_loop();
 }
 
-#[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+#[cfg(any(feature = "sync_trigger_out", feature = "sync_trigger_in"))]
 fn clock_fault_loop() -> ! {
-    // In sync feature builds, PA1 has two mutually exclusive observable roles:
-    // - repeating blink here means clock initialization fault before HIL operation;
-    // - short pulse from exti0_isr() means EXTI acknowledgment during validation.
+    // In sync trigger builds, repeating PA1 blink means clock initialization fault
+    // before HIL operation; with sync_trigger_in, a short PA1 pulse from
+    // exti0_isr() means EXTI acknowledgment during validation.
     unsafe {
         let rcc = &*pac::RCC::ptr();
         let gpioa = &*pac::GPIOA::ptr();
@@ -275,7 +287,7 @@ fn clock_fault_loop() -> ! {
     }
 }
 
-#[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+#[cfg(feature = "sync_trigger_in")]
 fn init_trigger_boundary(dp: &pac::Peripherals) {
     dp.RCC.ahb1enr().modify(|_, w| w.gpioaen().set_bit());
     dp.RCC.apb2enr().modify(|_, w| w.syscfgen().set_bit());
@@ -301,6 +313,30 @@ fn init_trigger_boundary(dp: &pac::Peripherals) {
     // EXTI PR is write-one-to-clear; bit 0 clears pending EXTI0.
     dp.EXTI.pr().write(|w| unsafe { w.bits(1) });
     dp.EXTI.imr().modify(|_, w| w.mr0().set_bit());
+}
+
+#[cfg(feature = "sync_trigger_out")]
+fn init_sync_trigger_output(dp: &pac::Peripherals) {
+    dp.RCC.ahb1enr().modify(|_, w| w.gpioaen().set_bit());
+    dp.GPIOA.bsrr().write(|w| w.br6().set_bit());
+    dp.GPIOA.moder().modify(|_, w| w.moder6().output());
+    dp.GPIOA.otyper().modify(|_, w| w.ot6().clear_bit());
+    dp.GPIOA
+        .ospeedr()
+        .modify(|_, w| w.ospeedr6().very_high_speed());
+    dp.GPIOA.pupdr().modify(|_, w| w.pupdr6().floating());
+    dp.GPIOA.bsrr().write(|w| w.br6().set_bit());
+}
+
+#[cfg(feature = "sync_trigger_out")]
+fn pulse_sync_trigger_output() {
+    unsafe {
+        let gpioa = &*pac::GPIOA::ptr();
+
+        gpioa.bsrr().write(|w| w.bs6().set_bit());
+        cortex_m::asm::delay(180);
+        gpioa.bsrr().write(|w| w.br6().set_bit());
+    }
 }
 
 fn init_gpioa_for_usart2_tx(dp: &pac::Peripherals) {
@@ -360,22 +396,22 @@ fn init_tim2_1khz() {
 }
 
 fn usart2_apb1_hz() -> u32 {
-    #[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+    #[cfg(any(feature = "sync_trigger_out", feature = "sync_trigger_in"))]
     {
         SYNC_APB1_HZ
     }
-    #[cfg(not(any(feature = "self_stim", feature = "pru_orchestration")))]
+    #[cfg(not(any(feature = "sync_trigger_out", feature = "sync_trigger_in")))]
     {
         DEFAULT_APB1_HZ
     }
 }
 
 fn tim2_clock_hz() -> u32 {
-    #[cfg(any(feature = "self_stim", feature = "pru_orchestration"))]
+    #[cfg(any(feature = "sync_trigger_out", feature = "sync_trigger_in"))]
     {
         SYNC_TIM2_HZ
     }
-    #[cfg(not(any(feature = "self_stim", feature = "pru_orchestration")))]
+    #[cfg(not(any(feature = "sync_trigger_out", feature = "sync_trigger_in")))]
     {
         DEFAULT_APB1_HZ
     }

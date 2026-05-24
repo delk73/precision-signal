@@ -27,11 +27,7 @@ fn TIM2() {
     fw::tim2_isr()
 }
 
-#[cfg(all(
-    target_arch = "arm",
-    target_os = "none",
-    any(feature = "self_stim", feature = "pru_orchestration")
-))]
+#[cfg(all(target_arch = "arm", target_os = "none", feature = "sync_trigger_in"))]
 #[interrupt]
 fn EXTI0() {
     fw::exti0_isr()

@@ -9,34 +9,68 @@ This is a measurement candidate, not a guaranteed `< 100 ns` solution.
 ## Build
 
 ```sh
-FW_FEATURES="self_stim" make fw
-FW_FEATURES="self_stim" make flash-ur
+FW_FEATURES="sync_trigger_out sync_trigger_in" make fw
+FW_FEATURES="sync_trigger_out sync_trigger_in" make flash-ur
 ```
 
 ## Wiring
 
 ```text
-PA0 = trigger input
-PA1 = acknowledgment output
-GND = shared with trigger source and scope
+PA6/D12 = trigger output
+PA0/A0  = trigger input
+PA1/A1  = acknowledgment output
+GND     = shared with scope/source
+```
+
+## Single-board loopback
+
+```text
+PA6/D12 -> PA0/A0
 ```
 
 ## Meaning
 
 ```text
-PA1 short pulse      = EXTI acknowledgment
-PA1 repeating blink  = clock initialization fault
+PA6/D12 pulse       = trigger output
+PA0/A0 rising       = trigger input observed
+PA1/A1 short pulse  = acknowledgment output
+PA1/A1 repeating blink = clock failed
 ```
 
 ## Single-board bring-up
 
 ```text
-1. Flash self_stim.
-2. Confirm PA1 is not blinking.
-3. Confirm UART decode still works.
-4. Confirm TIM2 1 kHz capture still works.
-5. Drive PA0 with a slow rising edge.
-6. Confirm PA1 emits a short pulse.
+1. Flash sync_trigger_out sync_trigger_in.
+2. Jumper PA6/D12 to PA0/A0.
+3. Confirm PA1/A1 is not blinking.
+4. Confirm UART decode still works.
+5. Confirm TIM2 1 kHz capture still works.
+6. Confirm PA0/A0 shows the PA6/D12 trigger pulse.
+7. Confirm PA1/A1 emits a short pulse after PA0/A0 rises.
+```
+
+## Scope check order
+
+Use this order when the scope result is unclear.
+
+```text
+1. Confirm RPL0 capture completes.
+   - This proves UART/RPL0 output and TIM2 capture are alive.
+   - It does not prove PA6/PA0/PA1 sync I/O.
+
+2. Probe PA6/D12 directly.
+   - Expected: throttled trigger pulse during capture.
+   - If PA6 is flat, debug trigger output or flashed feature set.
+
+3. Probe PA0/A0 with PA6/D12 jumpered to PA0/A0.
+   - Expected: PA0 shows the PA6-driven trigger pulse.
+   - If PA6 pulses but PA0 is flat, debug jumper or pin mapping.
+
+4. Probe PA0/A0 and PA1/A1 together.
+   - CH1: PA0/A0
+   - CH2: PA1/A1
+   - Trigger on CH1 rising edge.
+   - Expected: PA1 emits a short acknowledgment pulse after PA0 rises.
 ```
 
 ## HIL gate
@@ -62,6 +96,19 @@ missed pulses:
 UART decode:
 TIM2 cadence:
 result:
+notes:
+```
+
+## Bring-up result notes
+
+Record these separately:
+
+```text
+RPL0 capture: pass/fail
+TIM2 delta: 1000/other
+PA6 trigger output observed: yes/no
+PA0 loopback trigger observed: yes/no
+PA1 acknowledgment pulse observed: yes/no
 notes:
 ```
 
