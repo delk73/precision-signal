@@ -1,0 +1,22 @@
+{
+  "ack_count": 10000,
+  "ack_output": "PA1_A1",
+  "artifact_kind": "hil_timing_capture",
+  "capture_ack": "PB9_TIM4_CH4",
+  "capture_error_count": 0,
+  "capture_trigger": "PB8_TIM4_CH3",
+  "feature_set": "sync_trigger_out sync_trigger_in sync_timing_capture",
+  "max_delta_ns": 2222,
+  "max_delta_ticks": 200,
+  "measured_path": "PB9_PA1_minus_PB8_PA6",
+  "missed_ack_count": 0,
+  "result": "FAIL",
+  "schema": "SYNC_TIMING_CAPTURE_V1",
+  "threshold_ticks": 9,
+  "timer_hz": 90000000,
+  "trigger_count": 10000,
+  "trigger_input": "PA0_A0",
+  "trigger_output": "PA6_D12",
+  "unexpected_ack_count": 0,
+  "wiring_profile": "single_board_split_capture_v1"
+}

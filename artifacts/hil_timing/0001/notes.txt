@@ -1,0 +1,33 @@
+Run 0001 captured a valid single-board split-capture timing artifact.
+
+Wiring profile:
+PA6/D12 -> PA0/A0
+PA6/D12 -> PB8/TIM4_CH3
+PA1/A1  -> PB9/TIM4_CH4
+GND shared
+
+Result:
+FAIL
+
+Observed:
+trigger_count=10000
+ack_count=10000
+missed_ack_count=0
+unexpected_ack_count=0
+capture_error_count=0
+max_delta_ticks=200
+max_delta_ns=2222
+threshold_ticks=9
+
+Interpretation:
+The timing evidence path is operational. Every trigger had one acknowledgment, no unexpected acknowledgments were observed, and no TIM4 capture overrun was reported.
+
+The retained result is FAIL because observed split-capture latency exceeded the strict <100 ns gate. At 90 MHz, threshold_ticks=9 and max_delta_ticks=200.
+
+Measured path:
+PB9 capture of PA1/A1 acknowledgment - PB8 capture of PA6/D12 trigger
+
+This is observed timing through the selected measurement wiring, not exact internal PA0-to-PA1 silicon latency.
+
+Next investigation:
+Reduce measurement perturbation by making PA6 trigger timestamp capture passive relative to EXTI0, and ensure EXTI0 has priority over timing-capture servicing.
