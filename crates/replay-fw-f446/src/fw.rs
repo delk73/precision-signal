@@ -3,6 +3,7 @@
 // Unsafe usage is limited to:
 // - NVIC unmask
 // - direct PAC peripheral pointer access in the latency ISR and trigger pulse helper
+// - direct volatile peripheral writes in the timing-capture latency ISR
 // - PAC register .bits() writes
 // - USART DR write
 // These are required by current PAC APIs and are quarantined to this firmware crate.
@@ -89,6 +90,16 @@ const TIM_SR_CC4IF: u32 = 1 << 4;
 const TIM_SR_CC3OF: u32 = 1 << 11;
 #[cfg(feature = "sync_timing_capture")]
 const TIM_SR_CC4OF: u32 = 1 << 12;
+#[cfg(all(feature = "sync_trigger_in", feature = "sync_timing_capture"))]
+const GPIOA_BSRR_ADDR: usize = 0x4002_0018;
+#[cfg(all(feature = "sync_trigger_in", feature = "sync_timing_capture"))]
+const EXTI_PR_ADDR: usize = 0x4001_3c14;
+#[cfg(all(feature = "sync_trigger_in", feature = "sync_timing_capture"))]
+const GPIO_BSRR_BS1: u32 = 1 << 1;
+#[cfg(all(feature = "sync_trigger_in", feature = "sync_timing_capture"))]
+const GPIO_BSRR_BR1: u32 = 1 << 17;
+#[cfg(all(feature = "sync_trigger_in", feature = "sync_timing_capture"))]
+const EXTI_PR_PR0: u32 = 1;
 
 #[cfg(not(feature = "sync_timing_capture"))]
 static CAPTURE_DONE: AtomicBool = AtomicBool::new(false);
@@ -324,6 +335,14 @@ pub fn tim2_isr() {
 
 #[cfg(feature = "sync_trigger_in")]
 pub fn exti0_isr() {
+    #[cfg(feature = "sync_timing_capture")]
+    unsafe {
+        core::ptr::write_volatile(GPIOA_BSRR_ADDR as *mut u32, GPIO_BSRR_BS1);
+        core::ptr::write_volatile(EXTI_PR_ADDR as *mut u32, EXTI_PR_PR0);
+        core::ptr::write_volatile(GPIOA_BSRR_ADDR as *mut u32, GPIO_BSRR_BR1);
+    }
+
+    #[cfg(not(feature = "sync_timing_capture"))]
     unsafe {
         let gpioa = &*pac::GPIOA::ptr();
         let exti = &*pac::EXTI::ptr();
