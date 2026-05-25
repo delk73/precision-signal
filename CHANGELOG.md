@@ -7,6 +7,24 @@
 
 ## [Unreleased]
 
+### Added
+
+- added STM32 sync trigger I/O features for HIL bring-up: `sync_trigger_out`
+  enables PA6/D12 trigger output, and `sync_trigger_in` enables PA0/A0 EXTI
+  trigger input with PA1/A1 acknowledgment output. The combined build supports
+  single-board loopback with PA6/D12 wired to PA0/A0 and is documented in the
+  HIL operator note.
+- added STM32 sync timing capture evidence support with `sync_timing_capture`.
+  The timing mode observes PA6/D12 trigger timing through PB8/TIM4_CH3 and
+  PA1/A1 acknowledgment timing through PB9/TIM4_CH4, emits a
+  `SYNC_TIMING_CAPTURE_V1` report over USART2, and retains evidence under
+  `artifacts/hil_timing/<run_id>/` via `scripts/hil_timing_capture.py`.
+- added initial retained timing capture run `artifacts/hil_timing/0001`. The
+  run captured `trigger_count=10000` and `ack_count=10000` with
+  `missed_ack_count=0`, `unexpected_ack_count=0`, and `capture_error_count=0`.
+  The retained result is `FAIL` because `max_delta_ticks=200` exceeds
+  `threshold_ticks=9`.
+
 ### Maintenance
 
 - added `make bench-check` bench readiness preflight for STM32 release operations, covering serial device presence, ST-LINK probe presence, required host binaries, and optional firmware build artifacts

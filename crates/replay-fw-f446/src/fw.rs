@@ -8,38 +8,55 @@
 // These are required by current PAC APIs and are quarantined to this firmware crate.
 
 use core::cell::RefCell;
+#[cfg(feature = "sync_timing_capture")]
+use core::fmt::{self, Write};
 use core::sync::atomic::{AtomicBool, AtomicU32, Ordering};
 
 use cortex_m::interrupt::Mutex;
 use panic_halt as _;
+#[cfg(not(feature = "sync_timing_capture"))]
 use replay_core::artifact::{
     encode_event_frame0_le, encode_header1_le, EventFrame0, Header1, FRAME_SIZE, MAGIC,
     V1_MIN_HEADER_SIZE, VERSION1,
 };
 use stm32f4::stm32f446::{self as pac};
 
+#[cfg(not(feature = "sync_timing_capture"))]
 use crate::artifact_metadata::{BUILD_HASH, CONFIG_HASH, RPL0_SCHEMA, SCHEMA_HASH};
-#[cfg(feature = "demo-persistent-divergence")]
+#[cfg(all(
+    feature = "demo-persistent-divergence",
+    not(feature = "sync_timing_capture")
+))]
 use crate::signal_model::persistent_divergence_state;
+#[cfg(not(feature = "sync_timing_capture"))]
 use crate::signal_model::{
     advance_state_for_model, sample_for_model, SELECTED_SIGNAL_MODEL, SIGNAL_INITIAL_STATE,
 };
 
+#[cfg(not(feature = "sync_timing_capture"))]
 const FRAME_COUNT: usize = 10_000;
+#[cfg(not(feature = "sync_timing_capture"))]
 const IRQ_ID_TIM2: u8 = 0x02;
+#[cfg(not(feature = "sync_timing_capture"))]
 const TIMER_DELTA_NOMINAL: u32 = 1_000;
+#[cfg(not(feature = "sync_timing_capture"))]
 const CAPTURE_BOUNDARY_ISR: u16 = 0;
 #[cfg(not(any(feature = "sync_trigger_out", feature = "sync_trigger_in")))]
 const DEFAULT_APB1_HZ: u32 = 16_000_000;
 #[cfg(any(feature = "sync_trigger_out", feature = "sync_trigger_in"))]
 const SYNC_APB1_HZ: u32 = 45_000_000;
 #[cfg(any(feature = "sync_trigger_out", feature = "sync_trigger_in"))]
+#[cfg(not(feature = "sync_timing_capture"))]
 const SYNC_TIM2_HZ: u32 = 90_000_000;
 
+#[cfg(not(feature = "sync_timing_capture"))]
 const BOARD_ID: [u8; 16] = *b"NUCLEO-F446RE\0\0\0";
 #[cfg(not(any(feature = "sync_trigger_out", feature = "sync_trigger_in")))]
 const CLOCK_PROFILE: [u8; 16] = *b"reset-16mhz-apb1";
-#[cfg(any(feature = "sync_trigger_out", feature = "sync_trigger_in"))]
+#[cfg(all(
+    not(feature = "sync_timing_capture"),
+    any(feature = "sync_trigger_out", feature = "sync_trigger_in")
+))]
 const CLOCK_PROFILE: [u8; 16] = *b"hse-pll-180mhz\0\0";
 #[cfg(feature = "demo-divergence")]
 const DEMO_DIVERGENCE_FRAME: usize = 4_096;
@@ -48,18 +65,69 @@ const DEMO_PERSISTENT_DIVERGENCE_FRAME: usize = 4_096;
 
 #[cfg(all(feature = "demo-divergence", feature = "demo-persistent-divergence"))]
 compile_error!("demo-divergence and demo-persistent-divergence are mutually exclusive");
+#[cfg(all(
+    feature = "sync_timing_capture",
+    not(all(feature = "sync_trigger_out", feature = "sync_trigger_in"))
+))]
+compile_error!("sync_timing_capture requires sync_trigger_out and sync_trigger_in");
 
+#[cfg(feature = "sync_timing_capture")]
+const SYNC_TIMING_TRIGGER_TARGET: u32 = 10_000;
+#[cfg(feature = "sync_timing_capture")]
+const SYNC_TIMING_TIMER_HZ: u32 = 90_000_000;
+#[cfg(feature = "sync_timing_capture")]
+const SYNC_TIMING_THRESHOLD_TICKS: u32 = 9;
+#[cfg(feature = "sync_timing_capture")]
+const SYNC_TIMING_ACK_GRACE_POLLS: u32 = 10_000;
+#[cfg(feature = "sync_timing_capture")]
+const SYNC_TIMING_ACK_GRACE_DELAY_CYCLES: u32 = 180;
+#[cfg(feature = "sync_timing_capture")]
+const TIM_SR_CC3IF: u32 = 1 << 3;
+#[cfg(feature = "sync_timing_capture")]
+const TIM_SR_CC4IF: u32 = 1 << 4;
+#[cfg(feature = "sync_timing_capture")]
+const TIM_SR_CC3OF: u32 = 1 << 11;
+#[cfg(feature = "sync_timing_capture")]
+const TIM_SR_CC4OF: u32 = 1 << 12;
+
+#[cfg(not(feature = "sync_timing_capture"))]
 static CAPTURE_DONE: AtomicBool = AtomicBool::new(false);
+#[cfg(not(feature = "sync_timing_capture"))]
 static WRITE_IDX: AtomicU32 = AtomicU32::new(0);
+#[cfg(not(feature = "sync_timing_capture"))]
 static SIGNAL_STATE: AtomicU32 = AtomicU32::new(SIGNAL_INITIAL_STATE);
 #[cfg(feature = "debug-irq-count")]
 #[used]
 #[no_mangle]
 #[link_section = ".bss.irq_probe"]
 pub static mut IRQ_COUNT_PROBE: u32 = 0;
+#[cfg(not(feature = "sync_timing_capture"))]
 static SAMPLES: Mutex<RefCell<[i32; FRAME_COUNT]>> = Mutex::new(RefCell::new([0; FRAME_COUNT]));
+#[cfg(not(feature = "sync_timing_capture"))]
 static TIM2_DEV: Mutex<RefCell<Option<pac::TIM2>>> = Mutex::new(RefCell::new(None));
+#[cfg(feature = "sync_timing_capture")]
+static TIM4_DEV: Mutex<RefCell<Option<pac::TIM4>>> = Mutex::new(RefCell::new(None));
 static USART2_DEV: Mutex<RefCell<Option<pac::USART2>>> = Mutex::new(RefCell::new(None));
+#[cfg(feature = "sync_timing_capture")]
+static TIMING_TRIGGER_TARGET_REACHED: AtomicBool = AtomicBool::new(false);
+#[cfg(feature = "sync_timing_capture")]
+static TIMING_REPORT_READY: AtomicBool = AtomicBool::new(false);
+#[cfg(feature = "sync_timing_capture")]
+static TIMING_TRIGGER_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(feature = "sync_timing_capture")]
+static TIMING_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(feature = "sync_timing_capture")]
+static TIMING_MISSED_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(feature = "sync_timing_capture")]
+static TIMING_UNEXPECTED_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(feature = "sync_timing_capture")]
+static TIMING_CAPTURE_ERROR_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(feature = "sync_timing_capture")]
+static TIMING_MAX_DELTA_TICKS: AtomicU32 = AtomicU32::new(0);
+#[cfg(feature = "sync_timing_capture")]
+static TIMING_PENDING_TRIGGER: AtomicBool = AtomicBool::new(false);
+#[cfg(feature = "sync_timing_capture")]
+static TIMING_PENDING_TRIGGER_TS: AtomicU32 = AtomicU32::new(0);
 
 pub fn fw_main() -> ! {
     let dp = loop {
@@ -82,26 +150,48 @@ pub fn fw_main() -> ! {
     init_trigger_boundary(&dp);
     #[cfg(feature = "sync_trigger_out")]
     init_sync_trigger_output(&dp);
+    #[cfg(feature = "sync_timing_capture")]
+    init_sync_timing_capture_gpio(&dp);
     init_usart2(&dp);
+    #[cfg(not(feature = "sync_timing_capture"))]
     dp.RCC.apb1enr().modify(|_, w| w.tim2en().set_bit());
+    #[cfg(feature = "sync_timing_capture")]
+    dp.RCC.apb1enr().modify(|_, w| w.tim4en().set_bit());
 
+    #[cfg(not(feature = "sync_timing_capture"))]
     cortex_m::interrupt::free(|cs| {
         TIM2_DEV.borrow(cs).replace(Some(dp.TIM2));
         USART2_DEV.borrow(cs).replace(Some(dp.USART2));
     });
+    #[cfg(feature = "sync_timing_capture")]
+    cortex_m::interrupt::free(|cs| {
+        TIM4_DEV.borrow(cs).replace(Some(dp.TIM4));
+        USART2_DEV.borrow(cs).replace(Some(dp.USART2));
+    });
 
+    #[cfg(not(feature = "sync_timing_capture"))]
     init_tim2_1khz();
+    #[cfg(feature = "sync_timing_capture")]
+    {
+        reset_sync_timing_state();
+        init_tim4_sync_timing_capture();
+    }
 
     // Enable TIM2 IRQ at NVIC. IRQs are globally enabled after reset.
     unsafe {
+        #[cfg(not(feature = "sync_timing_capture"))]
         cortex_m::peripheral::NVIC::unmask(pac::Interrupt::TIM2);
         #[cfg(feature = "sync_trigger_in")]
         cortex_m::peripheral::NVIC::unmask(pac::Interrupt::EXTI0);
+        #[cfg(feature = "sync_timing_capture")]
+        cortex_m::peripheral::NVIC::unmask(pac::Interrupt::TIM4);
     }
 
+    #[cfg(not(feature = "sync_timing_capture"))]
     #[cfg(feature = "sync_trigger_out")]
     let mut sync_trigger_out_div: u32 = 0;
 
+    #[cfg(not(feature = "sync_timing_capture"))]
     while !CAPTURE_DONE.load(Ordering::Acquire) {
         cortex_m::asm::wfi();
 
@@ -115,16 +205,41 @@ pub fn fw_main() -> ! {
         }
     }
 
+    #[cfg(feature = "sync_timing_capture")]
+    while !TIMING_TRIGGER_TARGET_REACHED.load(Ordering::Acquire) {
+        pulse_sync_trigger_output();
+        cortex_m::asm::delay(18_000);
+    }
+
+    #[cfg(feature = "sync_timing_capture")]
+    wait_for_final_sync_timing_ack();
+
     // Halt capture and enter dump-only phase.
     cortex_m::interrupt::disable();
+    #[cfg(not(feature = "sync_timing_capture"))]
     cortex_m::peripheral::NVIC::mask(pac::Interrupt::TIM2);
+    #[cfg(not(feature = "sync_timing_capture"))]
     stop_tim2();
+    #[cfg(feature = "sync_timing_capture")]
+    {
+        drain_tim4_sync_timing_capture();
+        cortex_m::peripheral::NVIC::mask(pac::Interrupt::TIM4);
+        stop_tim4_sync_timing_capture();
+        finalize_sync_timing_capture();
+        dump_sync_timing_report();
+        TIMING_REPORT_READY.store(true, Ordering::Release);
+        loop {
+            cortex_m::asm::wfi();
+        }
+    }
 
+    #[cfg(not(feature = "sync_timing_capture"))]
     #[cfg(feature = "debug-repeat-dump")]
     loop {
         dump_artifact();
     }
 
+    #[cfg(not(feature = "sync_timing_capture"))]
     #[cfg(not(feature = "debug-repeat-dump"))]
     {
         dump_artifact();
@@ -134,6 +249,7 @@ pub fn fw_main() -> ! {
     }
 }
 
+#[cfg(not(feature = "sync_timing_capture"))]
 pub fn tim2_isr() {
     #[cfg(feature = "debug-irq-count")]
     unsafe {
@@ -201,6 +317,63 @@ pub fn exti0_isr() {
         // EXTI PR is write-one-to-clear; bit 0 clears pending EXTI0.
         exti.pr().write(|w| w.bits(1));
         gpioa.bsrr().write(|w| w.br1().set_bit());
+    }
+}
+
+#[cfg(feature = "sync_timing_capture")]
+pub fn tim4_isr() {
+    drain_tim4_sync_timing_capture();
+}
+
+#[cfg(feature = "sync_timing_capture")]
+fn drain_tim4_sync_timing_capture() {
+    let mut trigger_capture = None;
+    let mut ack_capture = None;
+    let mut clear_mask = 0u32;
+
+    cortex_m::interrupt::free(|cs| {
+        if let Some(tim4) = TIM4_DEV.borrow(cs).borrow_mut().as_mut() {
+            let sr_bits = tim4.sr().read().bits();
+            let have_trigger = (sr_bits & TIM_SR_CC3IF) != 0;
+            let have_ack = (sr_bits & TIM_SR_CC4IF) != 0;
+
+            if have_trigger {
+                trigger_capture = Some(tim4.ccr3().read().ccr().bits() as u16);
+                clear_mask |= TIM_SR_CC3IF;
+            }
+            if have_ack {
+                ack_capture = Some(tim4.ccr4().read().ccr().bits() as u16);
+                clear_mask |= TIM_SR_CC4IF;
+            }
+            if (sr_bits & TIM_SR_CC3OF) != 0 {
+                clear_mask |= TIM_SR_CC3OF;
+                TIMING_CAPTURE_ERROR_COUNT.fetch_add(1, Ordering::AcqRel);
+            }
+            if (sr_bits & TIM_SR_CC4OF) != 0 {
+                clear_mask |= TIM_SR_CC4OF;
+                TIMING_CAPTURE_ERROR_COUNT.fetch_add(1, Ordering::AcqRel);
+            }
+            if clear_mask != 0 {
+                // TIMx_SR capture flags are rc_w0: write 0 to handled flags and
+                // 1 elsewhere so unrelated pending flags are preserved.
+                tim4.sr().write(|w| unsafe { w.bits(!clear_mask) });
+            }
+        }
+    });
+
+    match (trigger_capture, ack_capture) {
+        (Some(trigger_ts), Some(ack_ts)) => {
+            if trigger_ts == ack_ts || trigger_ts.wrapping_sub(ack_ts) > 0x8000 {
+                process_sync_timing_trigger(trigger_ts);
+                process_sync_timing_ack(ack_ts);
+            } else {
+                process_sync_timing_ack(ack_ts);
+                process_sync_timing_trigger(trigger_ts);
+            }
+        }
+        (Some(trigger_ts), None) => process_sync_timing_trigger(trigger_ts),
+        (None, Some(ack_ts)) => process_sync_timing_ack(ack_ts),
+        (None, None) => {}
     }
 }
 
@@ -328,6 +501,32 @@ fn init_sync_trigger_output(dp: &pac::Peripherals) {
     dp.GPIOA.bsrr().write(|w| w.br6().set_bit());
 }
 
+#[cfg(feature = "sync_timing_capture")]
+fn init_sync_timing_capture_gpio(dp: &pac::Peripherals) {
+    dp.RCC.ahb1enr().modify(|_, w| w.gpioben().set_bit());
+
+    dp.GPIOB.moder().modify(|_, w| {
+        w.moder8().alternate();
+        w.moder9().alternate()
+    });
+    dp.GPIOB.afrh().modify(|_, w| {
+        w.afrh8().af2();
+        w.afrh9().af2()
+    });
+    dp.GPIOB.ospeedr().modify(|_, w| {
+        w.ospeedr8().very_high_speed();
+        w.ospeedr9().very_high_speed()
+    });
+    dp.GPIOB.otyper().modify(|_, w| {
+        w.ot8().clear_bit();
+        w.ot9().clear_bit()
+    });
+    dp.GPIOB.pupdr().modify(|_, w| {
+        w.pupdr8().floating();
+        w.pupdr9().floating()
+    });
+}
+
 #[cfg(feature = "sync_trigger_out")]
 fn pulse_sync_trigger_output() {
     unsafe {
@@ -374,6 +573,7 @@ fn init_usart2(dp: &pac::Peripherals) {
         .modify(|_, w| w.te().set_bit().re().clear_bit().ue().set_bit());
 }
 
+#[cfg(not(feature = "sync_timing_capture"))]
 fn init_tim2_1khz() {
     cortex_m::interrupt::free(|cs| {
         if let Some(tim2) = TIM2_DEV.borrow(cs).borrow_mut().as_mut() {
@@ -395,6 +595,58 @@ fn init_tim2_1khz() {
     });
 }
 
+#[cfg(feature = "sync_timing_capture")]
+fn reset_sync_timing_state() {
+    TIMING_TRIGGER_TARGET_REACHED.store(false, Ordering::Release);
+    TIMING_REPORT_READY.store(false, Ordering::Release);
+    TIMING_TRIGGER_COUNT.store(0, Ordering::Release);
+    TIMING_ACK_COUNT.store(0, Ordering::Release);
+    TIMING_MISSED_ACK_COUNT.store(0, Ordering::Release);
+    TIMING_UNEXPECTED_ACK_COUNT.store(0, Ordering::Release);
+    TIMING_CAPTURE_ERROR_COUNT.store(0, Ordering::Release);
+    TIMING_MAX_DELTA_TICKS.store(0, Ordering::Release);
+    TIMING_PENDING_TRIGGER.store(false, Ordering::Release);
+    TIMING_PENDING_TRIGGER_TS.store(0, Ordering::Release);
+}
+
+#[cfg(feature = "sync_timing_capture")]
+fn init_tim4_sync_timing_capture() {
+    cortex_m::interrupt::free(|cs| {
+        if let Some(tim4) = TIM4_DEV.borrow(cs).borrow_mut().as_mut() {
+            tim4.cr1()
+                .modify(|_, w| w.cen().clear_bit().opm().clear_bit());
+            tim4.psc().write(|w| unsafe { w.psc().bits(0) });
+            tim4.arr().write(|w| unsafe { w.arr().bits(0xffff) });
+            tim4.cnt().write(|w| unsafe { w.cnt().bits(0) });
+            tim4.smcr().write(|w| w.sms().disabled());
+            tim4.ccmr2_input().write(|w| {
+                w.cc3s().ti3();
+                w.ic3psc().no_prescaler();
+                w.ic3f().no_filter();
+                w.cc4s().ti4();
+                w.ic4psc().no_prescaler();
+                w.ic4f().no_filter()
+            });
+            tim4.ccer().write(|w| {
+                w.cc3np().clear_bit();
+                w.cc3p().rising_edge();
+                w.cc3e().enabled();
+                w.cc4np().clear_bit();
+                w.cc4p().rising_edge();
+                w.cc4e().enabled()
+            });
+            tim4.sr().write(|w| unsafe {
+                w.bits(!(TIM_SR_CC3IF | TIM_SR_CC4IF | TIM_SR_CC3OF | TIM_SR_CC4OF))
+            });
+            tim4.dier().write(|w| {
+                w.cc3ie().enabled();
+                w.cc4ie().enabled()
+            });
+            tim4.cr1().modify(|_, w| w.cen().set_bit());
+        }
+    });
+}
+
 fn usart2_apb1_hz() -> u32 {
     #[cfg(any(feature = "sync_trigger_out", feature = "sync_trigger_in"))]
     {
@@ -406,6 +658,7 @@ fn usart2_apb1_hz() -> u32 {
     }
 }
 
+#[cfg(not(feature = "sync_timing_capture"))]
 fn tim2_clock_hz() -> u32 {
     #[cfg(any(feature = "sync_trigger_out", feature = "sync_trigger_in"))]
     {
@@ -417,6 +670,7 @@ fn tim2_clock_hz() -> u32 {
     }
 }
 
+#[cfg(not(feature = "sync_timing_capture"))]
 fn stop_tim2() {
     cortex_m::interrupt::free(|cs| {
         if let Some(tim2) = TIM2_DEV.borrow(cs).borrow_mut().as_mut() {
@@ -427,6 +681,27 @@ fn stop_tim2() {
     });
 }
 
+#[cfg(feature = "sync_timing_capture")]
+fn stop_tim4_sync_timing_capture() {
+    cortex_m::interrupt::free(|cs| {
+        if let Some(tim4) = TIM4_DEV.borrow(cs).borrow_mut().as_mut() {
+            tim4.dier().write(|w| {
+                w.cc3ie().disabled();
+                w.cc4ie().disabled()
+            });
+            tim4.ccer().write(|w| {
+                w.cc3e().disabled();
+                w.cc4e().disabled()
+            });
+            tim4.cr1().modify(|_, w| w.cen().clear_bit());
+            tim4.sr().write(|w| unsafe {
+                w.bits(!(TIM_SR_CC3IF | TIM_SR_CC4IF | TIM_SR_CC3OF | TIM_SR_CC4OF))
+            });
+        }
+    });
+}
+
+#[cfg(not(feature = "sync_timing_capture"))]
 fn clear_tim2_update_flag() {
     cortex_m::interrupt::free(|cs| {
         if let Some(tim2) = TIM2_DEV.borrow(cs).borrow_mut().as_mut() {
@@ -435,6 +710,133 @@ fn clear_tim2_update_flag() {
     });
 }
 
+#[cfg(feature = "sync_timing_capture")]
+fn process_sync_timing_trigger(timestamp: u16) {
+    if TIMING_TRIGGER_COUNT.load(Ordering::Acquire) >= SYNC_TIMING_TRIGGER_TARGET {
+        return;
+    }
+
+    if TIMING_PENDING_TRIGGER.swap(true, Ordering::AcqRel) {
+        TIMING_MISSED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+    }
+    TIMING_PENDING_TRIGGER_TS.store(u32::from(timestamp), Ordering::Release);
+
+    let next = TIMING_TRIGGER_COUNT.fetch_add(1, Ordering::AcqRel) + 1;
+    if next >= SYNC_TIMING_TRIGGER_TARGET {
+        TIMING_TRIGGER_TARGET_REACHED.store(true, Ordering::Release);
+    }
+}
+
+#[cfg(feature = "sync_timing_capture")]
+fn wait_for_final_sync_timing_ack() {
+    let mut polls = 0;
+    while TIMING_PENDING_TRIGGER.load(Ordering::Acquire) && polls < SYNC_TIMING_ACK_GRACE_POLLS {
+        drain_tim4_sync_timing_capture();
+        cortex_m::asm::delay(SYNC_TIMING_ACK_GRACE_DELAY_CYCLES);
+        polls += 1;
+    }
+}
+
+#[cfg(feature = "sync_timing_capture")]
+fn process_sync_timing_ack(timestamp: u16) {
+    TIMING_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+    if !TIMING_PENDING_TRIGGER.swap(false, Ordering::AcqRel) {
+        TIMING_UNEXPECTED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+        return;
+    }
+
+    let trigger_ts = TIMING_PENDING_TRIGGER_TS.load(Ordering::Acquire) as u16;
+    let delta_ticks = u32::from(timestamp.wrapping_sub(trigger_ts));
+    update_sync_timing_max_delta(delta_ticks);
+}
+
+#[cfg(feature = "sync_timing_capture")]
+fn update_sync_timing_max_delta(delta_ticks: u32) {
+    let mut current = TIMING_MAX_DELTA_TICKS.load(Ordering::Acquire);
+    while delta_ticks > current {
+        match TIMING_MAX_DELTA_TICKS.compare_exchange(
+            current,
+            delta_ticks,
+            Ordering::AcqRel,
+            Ordering::Acquire,
+        ) {
+            Ok(_) => return,
+            Err(next) => current = next,
+        }
+    }
+}
+
+#[cfg(feature = "sync_timing_capture")]
+fn finalize_sync_timing_capture() {
+    if TIMING_PENDING_TRIGGER.swap(false, Ordering::AcqRel) {
+        TIMING_MISSED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+    }
+}
+
+#[cfg(feature = "sync_timing_capture")]
+fn dump_sync_timing_report() {
+    cortex_m::interrupt::free(|cs| {
+        if let Some(usart2) = USART2_DEV.borrow(cs).borrow().as_ref() {
+            let trigger_count = TIMING_TRIGGER_COUNT.load(Ordering::Acquire);
+            let ack_count = TIMING_ACK_COUNT.load(Ordering::Acquire);
+            let missed_ack_count = TIMING_MISSED_ACK_COUNT.load(Ordering::Acquire);
+            let unexpected_ack_count = TIMING_UNEXPECTED_ACK_COUNT.load(Ordering::Acquire);
+            let capture_error_count = TIMING_CAPTURE_ERROR_COUNT.load(Ordering::Acquire);
+            let max_delta_ticks = TIMING_MAX_DELTA_TICKS.load(Ordering::Acquire);
+            let max_delta_ns =
+                (u64::from(max_delta_ticks) * 1_000_000_000u64) / u64::from(SYNC_TIMING_TIMER_HZ);
+            let result = if missed_ack_count == 0
+                && unexpected_ack_count == 0
+                && capture_error_count == 0
+                && max_delta_ticks < SYNC_TIMING_THRESHOLD_TICKS
+            {
+                "PASS"
+            } else {
+                "FAIL"
+            };
+
+            write_bytes(usart2, b"SYNC_TIMING_CAPTURE_V1\n");
+            write_report_u32(usart2, "timer_hz", SYNC_TIMING_TIMER_HZ);
+            write_report_u32(usart2, "threshold_ticks", SYNC_TIMING_THRESHOLD_TICKS);
+            write_report_u32(usart2, "trigger_count", trigger_count);
+            write_report_u32(usart2, "ack_count", ack_count);
+            write_report_u32(usart2, "missed_ack_count", missed_ack_count);
+            write_report_u32(usart2, "unexpected_ack_count", unexpected_ack_count);
+            write_report_u32(usart2, "capture_error_count", capture_error_count);
+            write_report_u32(usart2, "max_delta_ticks", max_delta_ticks);
+            write_report_u64(usart2, "max_delta_ns", max_delta_ns);
+            write_report_str(usart2, "result", result);
+            write_report_str(usart2, "capture_trigger", "PB8_TIM4_CH3");
+            write_report_str(usart2, "capture_ack", "PB9_TIM4_CH4");
+            write_report_str(usart2, "wiring_profile", "single_board_split_capture_v1");
+            write_report_str(usart2, "measured_path", "PB9_PA1_minus_PB8_PA6");
+            wait_tc(usart2);
+        }
+    });
+}
+
+#[cfg(feature = "sync_timing_capture")]
+fn write_report_u32(usart2: &pac::USART2, key: &str, value: u32) {
+    let mut line = LineBuf::new();
+    let _ = writeln!(&mut line, "{key}={value}");
+    write_bytes(usart2, line.as_bytes());
+}
+
+#[cfg(feature = "sync_timing_capture")]
+fn write_report_u64(usart2: &pac::USART2, key: &str, value: u64) {
+    let mut line = LineBuf::new();
+    let _ = writeln!(&mut line, "{key}={value}");
+    write_bytes(usart2, line.as_bytes());
+}
+
+#[cfg(feature = "sync_timing_capture")]
+fn write_report_str(usart2: &pac::USART2, key: &str, value: &str) {
+    let mut line = LineBuf::new();
+    let _ = writeln!(&mut line, "{key}={value}");
+    write_bytes(usart2, line.as_bytes());
+}
+
+#[cfg(not(feature = "sync_timing_capture"))]
 fn dump_artifact() {
     cortex_m::interrupt::free(|cs| {
         if let Some(usart2) = USART2_DEV.borrow(cs).borrow().as_ref() {
@@ -476,14 +878,51 @@ fn dump_artifact() {
     });
 }
 
+#[cfg(not(feature = "sync_timing_capture"))]
 fn write_header1(usart2: &pac::USART2, header: &Header1) {
     let bytes = encode_header1_le(header);
     debug_assert_eq!(bytes.len(), V1_MIN_HEADER_SIZE);
     write_bytes(usart2, &bytes);
 }
 
+#[cfg(not(feature = "sync_timing_capture"))]
 fn write_event_frame0(usart2: &pac::USART2, frame: &EventFrame0) {
     write_bytes(usart2, &encode_event_frame0_le(frame));
+}
+
+#[cfg(feature = "sync_timing_capture")]
+struct LineBuf {
+    buf: [u8; 96],
+    len: usize,
+}
+
+#[cfg(feature = "sync_timing_capture")]
+impl LineBuf {
+    const fn new() -> Self {
+        Self {
+            buf: [0; 96],
+            len: 0,
+        }
+    }
+
+    fn as_bytes(&self) -> &[u8] {
+        &self.buf[..self.len]
+    }
+}
+
+#[cfg(feature = "sync_timing_capture")]
+impl Write for LineBuf {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        let bytes = s.as_bytes();
+        let end = self.len + bytes.len();
+        if end > self.buf.len() {
+            return Err(fmt::Error);
+        }
+
+        self.buf[self.len..end].copy_from_slice(bytes);
+        self.len = end;
+        Ok(())
+    }
 }
 
 fn write_bytes(usart2: &pac::USART2, bytes: &[u8]) {
