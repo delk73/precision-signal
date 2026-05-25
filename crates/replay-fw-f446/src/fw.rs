@@ -109,13 +109,13 @@ static TIM2_DEV: Mutex<RefCell<Option<pac::TIM2>>> = Mutex::new(RefCell::new(Non
 static TIM4_DEV: Mutex<RefCell<Option<pac::TIM4>>> = Mutex::new(RefCell::new(None));
 static USART2_DEV: Mutex<RefCell<Option<pac::USART2>>> = Mutex::new(RefCell::new(None));
 #[cfg(feature = "sync_timing_capture")]
-static TIMING_TRIGGER_TARGET_REACHED: AtomicBool = AtomicBool::new(false);
-#[cfg(feature = "sync_timing_capture")]
 static TIMING_REPORT_READY: AtomicBool = AtomicBool::new(false);
 #[cfg(feature = "sync_timing_capture")]
-static TIMING_TRIGGER_COUNT: AtomicU32 = AtomicU32::new(0);
+static TIMING_GENERATED_TRIGGER_COUNT: AtomicU32 = AtomicU32::new(0);
 #[cfg(feature = "sync_timing_capture")]
 static TIMING_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(feature = "sync_timing_capture")]
+static TIMING_PAIRED_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
 #[cfg(feature = "sync_timing_capture")]
 static TIMING_MISSED_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
 #[cfg(feature = "sync_timing_capture")]
@@ -125,9 +125,9 @@ static TIMING_CAPTURE_ERROR_COUNT: AtomicU32 = AtomicU32::new(0);
 #[cfg(feature = "sync_timing_capture")]
 static TIMING_MAX_DELTA_TICKS: AtomicU32 = AtomicU32::new(0);
 #[cfg(feature = "sync_timing_capture")]
-static TIMING_PENDING_TRIGGER: AtomicBool = AtomicBool::new(false);
+static TIMING_LATEST_TRIGGER_VALID: AtomicBool = AtomicBool::new(false);
 #[cfg(feature = "sync_timing_capture")]
-static TIMING_PENDING_TRIGGER_TS: AtomicU32 = AtomicU32::new(0);
+static TIMING_LATEST_TRIGGER_TS: AtomicU32 = AtomicU32::new(0);
 
 pub fn fw_main() -> ! {
     let dp = loop {
@@ -136,6 +136,13 @@ pub fn fw_main() -> ! {
         }
     };
 
+    #[cfg(feature = "sync_timing_capture")]
+    let mut cp = loop {
+        if let Some(p) = cortex_m::Peripherals::take() {
+            break p;
+        }
+    };
+    #[cfg(not(feature = "sync_timing_capture"))]
     let _cp = loop {
         if let Some(p) = cortex_m::Peripherals::take() {
             break p;
@@ -177,10 +184,14 @@ pub fn fw_main() -> ! {
         init_tim4_sync_timing_capture();
     }
 
-    // Enable TIM2 IRQ at NVIC. IRQs are globally enabled after reset.
+    // Enable IRQs at NVIC. IRQs are globally enabled after reset.
     unsafe {
         #[cfg(not(feature = "sync_timing_capture"))]
         cortex_m::peripheral::NVIC::unmask(pac::Interrupt::TIM2);
+        #[cfg(all(feature = "sync_trigger_in", feature = "sync_timing_capture"))]
+        cp.NVIC.set_priority(pac::Interrupt::EXTI0, 0x00);
+        #[cfg(feature = "sync_timing_capture")]
+        cp.NVIC.set_priority(pac::Interrupt::TIM4, 0x10);
         #[cfg(feature = "sync_trigger_in")]
         cortex_m::peripheral::NVIC::unmask(pac::Interrupt::EXTI0);
         #[cfg(feature = "sync_timing_capture")]
@@ -206,8 +217,12 @@ pub fn fw_main() -> ! {
     }
 
     #[cfg(feature = "sync_timing_capture")]
-    while !TIMING_TRIGGER_TARGET_REACHED.load(Ordering::Acquire) {
+    while TIMING_GENERATED_TRIGGER_COUNT.load(Ordering::Acquire) < SYNC_TIMING_TRIGGER_TARGET {
         pulse_sync_trigger_output();
+        let next = TIMING_GENERATED_TRIGGER_COUNT.fetch_add(1, Ordering::AcqRel) + 1;
+        if next >= SYNC_TIMING_TRIGGER_TARGET {
+            break;
+        }
         cortex_m::asm::delay(18_000);
     }
 
@@ -327,24 +342,25 @@ pub fn tim4_isr() {
 
 #[cfg(feature = "sync_timing_capture")]
 fn drain_tim4_sync_timing_capture() {
-    let mut trigger_capture = None;
-    let mut ack_capture = None;
-    let mut clear_mask = 0u32;
-
     cortex_m::interrupt::free(|cs| {
         if let Some(tim4) = TIM4_DEV.borrow(cs).borrow_mut().as_mut() {
             let sr_bits = tim4.sr().read().bits();
             let have_trigger = (sr_bits & TIM_SR_CC3IF) != 0;
             let have_ack = (sr_bits & TIM_SR_CC4IF) != 0;
+            let mut clear_mask = 0u32;
 
-            if have_trigger {
-                trigger_capture = Some(tim4.ccr3().read().ccr().bits() as u16);
+            if have_ack {
+                if have_trigger {
+                    process_sync_timing_passive_trigger(tim4.ccr3().read().ccr().bits() as u16);
+                    clear_mask |= TIM_SR_CC3IF;
+                }
+                process_sync_timing_ack(tim4.ccr4().read().ccr().bits() as u16);
+                clear_mask |= TIM_SR_CC4IF;
+            } else if have_trigger {
+                process_sync_timing_passive_trigger(tim4.ccr3().read().ccr().bits() as u16);
                 clear_mask |= TIM_SR_CC3IF;
             }
-            if have_ack {
-                ack_capture = Some(tim4.ccr4().read().ccr().bits() as u16);
-                clear_mask |= TIM_SR_CC4IF;
-            }
+
             if (sr_bits & TIM_SR_CC3OF) != 0 {
                 clear_mask |= TIM_SR_CC3OF;
                 TIMING_CAPTURE_ERROR_COUNT.fetch_add(1, Ordering::AcqRel);
@@ -360,21 +376,6 @@ fn drain_tim4_sync_timing_capture() {
             }
         }
     });
-
-    match (trigger_capture, ack_capture) {
-        (Some(trigger_ts), Some(ack_ts)) => {
-            if trigger_ts == ack_ts || trigger_ts.wrapping_sub(ack_ts) > 0x8000 {
-                process_sync_timing_trigger(trigger_ts);
-                process_sync_timing_ack(ack_ts);
-            } else {
-                process_sync_timing_ack(ack_ts);
-                process_sync_timing_trigger(trigger_ts);
-            }
-        }
-        (Some(trigger_ts), None) => process_sync_timing_trigger(trigger_ts),
-        (None, Some(ack_ts)) => process_sync_timing_ack(ack_ts),
-        (None, None) => {}
-    }
 }
 
 #[cfg(any(feature = "sync_trigger_out", feature = "sync_trigger_in"))]
@@ -597,16 +598,16 @@ fn init_tim2_1khz() {
 
 #[cfg(feature = "sync_timing_capture")]
 fn reset_sync_timing_state() {
-    TIMING_TRIGGER_TARGET_REACHED.store(false, Ordering::Release);
     TIMING_REPORT_READY.store(false, Ordering::Release);
-    TIMING_TRIGGER_COUNT.store(0, Ordering::Release);
+    TIMING_GENERATED_TRIGGER_COUNT.store(0, Ordering::Release);
     TIMING_ACK_COUNT.store(0, Ordering::Release);
+    TIMING_PAIRED_ACK_COUNT.store(0, Ordering::Release);
     TIMING_MISSED_ACK_COUNT.store(0, Ordering::Release);
     TIMING_UNEXPECTED_ACK_COUNT.store(0, Ordering::Release);
     TIMING_CAPTURE_ERROR_COUNT.store(0, Ordering::Release);
     TIMING_MAX_DELTA_TICKS.store(0, Ordering::Release);
-    TIMING_PENDING_TRIGGER.store(false, Ordering::Release);
-    TIMING_PENDING_TRIGGER_TS.store(0, Ordering::Release);
+    TIMING_LATEST_TRIGGER_VALID.store(false, Ordering::Release);
+    TIMING_LATEST_TRIGGER_TS.store(0, Ordering::Release);
 }
 
 #[cfg(feature = "sync_timing_capture")]
@@ -639,7 +640,7 @@ fn init_tim4_sync_timing_capture() {
                 w.bits(!(TIM_SR_CC3IF | TIM_SR_CC4IF | TIM_SR_CC3OF | TIM_SR_CC4OF))
             });
             tim4.dier().write(|w| {
-                w.cc3ie().enabled();
+                w.cc3ie().disabled();
                 w.cc4ie().enabled()
             });
             tim4.cr1().modify(|_, w| w.cen().set_bit());
@@ -711,26 +712,12 @@ fn clear_tim2_update_flag() {
 }
 
 #[cfg(feature = "sync_timing_capture")]
-fn process_sync_timing_trigger(timestamp: u16) {
-    if TIMING_TRIGGER_COUNT.load(Ordering::Acquire) >= SYNC_TIMING_TRIGGER_TARGET {
-        return;
-    }
-
-    if TIMING_PENDING_TRIGGER.swap(true, Ordering::AcqRel) {
-        TIMING_MISSED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
-    }
-    TIMING_PENDING_TRIGGER_TS.store(u32::from(timestamp), Ordering::Release);
-
-    let next = TIMING_TRIGGER_COUNT.fetch_add(1, Ordering::AcqRel) + 1;
-    if next >= SYNC_TIMING_TRIGGER_TARGET {
-        TIMING_TRIGGER_TARGET_REACHED.store(true, Ordering::Release);
-    }
-}
-
-#[cfg(feature = "sync_timing_capture")]
 fn wait_for_final_sync_timing_ack() {
     let mut polls = 0;
-    while TIMING_PENDING_TRIGGER.load(Ordering::Acquire) && polls < SYNC_TIMING_ACK_GRACE_POLLS {
+    while TIMING_PAIRED_ACK_COUNT.load(Ordering::Acquire)
+        < TIMING_GENERATED_TRIGGER_COUNT.load(Ordering::Acquire)
+        && polls < SYNC_TIMING_ACK_GRACE_POLLS
+    {
         drain_tim4_sync_timing_capture();
         cortex_m::asm::delay(SYNC_TIMING_ACK_GRACE_DELAY_CYCLES);
         polls += 1;
@@ -738,15 +725,22 @@ fn wait_for_final_sync_timing_ack() {
 }
 
 #[cfg(feature = "sync_timing_capture")]
+fn process_sync_timing_passive_trigger(timestamp: u16) {
+    TIMING_LATEST_TRIGGER_TS.store(u32::from(timestamp), Ordering::Release);
+    TIMING_LATEST_TRIGGER_VALID.store(true, Ordering::Release);
+}
+
+#[cfg(feature = "sync_timing_capture")]
 fn process_sync_timing_ack(timestamp: u16) {
     TIMING_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
-    if !TIMING_PENDING_TRIGGER.swap(false, Ordering::AcqRel) {
+    if !TIMING_LATEST_TRIGGER_VALID.swap(false, Ordering::AcqRel) {
         TIMING_UNEXPECTED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
         return;
     }
 
-    let trigger_ts = TIMING_PENDING_TRIGGER_TS.load(Ordering::Acquire) as u16;
+    let trigger_ts = TIMING_LATEST_TRIGGER_TS.load(Ordering::Acquire) as u16;
     let delta_ticks = u32::from(timestamp.wrapping_sub(trigger_ts));
+    TIMING_PAIRED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
     update_sync_timing_max_delta(delta_ticks);
 }
 
@@ -768,16 +762,19 @@ fn update_sync_timing_max_delta(delta_ticks: u32) {
 
 #[cfg(feature = "sync_timing_capture")]
 fn finalize_sync_timing_capture() {
-    if TIMING_PENDING_TRIGGER.swap(false, Ordering::AcqRel) {
-        TIMING_MISSED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
-    }
+    let generated_trigger_count = TIMING_GENERATED_TRIGGER_COUNT.load(Ordering::Acquire);
+    let paired_ack_count = TIMING_PAIRED_ACK_COUNT.load(Ordering::Acquire);
+    TIMING_MISSED_ACK_COUNT.store(
+        generated_trigger_count.saturating_sub(paired_ack_count),
+        Ordering::Release,
+    );
 }
 
 #[cfg(feature = "sync_timing_capture")]
 fn dump_sync_timing_report() {
     cortex_m::interrupt::free(|cs| {
         if let Some(usart2) = USART2_DEV.borrow(cs).borrow().as_ref() {
-            let trigger_count = TIMING_TRIGGER_COUNT.load(Ordering::Acquire);
+            let trigger_count = TIMING_GENERATED_TRIGGER_COUNT.load(Ordering::Acquire);
             let ack_count = TIMING_ACK_COUNT.load(Ordering::Acquire);
             let missed_ack_count = TIMING_MISSED_ACK_COUNT.load(Ordering::Acquire);
             let unexpected_ack_count = TIMING_UNEXPECTED_ACK_COUNT.load(Ordering::Acquire);
