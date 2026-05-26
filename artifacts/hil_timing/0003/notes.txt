@@ -1,0 +1,38 @@
+Run 0003 tested the sync_timing_capture fast EXTI0 acknowledgment path.
+
+Baseline:
+0001 original timing evidence: FAIL, max_delta_ticks=200
+0002 passive CH3 experiment: FAIL, max_delta_ticks=202, clean counters
+
+Experiment:
+The EXTI0 ISR asserted PA1 first using a direct GPIOA_BSRR BS1 volatile write,
+then cleared EXTI0 pending, then deasserted PA1. This preserved the PA0 EXTI ->
+PA1 GPIO acknowledgment path while reducing software work before the measured
+PA1 rising edge.
+
+Observed:
+trigger_count=10000
+ack_count=10000
+missed_ack_count=0
+unexpected_ack_count=0
+capture_error_count=0
+max_delta_ticks=78
+max_delta_ns=866
+threshold_ticks=9
+result=FAIL
+
+Interpretation:
+The fast EXTI0 PA1-set path materially reduced observed split-capture latency
+from the 200-202 tick range to 78 ticks, while preserving clean integrity
+counters. The retained result remains FAIL because max_delta_ticks=78 exceeds
+threshold_ticks=9.
+
+Measured path:
+PB9 capture of PA1/A1 acknowledgment - PB8 capture of PA6/D12 trigger
+
+This is observed timing through the selected measurement wiring, not exact
+internal PA0-to-PA1 silicon latency.
+
+Next investigation:
+Test whether the remaining latency is dominated by EXTI/NVIC interrupt entry and
+GPIO response.

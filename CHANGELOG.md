@@ -24,6 +24,8 @@
   `missed_ack_count=0`, `unexpected_ack_count=0`, and `capture_error_count=0`.
   The retained result is `FAIL` because `max_delta_ticks=200` exceeds
   `threshold_ticks=9`.
+- retained follow-on sync timing capture evidence for the fast EXTI0
+  acknowledgment experiment.
 
 ### Maintenance
 
