@@ -161,6 +161,38 @@ The flat fields `measured_path`, `capture_trigger`, `capture_ack`,
 `timing_report.txt` remains the raw `SYNC_TIMING_CAPTURE_V1` firmware report;
 the report does not encode the acknowledgment mechanism.
 
+## Supported Timing Evidence Profile
+
+Profile:
+
+```text
+single_board_tim2_hardware_ack_v1
+```
+
+Functional path:
+
+```text
+PA6/D12 -> PA0/A0 -> TIM2_CH1 -> TIM2 reset/PWM -> TIM2_CH2 -> PA1/A1
+```
+
+Measurement path:
+
+```text
+PB8/TIM4_CH3 observes PA6/D12
+PB9/TIM4_CH4 observes PA1/A1
+```
+
+Claim:
+
+This profile supports the split-capture timing claim only for the named TIM2
+hardware acknowledgment path.
+
+Non-claims:
+
+It does not prove the EXTI software acknowledgment path passes. It is not exact
+internal PA0-to-PA1 silicon latency. It is not, by itself, RPL0/replay
+authority or release evidence.
+
 ## Replay Carryforward
 
 The retained timing runs establish that timing evidence must identify both the

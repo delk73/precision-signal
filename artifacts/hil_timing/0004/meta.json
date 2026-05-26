@@ -12,6 +12,7 @@
     ],
     "proves": "selected TIM2 hardware acknowledgment path split-capture timing"
   },
+  "evidence_profile": "single_board_tim2_hardware_ack_v1",
   "feature_set": "sync_trigger_out sync_trigger_in sync_timing_capture",
   "functional_path": {
     "ack_mechanism": "tim2_hardware_output_compare",

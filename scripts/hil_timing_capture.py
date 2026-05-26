@@ -15,6 +15,7 @@ TIMER_HZ = 90_000_000
 THRESHOLD_TICKS = 9
 WIRING_PROFILE = "single_board_split_capture_v1"
 RUN_PROFILE = "tim2_hardware_ack"
+EVIDENCE_PROFILE = "single_board_tim2_hardware_ack_v1"
 MEASURED_PATH = "PB9_PA1_minus_PB8_PA6"
 CAPTURE_TRIGGER = "PB8_TIM4_CH3"
 CAPTURE_ACK = "PB9_TIM4_CH4"
@@ -183,6 +184,7 @@ def write_artifact(
         "threshold_ticks": THRESHOLD_TICKS,
         "wiring_profile": WIRING_PROFILE,
         "run_profile": RUN_PROFILE,
+        "evidence_profile": EVIDENCE_PROFILE,
         "measured_path": MEASURED_PATH,
         "capture_trigger": CAPTURE_TRIGGER,
         "capture_ack": CAPTURE_ACK,
