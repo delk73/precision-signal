@@ -90,6 +90,10 @@ const TIM_SR_CC4IF: u32 = 1 << 4;
 const TIM_SR_CC3OF: u32 = 1 << 11;
 #[cfg(feature = "sync_timing_capture")]
 const TIM_SR_CC4OF: u32 = 1 << 12;
+#[cfg(feature = "sync_timing_capture")]
+const SYNC_TIM2_ACK_PULSE_TICKS: u32 = 8;
+#[cfg(feature = "sync_timing_capture")]
+const SYNC_TIM2_ACK_ARR: u32 = 0xffff;
 #[cfg(all(feature = "sync_trigger_in", feature = "sync_timing_capture"))]
 const GPIOA_BSRR_ADDR: usize = 0x4002_0018;
 #[cfg(all(feature = "sync_trigger_in", feature = "sync_timing_capture"))]
@@ -114,7 +118,6 @@ static SIGNAL_STATE: AtomicU32 = AtomicU32::new(SIGNAL_INITIAL_STATE);
 pub static mut IRQ_COUNT_PROBE: u32 = 0;
 #[cfg(not(feature = "sync_timing_capture"))]
 static SAMPLES: Mutex<RefCell<[i32; FRAME_COUNT]>> = Mutex::new(RefCell::new([0; FRAME_COUNT]));
-#[cfg(not(feature = "sync_timing_capture"))]
 static TIM2_DEV: Mutex<RefCell<Option<pac::TIM2>>> = Mutex::new(RefCell::new(None));
 #[cfg(feature = "sync_timing_capture")]
 static TIM4_DEV: Mutex<RefCell<Option<pac::TIM4>>> = Mutex::new(RefCell::new(None));
@@ -174,7 +177,9 @@ pub fn fw_main() -> ! {
     #[cfg(not(feature = "sync_timing_capture"))]
     dp.RCC.apb1enr().modify(|_, w| w.tim2en().set_bit());
     #[cfg(feature = "sync_timing_capture")]
-    dp.RCC.apb1enr().modify(|_, w| w.tim4en().set_bit());
+    dp.RCC
+        .apb1enr()
+        .modify(|_, w| w.tim2en().set_bit().tim4en().set_bit());
 
     #[cfg(not(feature = "sync_timing_capture"))]
     cortex_m::interrupt::free(|cs| {
@@ -183,6 +188,7 @@ pub fn fw_main() -> ! {
     });
     #[cfg(feature = "sync_timing_capture")]
     cortex_m::interrupt::free(|cs| {
+        TIM2_DEV.borrow(cs).replace(Some(dp.TIM2));
         TIM4_DEV.borrow(cs).replace(Some(dp.TIM4));
         USART2_DEV.borrow(cs).replace(Some(dp.USART2));
     });
@@ -192,6 +198,7 @@ pub fn fw_main() -> ! {
     #[cfg(feature = "sync_timing_capture")]
     {
         reset_sync_timing_state();
+        init_tim2_sync_hardware_ack();
         init_tim4_sync_timing_capture();
     }
 
@@ -199,11 +206,9 @@ pub fn fw_main() -> ! {
     unsafe {
         #[cfg(not(feature = "sync_timing_capture"))]
         cortex_m::peripheral::NVIC::unmask(pac::Interrupt::TIM2);
-        #[cfg(all(feature = "sync_trigger_in", feature = "sync_timing_capture"))]
-        cp.NVIC.set_priority(pac::Interrupt::EXTI0, 0x00);
         #[cfg(feature = "sync_timing_capture")]
         cp.NVIC.set_priority(pac::Interrupt::TIM4, 0x10);
-        #[cfg(feature = "sync_trigger_in")]
+        #[cfg(all(feature = "sync_trigger_in", not(feature = "sync_timing_capture")))]
         cortex_m::peripheral::NVIC::unmask(pac::Interrupt::EXTI0);
         #[cfg(feature = "sync_timing_capture")]
         cortex_m::peripheral::NVIC::unmask(pac::Interrupt::TIM4);
@@ -250,6 +255,7 @@ pub fn fw_main() -> ! {
     {
         drain_tim4_sync_timing_capture();
         cortex_m::peripheral::NVIC::mask(pac::Interrupt::TIM4);
+        stop_tim2_sync_hardware_ack();
         stop_tim4_sync_timing_capture();
         finalize_sync_timing_capture();
         dump_sync_timing_report();
@@ -482,30 +488,56 @@ fn clock_fault_loop() -> ! {
 
 #[cfg(feature = "sync_trigger_in")]
 fn init_trigger_boundary(dp: &pac::Peripherals) {
-    dp.RCC.ahb1enr().modify(|_, w| w.gpioaen().set_bit());
-    dp.RCC.apb2enr().modify(|_, w| w.syscfgen().set_bit());
+    #[cfg(feature = "sync_timing_capture")]
+    {
+        dp.RCC.ahb1enr().modify(|_, w| w.gpioaen().set_bit());
+        dp.GPIOA.bsrr().write(|w| w.br1().set_bit());
+        dp.GPIOA.moder().modify(|_, w| {
+            w.moder0().alternate();
+            w.moder1().alternate()
+        });
+        dp.GPIOA.afrl().modify(|_, w| {
+            w.afrl0().af1();
+            w.afrl1().af1()
+        });
+        dp.GPIOA.otyper().modify(|_, w| w.ot1().clear_bit());
+        dp.GPIOA.ospeedr().modify(|_, w| {
+            w.ospeedr0().very_high_speed();
+            w.ospeedr1().very_high_speed()
+        });
+        dp.GPIOA.pupdr().modify(|_, w| {
+            w.pupdr0().floating();
+            w.pupdr1().floating()
+        });
+    }
 
-    dp.GPIOA.moder().modify(|_, w| {
-        w.moder0().input();
-        w.moder1().output()
-    });
-    dp.GPIOA.otyper().modify(|_, w| w.ot1().clear_bit());
-    dp.GPIOA
-        .ospeedr()
-        .modify(|_, w| w.ospeedr1().very_high_speed());
-    dp.GPIOA.pupdr().modify(|_, w| {
-        w.pupdr0().floating();
-        w.pupdr1().floating()
-    });
-    dp.GPIOA.bsrr().write(|w| w.br1().set_bit());
+    #[cfg(not(feature = "sync_timing_capture"))]
+    {
+        dp.RCC.ahb1enr().modify(|_, w| w.gpioaen().set_bit());
+        dp.RCC.apb2enr().modify(|_, w| w.syscfgen().set_bit());
 
-    dp.SYSCFG.exticr1().modify(|_, w| w.exti0().pa());
-    dp.EXTI.imr().modify(|_, w| w.mr0().clear_bit());
-    dp.EXTI.rtsr().modify(|_, w| w.tr0().set_bit());
-    dp.EXTI.ftsr().modify(|_, w| w.tr0().clear_bit());
-    // EXTI PR is write-one-to-clear; bit 0 clears pending EXTI0.
-    dp.EXTI.pr().write(|w| unsafe { w.bits(1) });
-    dp.EXTI.imr().modify(|_, w| w.mr0().set_bit());
+        dp.GPIOA.moder().modify(|_, w| {
+            w.moder0().input();
+            w.moder1().output()
+        });
+        dp.GPIOA.otyper().modify(|_, w| w.ot1().clear_bit());
+        dp.GPIOA
+            .ospeedr()
+            .modify(|_, w| w.ospeedr1().very_high_speed());
+        dp.GPIOA.pupdr().modify(|_, w| {
+            w.pupdr0().floating();
+            w.pupdr1().floating()
+        });
+        dp.GPIOA.bsrr().write(|w| w.br1().set_bit());
+
+        dp.SYSCFG.exticr1().modify(|_, w| w.exti0().pa());
+        dp.EXTI.imr().modify(|_, w| w.mr0().clear_bit());
+        dp.EXTI.rtsr().modify(|_, w| w.tr0().set_bit());
+        dp.EXTI.ftsr().modify(|_, w| w.tr0().clear_bit());
+        // EXTI PR is write-one-to-clear; bit 0 clears pending EXTI0.
+        dp.EXTI.pr().write(|w| unsafe { w.bits(1) });
+        dp.EXTI.imr().modify(|_, w| w.mr0().set_bit());
+    }
 }
 
 #[cfg(feature = "sync_trigger_out")]
@@ -616,6 +648,66 @@ fn init_tim2_1khz() {
 }
 
 #[cfg(feature = "sync_timing_capture")]
+// TIM2 hardware-ack invariant:
+// - TIM2 remains continuously armed; OPM is disabled and CEN remains set.
+// - PA0/TIM2_CH1 is the slave reset trigger source.
+// - Before a trigger, PA1/TIM2_CH2 must be inactive/low.
+// - A PA0/TIM2_CH1 rising edge resets TIM2 CNT to 0.
+// - TIM2_CH2 PWM mode 1 drives PA1 active/high while CNT < CCR2.
+// - PA1 returns inactive/low after CCR2 ticks.
+// - ARR is kept large enough to avoid free-running rollover pulses between normal PA6 triggers.
+fn init_tim2_sync_hardware_ack() {
+    cortex_m::interrupt::free(|cs| {
+        if let Some(tim2) = TIM2_DEV.borrow(cs).borrow_mut().as_mut() {
+            tim2.cr1()
+                .modify(|_, w| w.cen().clear_bit().opm().clear_bit());
+            tim2.cr2().reset();
+            tim2.dier().reset();
+            tim2.psc().write(|w| unsafe { w.psc().bits(0) });
+            tim2.arr()
+                .write(|w| unsafe { w.arr().bits(SYNC_TIM2_ACK_ARR) });
+            tim2.ccr2()
+                .write(|w| unsafe { w.ccr().bits(SYNC_TIM2_ACK_PULSE_TICKS) });
+            tim2.cnt()
+                .write(|w| unsafe { w.cnt().bits(SYNC_TIM2_ACK_PULSE_TICKS + 1) });
+            tim2.ccmr1_output().write(|w| {
+                w.cc1s().output();
+                w.cc2s().output();
+                w.oc2fe().enabled();
+                w.oc2pe().disabled();
+                w.oc2m().pwm_mode1();
+                w.oc2ce().disabled()
+            });
+            tim2.ccmr1_input().modify(|_, w| {
+                w.cc1s().ti1();
+                w.ic1psc().no_prescaler();
+                w.ic1f().no_filter()
+            });
+            tim2.ccer().write(|w| {
+                w.cc1np().clear_bit();
+                w.cc1p().rising_edge();
+                w.cc1e().enabled();
+                w.cc2np().clear_bit();
+                w.cc2p().rising_edge();
+                w.cc2e().enabled()
+            });
+            tim2.smcr().write(|w| {
+                w.ts().ti1fp1();
+                w.sms().reset_mode()
+            });
+            tim2.egr().write(|w| w.ug().set_bit());
+            tim2.sr().write(|w| unsafe { w.bits(0) });
+            tim2.cr1().write(|w| {
+                w.opm().disabled();
+                w.dir().up();
+                w.urs().any_event();
+                w.cen().set_bit()
+            });
+        }
+    });
+}
+
+#[cfg(feature = "sync_timing_capture")]
 fn reset_sync_timing_state() {
     TIMING_REPORT_READY.store(false, Ordering::Release);
     TIMING_GENERATED_TRIGGER_COUNT.store(0, Ordering::Release);
@@ -697,6 +789,18 @@ fn stop_tim2() {
             tim2.dier().modify(|_, w| w.uie().clear_bit());
             tim2.cr1().modify(|_, w| w.cen().clear_bit());
             tim2.sr().modify(|_, w| w.uif().clear_bit());
+        }
+    });
+}
+
+#[cfg(feature = "sync_timing_capture")]
+fn stop_tim2_sync_hardware_ack() {
+    cortex_m::interrupt::free(|cs| {
+        if let Some(tim2) = TIM2_DEV.borrow(cs).borrow_mut().as_mut() {
+            tim2.cr1().modify(|_, w| w.cen().clear_bit());
+            tim2.ccer().modify(|_, w| w.cc2e().disabled());
+            tim2.smcr().write(|w| w.sms().disabled());
+            tim2.sr().write(|w| unsafe { w.bits(0) });
         }
     });
 }
