@@ -648,6 +648,14 @@ fn init_tim2_1khz() {
 }
 
 #[cfg(feature = "sync_timing_capture")]
+// TIM2 hardware-ack invariant:
+// - TIM2 remains continuously armed; OPM is disabled and CEN remains set.
+// - PA0/TIM2_CH1 is the slave reset trigger source.
+// - Before a trigger, PA1/TIM2_CH2 must be inactive/low.
+// - A PA0/TIM2_CH1 rising edge resets TIM2 CNT to 0.
+// - TIM2_CH2 PWM mode 1 drives PA1 active/high while CNT < CCR2.
+// - PA1 returns inactive/low after CCR2 ticks.
+// - ARR is kept large enough to avoid free-running rollover pulses between normal PA6 triggers.
 fn init_tim2_sync_hardware_ack() {
     cortex_m::interrupt::free(|cs| {
         if let Some(tim2) = TIM2_DEV.borrow(cs).borrow_mut().as_mut() {
@@ -678,7 +686,7 @@ fn init_tim2_sync_hardware_ack() {
             tim2.ccer().write(|w| {
                 w.cc1np().clear_bit();
                 w.cc1p().rising_edge();
-                w.cc1e().disabled();
+                w.cc1e().enabled();
                 w.cc2np().clear_bit();
                 w.cc2p().rising_edge();
                 w.cc2e().enabled()
