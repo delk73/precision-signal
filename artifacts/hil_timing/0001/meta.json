@@ -5,12 +5,31 @@
   "capture_ack": "PB9_TIM4_CH4",
   "capture_error_count": 0,
   "capture_trigger": "PB8_TIM4_CH3",
+  "claim_boundary": {
+    "does_not_prove": [
+      "software EXTI acknowledgment path timing pass",
+      "exact internal PA0-to-PA1 silicon latency"
+    ],
+    "proves": "original EXTI software acknowledgment path split-capture timing result"
+  },
   "feature_set": "sync_trigger_out sync_trigger_in sync_timing_capture",
+  "functional_path": {
+    "ack_mechanism": "exti0_software_gpio_write",
+    "ack_output": "PA1_A1",
+    "trigger_input": "PA0_A0",
+    "trigger_output": "PA6_D12"
+  },
   "max_delta_ns": 2222,
   "max_delta_ticks": 200,
   "measured_path": "PB9_PA1_minus_PB8_PA6",
+  "measurement_path": {
+    "ack_capture": "PB9_TIM4_CH4",
+    "measured_delta": "ack_capture_minus_trigger_capture",
+    "trigger_capture": "PB8_TIM4_CH3"
+  },
   "missed_ack_count": 0,
   "result": "FAIL",
+  "run_profile": "original_exti_software_ack",
   "schema": "SYNC_TIMING_CAPTURE_V1",
   "threshold_ticks": 9,
   "timer_hz": 90000000,

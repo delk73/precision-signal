@@ -57,9 +57,10 @@ threshold_ticks=9
 ```
 
 After `trigger_count` reaches 10,000, firmware stops generating PA6 pulses but
-keeps EXTI0 and TIM4 capture interrupts enabled for a bounded grace interval.
-This lets the final PA0-triggered PA1 acknowledgment and PB9/TIM4_CH4 capture
-arrive before the final drain, shutdown, pending-trigger accounting, and report.
+keeps the acknowledgment path and TIM4 capture interrupts enabled for a bounded
+grace interval. This lets the final PA0-triggered PA1 acknowledgment and
+PB9/TIM4_CH4 capture arrive before the final drain, shutdown, pending-trigger
+accounting, and report.
 
 `max_delta_ticks` is authoritative. `max_delta_ns` is display-only. Pass is valid
 only when:
@@ -127,8 +128,38 @@ PA1/A1  -> PB9/TIM4_CH4
 GND shared
 ```
 
-`meta.json` records the feature set, wiring profile, measurement path, timer
-settings, capture pins, functional pins, and honest `PASS` or `FAIL` result.
+`meta.json` records the feature set, wiring profile, timer settings, capture
+pins, functional pins, measured values, and honest `PASS` or `FAIL` result.
+It also carries structured path identity:
+
+```json
+{
+  "run_profile": "tim2_hardware_ack",
+  "functional_path": {
+    "trigger_output": "PA6_D12",
+    "trigger_input": "PA0_A0",
+    "ack_mechanism": "tim2_hardware_output_compare",
+    "ack_output": "PA1_A1"
+  },
+  "measurement_path": {
+    "trigger_capture": "PB8_TIM4_CH3",
+    "ack_capture": "PB9_TIM4_CH4",
+    "measured_delta": "ack_capture_minus_trigger_capture"
+  },
+  "claim_boundary": {
+    "proves": "selected TIM2 hardware acknowledgment path split-capture timing",
+    "does_not_prove": [
+      "software EXTI acknowledgment path timing pass",
+      "exact internal PA0-to-PA1 silicon latency"
+    ]
+  }
+}
+```
+
+The flat fields `measured_path`, `capture_trigger`, `capture_ack`,
+`trigger_output`, `trigger_input`, and `ack_output` remain for compatibility.
+`timing_report.txt` remains the raw `SYNC_TIMING_CAPTURE_V1` firmware report;
+the report does not encode the acknowledgment mechanism.
 
 ## Replay Carryforward
 
@@ -158,13 +189,16 @@ Replay-facing implication:
 
 Future replay/capture iterations should treat timing artifacts as
 path-qualified evidence. A timing result is not just PASS or FAIL; it is a
-result for a named functional path, observed through a named measurement path,
-with retained wiring and firmware feature context.
+result for a named `run_profile` and `functional_path`, observed through a
+named `measurement_path`, with retained wiring and firmware feature context.
 
 This prevents overclaiming. Run 0004 proves the selected TIM2 hardware-ack path
 passes the split-capture timing gate. It does not prove the software EXTI
 acknowledgment path passes, and it is not exact internal PA0-to-PA1 silicon
 latency.
+
+Replay-facing code should consume the structured `meta.json` fields rather than
+freeform notes when carrying this distinction forward.
 
 ## Risks
 
