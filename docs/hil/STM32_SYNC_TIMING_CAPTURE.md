@@ -130,6 +130,42 @@ GND shared
 `meta.json` records the feature set, wiring profile, measurement path, timer
 settings, capture pins, functional pins, and honest `PASS` or `FAIL` result.
 
+## Replay Carryforward
+
+The retained timing runs establish that timing evidence must identify both the
+functional path and the measurement path.
+
+Runs 0001-0003 measured software acknowledgment paths:
+
+```text
+PA6 -> PA0/EXTI0 -> software writes PA1
+```
+
+Run 0004 changed the functional acknowledgment path:
+
+```text
+PA6 -> PA0/TIM2_CH1 -> TIM2 hardware drives PA1/TIM2_CH2
+```
+
+The measurement path stayed constant:
+
+```text
+PB8/TIM4_CH3 observes PA6
+PB9/TIM4_CH4 observes PA1
+```
+
+Replay-facing implication:
+
+Future replay/capture iterations should treat timing artifacts as
+path-qualified evidence. A timing result is not just PASS or FAIL; it is a
+result for a named functional path, observed through a named measurement path,
+with retained wiring and firmware feature context.
+
+This prevents overclaiming. Run 0004 proves the selected TIM2 hardware-ack path
+passes the split-capture timing gate. It does not prove the software EXTI
+acknowledgment path passes, and it is not exact internal PA0-to-PA1 silicon
+latency.
+
 ## Risks
 
 - TIM4 is 16-bit; all delta math must use wrapping `u16` subtraction.

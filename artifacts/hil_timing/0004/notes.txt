@@ -5,6 +5,19 @@ Baselines:
 0002 passive CH3 experiment: FAIL, max_delta_ticks=202, clean counters
 0003 fast EXTI PA1-set experiment: FAIL, max_delta_ticks=78, clean counters
 
+Software acknowledgment path, runs 0001-0003:
+
+      wire                 interrupt                 software write
+PA6 ───────► PA0/A0 ─────► EXTI0 / NVIC ─────► CPU ISR ─────► PA1/A1
+│                                                                 │
+│                                                                 │
+└────────────► PB8/TIM4_CH3                         PA1 ────────► PB9/TIM4_CH4
+              trigger timestamp                                  ack timestamp
+
+
+Measured value:
+PB9 capture of PA1 - PB8 capture of PA6
+
 Experiment:
 Run 0004 changed the functional acknowledgment path from PA0 EXTI0 -> software writes PA1 to PA0/TIM2_CH1 -> TIM2 hardware drives PA1/TIM2_CH2.
 
@@ -13,6 +26,19 @@ PA0/TIM2_CH1 rising edge resets TIM2.
 TIM2_CH2 PWM mode 1 drives PA1 active/high while CNT < CCR2.
 PA1 returns inactive/low after CCR2 ticks.
 TIM2 remains continuously armed with OPM disabled and CEN set.
+
+Hardware acknowledgment path, run 0004:
+
+      wire                timer trigger/reset           hardware output
+PA6 ───────► PA0/A0 ─────► TIM2_CH1 ───────────► TIM2 ─────────► TIM2_CH2 / PA1/A1
+│                                                                        │
+│                                                                        │
+└────────────► PB8/TIM4_CH3                              PA1 ───────────► PB9/TIM4_CH4
+              trigger timestamp                                           ack timestamp
+
+
+Measured value:
+PB9 capture of PA1 - PB8 capture of PA6
 
 Measurement path:
 PB9 capture of PA1/A1 acknowledgment - PB8 capture of PA6/D12 trigger
