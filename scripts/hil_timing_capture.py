@@ -14,9 +14,20 @@ FEATURE_SET = "sync_trigger_out sync_trigger_in sync_timing_capture"
 TIMER_HZ = 90_000_000
 THRESHOLD_TICKS = 9
 WIRING_PROFILE = "single_board_split_capture_v1"
+RUN_PROFILE = "tim2_hardware_ack"
 MEASURED_PATH = "PB9_PA1_minus_PB8_PA6"
 CAPTURE_TRIGGER = "PB8_TIM4_CH3"
 CAPTURE_ACK = "PB9_TIM4_CH4"
+TRIGGER_OUTPUT = "PA6_D12"
+TRIGGER_INPUT = "PA0_A0"
+ACK_OUTPUT = "PA1_A1"
+ACK_MECHANISM = "tim2_hardware_output_compare"
+MEASURED_DELTA = "ack_capture_minus_trigger_capture"
+CLAIM_PROVES = "selected TIM2 hardware acknowledgment path split-capture timing"
+CLAIM_DOES_NOT_PROVE = (
+    "software EXTI acknowledgment path timing pass",
+    "exact internal PA0-to-PA1 silicon latency",
+)
 REQUIRED_FIELDS = (
     "timer_hz",
     "threshold_ticks",
@@ -171,12 +182,28 @@ def write_artifact(
         "timer_hz": TIMER_HZ,
         "threshold_ticks": THRESHOLD_TICKS,
         "wiring_profile": WIRING_PROFILE,
+        "run_profile": RUN_PROFILE,
         "measured_path": MEASURED_PATH,
         "capture_trigger": CAPTURE_TRIGGER,
         "capture_ack": CAPTURE_ACK,
-        "trigger_output": "PA6_D12",
-        "trigger_input": "PA0_A0",
-        "ack_output": "PA1_A1",
+        "trigger_output": TRIGGER_OUTPUT,
+        "trigger_input": TRIGGER_INPUT,
+        "ack_output": ACK_OUTPUT,
+        "functional_path": {
+            "trigger_output": TRIGGER_OUTPUT,
+            "trigger_input": TRIGGER_INPUT,
+            "ack_mechanism": ACK_MECHANISM,
+            "ack_output": ACK_OUTPUT,
+        },
+        "measurement_path": {
+            "trigger_capture": CAPTURE_TRIGGER,
+            "ack_capture": CAPTURE_ACK,
+            "measured_delta": MEASURED_DELTA,
+        },
+        "claim_boundary": {
+            "proves": CLAIM_PROVES,
+            "does_not_prove": list(CLAIM_DOES_NOT_PROVE),
+        },
         "trigger_count": int(fields["trigger_count"], 10),
         "ack_count": int(fields["ack_count"], 10),
         "missed_ack_count": int(fields["missed_ack_count"], 10),
