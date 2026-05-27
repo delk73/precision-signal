@@ -29,6 +29,8 @@
 - added offline HIL timing report artifact generation. `scripts/hil_timing_capture.py`
   now accepts `--input <timing_report.txt>` as an alternative to live
   `--serial` capture while applying the required timing evidence profile.
+- added observer-only STM32 sync timing firmware support with `sync_timing_observer`
+  and the `dual_edge_timing_observer_v1` HIL timing evidence profile.
 
 ### Changed
 
@@ -38,6 +40,8 @@
   `functional_path`, `measurement_path`, and `claim_boundary` metadata.
 - documented `single_board_tim2_hardware_ack_v1` as the supported single-board
   TIM2 hardware-ack timing evidence profile.
+- documented observer-only timing capture wiring, trigger-count semantics, and
+  `dual_edge_observer_v1` wiring profile boundaries.
 
 ### Maintenance
 
