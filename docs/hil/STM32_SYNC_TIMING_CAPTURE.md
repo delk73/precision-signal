@@ -106,6 +106,7 @@ Capture and retain the report:
 
 ```sh
 python3 scripts/hil_timing_capture.py \
+  --profile single_board_tim2_hardware_ack_v1 \
   --serial /dev/ttyACM0 \
   --out artifacts/hil_timing/<run_id>
 ```
@@ -130,10 +131,14 @@ GND shared
 
 `meta.json` records the feature set, wiring profile, timer settings, capture
 pins, functional pins, measured values, and honest `PASS` or `FAIL` result.
-It also carries structured path identity:
+`--profile` is required for new captures because the raw
+`SYNC_TIMING_CAPTURE_V1` report does not encode the acknowledgment mechanism.
+The selected profile supplies `evidence_profile`, `run_profile`,
+`functional_path`, `measurement_path`, and `claim_boundary`:
 
 ```json
 {
+  "evidence_profile": "single_board_tim2_hardware_ack_v1",
   "run_profile": "tim2_hardware_ack",
   "functional_path": {
     "trigger_output": "PA6_D12",

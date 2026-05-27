@@ -14,21 +14,36 @@ FEATURE_SET = "sync_trigger_out sync_trigger_in sync_timing_capture"
 TIMER_HZ = 90_000_000
 THRESHOLD_TICKS = 9
 WIRING_PROFILE = "single_board_split_capture_v1"
-RUN_PROFILE = "tim2_hardware_ack"
-EVIDENCE_PROFILE = "single_board_tim2_hardware_ack_v1"
-MEASURED_PATH = "PB9_PA1_minus_PB8_PA6"
-CAPTURE_TRIGGER = "PB8_TIM4_CH3"
-CAPTURE_ACK = "PB9_TIM4_CH4"
-TRIGGER_OUTPUT = "PA6_D12"
-TRIGGER_INPUT = "PA0_A0"
-ACK_OUTPUT = "PA1_A1"
-ACK_MECHANISM = "tim2_hardware_output_compare"
-MEASURED_DELTA = "ack_capture_minus_trigger_capture"
-CLAIM_PROVES = "selected TIM2 hardware acknowledgment path split-capture timing"
-CLAIM_DOES_NOT_PROVE = (
-    "software EXTI acknowledgment path timing pass",
-    "exact internal PA0-to-PA1 silicon latency",
-)
+PROFILE_DEFINITIONS = {
+    "single_board_tim2_hardware_ack_v1": {
+        "evidence_profile": "single_board_tim2_hardware_ack_v1",
+        "run_profile": "tim2_hardware_ack",
+        "measured_path": "PB9_PA1_minus_PB8_PA6",
+        "capture_trigger": "PB8_TIM4_CH3",
+        "capture_ack": "PB9_TIM4_CH4",
+        "trigger_output": "PA6_D12",
+        "trigger_input": "PA0_A0",
+        "ack_output": "PA1_A1",
+        "functional_path": {
+            "trigger_output": "PA6_D12",
+            "trigger_input": "PA0_A0",
+            "ack_mechanism": "tim2_hardware_output_compare",
+            "ack_output": "PA1_A1",
+        },
+        "measurement_path": {
+            "trigger_capture": "PB8_TIM4_CH3",
+            "ack_capture": "PB9_TIM4_CH4",
+            "measured_delta": "ack_capture_minus_trigger_capture",
+        },
+        "claim_boundary": {
+            "proves": "selected TIM2 hardware acknowledgment path split-capture timing",
+            "does_not_prove": [
+                "software EXTI acknowledgment path timing pass",
+                "exact internal PA0-to-PA1 silicon latency",
+            ],
+        },
+    }
+}
 REQUIRED_FIELDS = (
     "timer_hz",
     "threshold_ticks",
@@ -41,15 +56,6 @@ REQUIRED_FIELDS = (
     "max_delta_ns",
     "result",
 )
-EXPECTED_FIELDS = {
-    "timer_hz": str(TIMER_HZ),
-    "threshold_ticks": str(THRESHOLD_TICKS),
-    "trigger_count": "10000",
-    "capture_trigger": CAPTURE_TRIGGER,
-    "capture_ack": CAPTURE_ACK,
-    "wiring_profile": WIRING_PROFILE,
-    "measured_path": MEASURED_PATH,
-}
 WIRING_TEXT = """PA6/D12 -> PA0/A0
 PA6/D12 -> PB8/TIM4_CH3
 PA1/A1  -> PB9/TIM4_CH4
@@ -59,19 +65,54 @@ GND shared
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--profile",
+        metavar="PROFILE",
+        help=(
+            "required timing evidence profile to apply to the retained artifact; "
+            f"supported profile: {supported_profile_names()}"
+        ),
+    )
     parser.add_argument("--serial", required=True)
     parser.add_argument("--out", required=True)
     parser.add_argument("--baud", type=int, default=115200)
     parser.add_argument("--timeout", type=float, default=20.0)
     parser.add_argument("--overwrite", action="store_true")
-    return parser.parse_args()
+    args = parser.parse_args()
+    if args.profile is None:
+        parser.error(
+            "--profile is required; supported profile: "
+            f"{supported_profile_names()}"
+        )
+    if args.profile not in PROFILE_DEFINITIONS:
+        parser.error(
+            f"unsupported profile: {args.profile}; supported profile: "
+            f"{supported_profile_names()}"
+        )
+    return args
+
+
+def supported_profile_names() -> str:
+    return ", ".join(sorted(PROFILE_DEFINITIONS))
 
 
 def decode_line(raw: bytes) -> str:
     return raw.decode("utf-8", errors="replace").strip()
 
 
-def parse_report(text: str) -> dict[str, str]:
+def expected_fields(profile: dict[str, object]) -> dict[str, str]:
+    return {
+        "timer_hz": str(TIMER_HZ),
+        "threshold_ticks": str(THRESHOLD_TICKS),
+        "trigger_count": "10000",
+        "capture_trigger": str(profile["capture_trigger"]),
+        "capture_ack": str(profile["capture_ack"]),
+        "wiring_profile": WIRING_PROFILE,
+        "measured_path": str(profile["measured_path"]),
+    }
+
+
+def parse_report(text: str, profile: dict[str, object]) -> dict[str, str]:
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     if not lines or lines[0] != REPORT_SCHEMA:
         raise ValueError(f"missing {REPORT_SCHEMA} header")
@@ -87,7 +128,7 @@ def parse_report(text: str) -> dict[str, str]:
     if missing:
         raise ValueError(f"missing required report fields: {', '.join(missing)}")
 
-    for key, expected in EXPECTED_FIELDS.items():
+    for key, expected in expected_fields(profile).items():
         actual = fields.get(key)
         if actual != expected:
             raise ValueError(f"invalid {key}: expected {expected!r}, got {actual!r}")
@@ -128,17 +169,19 @@ def parse_report(text: str) -> dict[str, str]:
     return fields
 
 
-def report_complete(lines: list[str]) -> bool:
+def report_complete(lines: list[str], profile: dict[str, object]) -> bool:
     if not lines or lines[0] != REPORT_SCHEMA:
         return False
     try:
-        fields = parse_report("\n".join(lines) + "\n")
+        fields = parse_report("\n".join(lines) + "\n", profile)
     except ValueError:
         return False
-    return fields.get("measured_path") == MEASURED_PATH
+    return fields.get("measured_path") == profile["measured_path"]
 
 
-def capture_report(serial_path: str, baud: int, timeout: float) -> str:
+def capture_report(
+    serial_path: str, baud: int, timeout: float, profile: dict[str, object]
+) -> str:
     deadline = time.monotonic() + timeout
     lines: list[str] = []
 
@@ -160,14 +203,18 @@ def capture_report(serial_path: str, baud: int, timeout: float) -> str:
                 continue
 
             lines.append(line)
-            if report_complete(lines):
+            if report_complete(lines, profile):
                 return "\n".join(lines) + "\n"
 
     raise TimeoutError(f"timed out waiting for {REPORT_SCHEMA} report")
 
 
 def write_artifact(
-    out_dir: Path, report: str, fields: dict[str, str], overwrite: bool
+    out_dir: Path,
+    report: str,
+    fields: dict[str, str],
+    profile: dict[str, object],
+    overwrite: bool,
 ) -> None:
     if out_dir.exists() and any(out_dir.iterdir()) and not overwrite:
         raise ValueError(f"output directory exists and is non-empty: {out_dir}")
@@ -183,29 +230,17 @@ def write_artifact(
         "timer_hz": TIMER_HZ,
         "threshold_ticks": THRESHOLD_TICKS,
         "wiring_profile": WIRING_PROFILE,
-        "run_profile": RUN_PROFILE,
-        "evidence_profile": EVIDENCE_PROFILE,
-        "measured_path": MEASURED_PATH,
-        "capture_trigger": CAPTURE_TRIGGER,
-        "capture_ack": CAPTURE_ACK,
-        "trigger_output": TRIGGER_OUTPUT,
-        "trigger_input": TRIGGER_INPUT,
-        "ack_output": ACK_OUTPUT,
-        "functional_path": {
-            "trigger_output": TRIGGER_OUTPUT,
-            "trigger_input": TRIGGER_INPUT,
-            "ack_mechanism": ACK_MECHANISM,
-            "ack_output": ACK_OUTPUT,
-        },
-        "measurement_path": {
-            "trigger_capture": CAPTURE_TRIGGER,
-            "ack_capture": CAPTURE_ACK,
-            "measured_delta": MEASURED_DELTA,
-        },
-        "claim_boundary": {
-            "proves": CLAIM_PROVES,
-            "does_not_prove": list(CLAIM_DOES_NOT_PROVE),
-        },
+        "run_profile": profile["run_profile"],
+        "evidence_profile": profile["evidence_profile"],
+        "measured_path": profile["measured_path"],
+        "capture_trigger": profile["capture_trigger"],
+        "capture_ack": profile["capture_ack"],
+        "trigger_output": profile["trigger_output"],
+        "trigger_input": profile["trigger_input"],
+        "ack_output": profile["ack_output"],
+        "functional_path": profile["functional_path"],
+        "measurement_path": profile["measurement_path"],
+        "claim_boundary": profile["claim_boundary"],
         "trigger_count": int(fields["trigger_count"], 10),
         "ack_count": int(fields["ack_count"], 10),
         "missed_ack_count": int(fields["missed_ack_count"], 10),
@@ -222,10 +257,11 @@ def write_artifact(
 
 def main() -> int:
     args = parse_args()
+    profile = PROFILE_DEFINITIONS[args.profile]
     try:
-        report = capture_report(args.serial, args.baud, args.timeout)
-        fields = parse_report(report)
-        write_artifact(Path(args.out), report, fields, args.overwrite)
+        report = capture_report(args.serial, args.baud, args.timeout, profile)
+        fields = parse_report(report, profile)
+        write_artifact(Path(args.out), report, fields, profile, args.overwrite)
     except (OSError, TimeoutError, ValueError) as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1
