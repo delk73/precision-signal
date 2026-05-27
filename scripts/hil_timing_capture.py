@@ -73,7 +73,9 @@ def parse_args() -> argparse.Namespace:
             f"supported profile: {supported_profile_names()}"
         ),
     )
-    parser.add_argument("--serial", required=True)
+    source = parser.add_mutually_exclusive_group()
+    source.add_argument("--serial")
+    source.add_argument("--input")
     parser.add_argument("--out", required=True)
     parser.add_argument("--baud", type=int, default=115200)
     parser.add_argument("--timeout", type=float, default=20.0)
@@ -89,6 +91,8 @@ def parse_args() -> argparse.Namespace:
             f"unsupported profile: {args.profile}; supported profile: "
             f"{supported_profile_names()}"
         )
+    if args.serial is None and args.input is None:
+        parser.error("exactly one of --input or --serial is required")
     return args
 
 
@@ -209,6 +213,10 @@ def capture_report(
     raise TimeoutError(f"timed out waiting for {REPORT_SCHEMA} report")
 
 
+def read_report(input_path: str) -> str:
+    return Path(input_path).read_text(encoding="utf-8")
+
+
 def write_artifact(
     out_dir: Path,
     report: str,
@@ -259,7 +267,10 @@ def main() -> int:
     args = parse_args()
     profile = PROFILE_DEFINITIONS[args.profile]
     try:
-        report = capture_report(args.serial, args.baud, args.timeout, profile)
+        if args.input is not None:
+            report = read_report(args.input)
+        else:
+            report = capture_report(args.serial, args.baud, args.timeout, profile)
         fields = parse_report(report, profile)
         write_artifact(Path(args.out), report, fields, profile, args.overwrite)
     except (OSError, TimeoutError, ValueError) as exc:

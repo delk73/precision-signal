@@ -111,6 +111,16 @@ python3 scripts/hil_timing_capture.py \
   --out artifacts/hil_timing/<run_id>
 ```
 
+Generate a retained artifact from an existing raw report without live serial
+capture:
+
+```sh
+python3 scripts/hil_timing_capture.py \
+  --profile single_board_tim2_hardware_ack_v1 \
+  --input artifacts/hil_timing/0004/timing_report.txt \
+  --out /tmp/hil_timing_profile_check
+```
+
 The retained directory contains:
 
 ```text
