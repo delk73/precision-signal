@@ -27,6 +27,15 @@
 - retained follow-on sync timing capture evidence for the fast EXTI0
   acknowledgment experiment.
 
+### Changed
+
+- made HIL timing capture profile-aware. `scripts/hil_timing_capture.py` now
+  requires `--profile single_board_tim2_hardware_ack_v1` for retained captures
+  and uses the selected profile to emit `evidence_profile`, `run_profile`,
+  `functional_path`, `measurement_path`, and `claim_boundary` metadata.
+- documented `single_board_tim2_hardware_ack_v1` as the supported single-board
+  TIM2 hardware-ack timing evidence profile.
+
 ### Maintenance
 
 - added `make bench-check` bench readiness preflight for STM32 release operations, covering serial device presence, ST-LINK probe presence, required host binaries, and optional firmware build artifacts
