@@ -106,8 +106,19 @@ Capture and retain the report:
 
 ```sh
 python3 scripts/hil_timing_capture.py \
+  --profile single_board_tim2_hardware_ack_v1 \
   --serial /dev/ttyACM0 \
   --out artifacts/hil_timing/<run_id>
+```
+
+Generate a retained artifact from an existing raw report without live serial
+capture:
+
+```sh
+python3 scripts/hil_timing_capture.py \
+  --profile single_board_tim2_hardware_ack_v1 \
+  --input artifacts/hil_timing/0004/timing_report.txt \
+  --out /tmp/hil_timing_profile_check
 ```
 
 The retained directory contains:
@@ -130,10 +141,14 @@ GND shared
 
 `meta.json` records the feature set, wiring profile, timer settings, capture
 pins, functional pins, measured values, and honest `PASS` or `FAIL` result.
-It also carries structured path identity:
+`--profile` is required for new captures because the raw
+`SYNC_TIMING_CAPTURE_V1` report does not encode the acknowledgment mechanism.
+The selected profile supplies `evidence_profile`, `run_profile`,
+`functional_path`, `measurement_path`, and `claim_boundary`:
 
 ```json
 {
+  "evidence_profile": "single_board_tim2_hardware_ack_v1",
   "run_profile": "tim2_hardware_ack",
   "functional_path": {
     "trigger_output": "PA6_D12",
@@ -160,6 +175,38 @@ The flat fields `measured_path`, `capture_trigger`, `capture_ack`,
 `trigger_output`, `trigger_input`, and `ack_output` remain for compatibility.
 `timing_report.txt` remains the raw `SYNC_TIMING_CAPTURE_V1` firmware report;
 the report does not encode the acknowledgment mechanism.
+
+## Supported Timing Evidence Profile
+
+Profile:
+
+```text
+single_board_tim2_hardware_ack_v1
+```
+
+Functional path:
+
+```text
+PA6/D12 -> PA0/A0 -> TIM2_CH1 -> TIM2 reset/PWM -> TIM2_CH2 -> PA1/A1
+```
+
+Measurement path:
+
+```text
+PB8/TIM4_CH3 observes PA6/D12
+PB9/TIM4_CH4 observes PA1/A1
+```
+
+Claim:
+
+This profile supports the split-capture timing claim only for the named TIM2
+hardware acknowledgment path.
+
+Non-claims:
+
+It does not prove the EXTI software acknowledgment path passes. It is not exact
+internal PA0-to-PA1 silicon latency. It is not, by itself, RPL0/replay
+authority or release evidence.
 
 ## Replay Carryforward
 
