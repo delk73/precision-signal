@@ -26,10 +26,10 @@
     "role": "observer"
   },
   "procedure": {
-    "actor_flash_command": "FW_FEATURES=\"sync_trigger_out sync_trigger_in sync_timing_capture\" make flash-ur",
+    "actor_flash_command": "STFLASH_SERIAL=066CFF505487525067182651 FW_FEATURES=\"sync_trigger_out sync_trigger_in sync_timing_capture\" make flash-ur",
     "capture_command": "python3 scripts/hil_timing_capture.py --profile dual_edge_timing_observer_v1 --serial <observer_serial> --out artifacts/hil_timing_dual/0001",
     "flash_before_capture": true,
-    "observer_flash_command": "FW_FEATURES=\"sync_timing_observer\" make flash-ur"
+    "observer_flash_command": "STFLASH_SERIAL=0668FF514988525067215029 FW_FEATURES=\"sync_timing_observer\" make flash-ur"
   },
   "topology_profile": "dual_board_tim2_hardware_ack_observed_v1"
 }

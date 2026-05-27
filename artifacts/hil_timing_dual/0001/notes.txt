@@ -33,10 +33,10 @@ Board A GND -> Board B GND
 
 Flash-before-capture sequence:
 1. Flash Board B observer:
-   FW_FEATURES="sync_timing_observer" make flash-ur
+   STFLASH_SERIAL=0668FF514988525067215029 FW_FEATURES="sync_timing_observer" make flash-ur
 
 2. Flash Board A actor:
-   FW_FEATURES="sync_trigger_out sync_trigger_in sync_timing_capture" make flash-ur
+   STFLASH_SERIAL=066CFF505487525067182651 FW_FEATURES="sync_trigger_out sync_trigger_in sync_timing_capture" make flash-ur
 
 3. Capture from Board B serial:
    python3 scripts/hil_timing_capture.py \
@@ -47,10 +47,13 @@ Flash-before-capture sequence:
 4. Reset/start Board A actor if needed after the Board B listener is active.
 
 Bench details to record during capture:
-Board A physical identity:
-Board B physical identity:
-Observer serial path:
+Board A physical identity: ST-LINK 066CFF505487525067182651, VCP /dev/ttyACM0
+Board B physical identity: ST-LINK 0668FF514988525067215029, VCP /dev/ttyACM1
+Observer serial path: /dev/serial/by-id/usb-STMicroelectronics_STM32_STLink_0668FF514988525067215029-if02
+Power setup: Board B powered by USB during observer capture setup.
 ST-LINK/VCP identity notes:
+Flash commands pin ST-LINK identity with STFLASH_SERIAL to avoid default-probe
+selection when both boards are attached.
 Reset ordering:
 
 Result classification:

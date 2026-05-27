@@ -289,8 +289,8 @@ does not need PA0 or PA1 connected; it only observes PB8/PB9 plus shared ground.
 Use flash-before-capture on both boards:
 
 ```sh
-FW_FEATURES="sync_timing_observer" make flash-ur
-FW_FEATURES="sync_trigger_out sync_trigger_in sync_timing_capture" make flash-ur
+STFLASH_SERIAL=<observer_stlink_serial> FW_FEATURES="sync_timing_observer" make flash-ur
+STFLASH_SERIAL=<actor_stlink_serial> FW_FEATURES="sync_trigger_out sync_trigger_in sync_timing_capture" make flash-ur
 
 python3 scripts/hil_timing_capture.py \
   --profile dual_edge_timing_observer_v1 \

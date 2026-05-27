@@ -45,6 +45,8 @@
   TIM2 hardware-ack timing evidence profile.
 - documented observer-only timing capture wiring, trigger-count semantics, and
   `dual_edge_observer_v1` wiring profile boundaries.
+- added `STFLASH_SERIAL` support to the Makefile flash and flash-compare
+  targets so dual-board HIL flashing can pin the intended ST-LINK probe.
 
 ### Maintenance
 
