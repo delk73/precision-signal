@@ -31,6 +31,9 @@
   `--serial` capture while applying the required timing evidence profile.
 - added observer-only STM32 sync timing firmware support with `sync_timing_observer`
   and the `dual_edge_timing_observer_v1` HIL timing evidence profile.
+- added the `artifacts/hil_timing_dual/<run_id>/` namespace and first
+  dual-board observer topology packet for retaining external-observer STM32
+  timing evidence without mixing it into the single-board HIL timing artifacts.
 
 ### Changed
 

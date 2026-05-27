@@ -237,6 +237,74 @@ The flat fields `measured_path`, `capture_trigger`, `capture_ack`,
 `timing_report.txt` remains the raw `SYNC_TIMING_CAPTURE_V1` firmware report;
 the report does not encode the acknowledgment mechanism.
 
+## Dual-Board Observer Artifact
+
+Dual-board observer evidence is retained under a separate namespace:
+
+```text
+artifacts/hil_timing_dual/<run_id>/
+  timing_report.txt
+  meta.json
+  wiring.txt
+  run_context.json
+  notes.txt
+```
+
+Do not edit generated files after capture:
+
+```text
+timing_report.txt
+meta.json
+wiring.txt
+```
+
+For `dual_edge_timing_observer_v1`, generated `wiring.txt` remains the
+observer-profile wiring:
+
+```text
+external actor trigger edge -> observer PB8/TIM4_CH3
+external actor ack edge     -> observer PB9/TIM4_CH4
+GND shared
+```
+
+`meta.json` is observer artifact metadata. `run_context.json` is the dual-board
+topology and procedure context. `notes.txt` records operator interpretation,
+bench details, board identity, serial path, ST-LINK/VCP ambiguity, reset
+ordering, and result classification.
+
+For the `dual_board_tim2_hardware_ack_observed_v1` topology, Board A is the
+actor and Board B is the observer:
+
+```text
+Board A PA6/D12 -> Board A PA0/A0
+Board A PA6/D12 -> Board B PB8/TIM4_CH3
+Board A PA1/A1  -> Board B PB9/TIM4_CH4
+Board A GND     -> Board B GND
+```
+
+Board A still needs the local `PA6/D12 -> PA0/A0` functional loop because the
+actor TIM2 hardware acknowledgment path is triggered from PA0/TIM2_CH1. Board B
+does not need PA0 or PA1 connected; it only observes PB8/PB9 plus shared ground.
+
+Use flash-before-capture on both boards:
+
+```sh
+FW_FEATURES="sync_timing_observer" make flash-ur
+FW_FEATURES="sync_trigger_out sync_trigger_in sync_timing_capture" make flash-ur
+
+python3 scripts/hil_timing_capture.py \
+  --profile dual_edge_timing_observer_v1 \
+  --serial <observer_serial> \
+  --out artifacts/hil_timing_dual/<run_id>
+```
+
+The retained result determines the allowed claim. `PASS` means the external
+observer measured Board A's TIM2 hardware-ack path under the existing gate.
+`FAIL` with clean counters means the external observer produced honest timing
+evidence, but the observed path did not satisfy the gate. Timeout or nonzero
+integrity counters must be retained/classified as bring-up failure, not timing
+success.
+
 ## Supported Timing Evidence Profiles
 
 Profile:
