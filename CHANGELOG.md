@@ -26,6 +26,9 @@
   `threshold_ticks=9`.
 - retained follow-on sync timing capture evidence for the fast EXTI0
   acknowledgment experiment.
+- added offline HIL timing report artifact generation. `scripts/hil_timing_capture.py`
+  now accepts `--input <timing_report.txt>` as an alternative to live
+  `--serial` capture while applying the required timing evidence profile.
 
 ### Changed
 
