@@ -10,14 +10,14 @@ import serial
 
 
 REPORT_SCHEMA = "SYNC_TIMING_CAPTURE_V1"
-FEATURE_SET = "sync_trigger_out sync_trigger_in sync_timing_capture"
 TIMER_HZ = 90_000_000
 THRESHOLD_TICKS = 9
-WIRING_PROFILE = "single_board_split_capture_v1"
 PROFILE_DEFINITIONS = {
     "single_board_tim2_hardware_ack_v1": {
         "evidence_profile": "single_board_tim2_hardware_ack_v1",
         "run_profile": "tim2_hardware_ack",
+        "feature_set": "sync_trigger_out sync_trigger_in sync_timing_capture",
+        "wiring_profile": "single_board_split_capture_v1",
         "measured_path": "PB9_PA1_minus_PB8_PA6",
         "capture_trigger": "PB8_TIM4_CH3",
         "capture_ack": "PB9_TIM4_CH4",
@@ -42,7 +42,52 @@ PROFILE_DEFINITIONS = {
                 "exact internal PA0-to-PA1 silicon latency",
             ],
         },
-    }
+        "wiring_text": """PA6/D12 -> PA0/A0
+PA6/D12 -> PB8/TIM4_CH3
+PA1/A1  -> PB9/TIM4_CH4
+GND shared
+""",
+    },
+    "dual_edge_timing_observer_v1": {
+        "evidence_profile": "dual_edge_timing_observer_v1",
+        "run_profile": "dual_board_observer",
+        "feature_set": "sync_timing_observer",
+        "wiring_profile": "dual_edge_observer_v1",
+        "measured_path": "PB9_PA1_minus_PB8_PA6",
+        "capture_trigger": "PB8_TIM4_CH3",
+        "capture_ack": "PB9_TIM4_CH4",
+        "trigger_output": "external_actor_PA6_D12",
+        "trigger_input": "external_actor_PA0_A0_or_profile_defined",
+        "ack_output": "external_actor_PA1_A1",
+        "functional_path": {
+            "trigger_output": "external_actor_PA6_D12",
+            "trigger_input": "external_actor_PA0_A0_or_profile_defined",
+            "ack_mechanism": "external_actor_defined",
+            "ack_output": "external_actor_PA1_A1",
+        },
+        "measurement_path": {
+            "trigger_capture": "observer_PB8_TIM4_CH3",
+            "ack_capture": "observer_PB9_TIM4_CH4",
+            "measured_delta": "ack_capture_minus_trigger_capture",
+        },
+        "claim_boundary": {
+            "proves": (
+                "observer board measured external actor trigger-to-ack timing "
+                "through PB8/PB9"
+            ),
+            "does_not_prove": [
+                "actor internal PA0-to-PA1 silicon latency",
+                "software EXTI acknowledgment path timing pass unless actor profile states it",
+                "platform proof",
+                "RPL0/replay authority",
+                "release evidence",
+            ],
+        },
+        "wiring_text": """external actor trigger edge -> observer PB8/TIM4_CH3
+external actor ack edge     -> observer PB9/TIM4_CH4
+GND shared
+""",
+    },
 }
 REQUIRED_FIELDS = (
     "timer_hz",
@@ -56,11 +101,6 @@ REQUIRED_FIELDS = (
     "max_delta_ns",
     "result",
 )
-WIRING_TEXT = """PA6/D12 -> PA0/A0
-PA6/D12 -> PB8/TIM4_CH3
-PA1/A1  -> PB9/TIM4_CH4
-GND shared
-"""
 
 
 def parse_args() -> argparse.Namespace:
@@ -111,7 +151,7 @@ def expected_fields(profile: dict[str, object]) -> dict[str, str]:
         "trigger_count": "10000",
         "capture_trigger": str(profile["capture_trigger"]),
         "capture_ack": str(profile["capture_ack"]),
-        "wiring_profile": WIRING_PROFILE,
+        "wiring_profile": str(profile["wiring_profile"]),
         "measured_path": str(profile["measured_path"]),
     }
 
@@ -229,15 +269,15 @@ def write_artifact(
 
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "timing_report.txt").write_text(report, encoding="utf-8")
-    (out_dir / "wiring.txt").write_text(WIRING_TEXT, encoding="utf-8")
+    (out_dir / "wiring.txt").write_text(str(profile["wiring_text"]), encoding="utf-8")
 
     meta = {
         "artifact_kind": "hil_timing_capture",
         "schema": REPORT_SCHEMA,
-        "feature_set": FEATURE_SET,
+        "feature_set": profile["feature_set"],
         "timer_hz": TIMER_HZ,
         "threshold_ticks": THRESHOLD_TICKS,
-        "wiring_profile": WIRING_PROFILE,
+        "wiring_profile": profile["wiring_profile"],
         "run_profile": profile["run_profile"],
         "evidence_profile": profile["evidence_profile"],
         "measured_path": profile["measured_path"],

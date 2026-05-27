@@ -4,7 +4,7 @@
 #[cfg(all(
     target_arch = "arm",
     target_os = "none",
-    not(feature = "sync_timing_capture")
+    not(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))
 ))]
 mod artifact_metadata;
 
@@ -14,7 +14,7 @@ mod fw;
 #[cfg(all(
     target_arch = "arm",
     target_os = "none",
-    not(feature = "sync_timing_capture")
+    not(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))
 ))]
 mod signal_model;
 
@@ -32,7 +32,7 @@ fn main() -> ! {
 #[cfg(all(
     target_arch = "arm",
     target_os = "none",
-    not(feature = "sync_timing_capture")
+    not(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))
 ))]
 #[interrupt]
 fn TIM2() {
@@ -42,14 +42,19 @@ fn TIM2() {
 #[cfg(all(
     target_arch = "arm",
     target_os = "none",
-    feature = "sync_timing_capture"
+    any(feature = "sync_timing_capture", feature = "sync_timing_observer")
 ))]
 #[interrupt]
 fn TIM4() {
     fw::tim4_isr()
 }
 
-#[cfg(all(target_arch = "arm", target_os = "none", feature = "sync_trigger_in"))]
+#[cfg(all(
+    target_arch = "arm",
+    target_os = "none",
+    feature = "sync_trigger_in",
+    not(feature = "sync_timing_observer")
+))]
 #[interrupt]
 fn EXTI0() {
     fw::exti0_isr()

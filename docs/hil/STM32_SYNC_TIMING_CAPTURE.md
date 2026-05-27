@@ -2,7 +2,21 @@
 
 ## Purpose
 
-Retained HIL evidence for the single-board split-capture timing proof.
+Retained HIL evidence for STM32 split-capture timing profiles.
+
+Two firmware roles are supported:
+
+```text
+single-board actor+observer:
+  emits PA6
+  consumes PA0 through TIM2
+  emits PA1 through TIM2
+  captures PA6/PA1 through PB8/PB9 TIM4
+
+observer-only:
+  captures external trigger/ack edges through PB8/PB9 TIM4
+  emits timing report only
+```
 
 The measured value is:
 
@@ -13,7 +27,7 @@ PB9 capture of PA1/A1 acknowledgment - PB8 capture of PA6/D12 trigger
 This is observed timing through the selected measurement wiring. It is not exact
 internal PA0-to-PA1 silicon latency.
 
-## Wiring
+## Single-Board Wiring
 
 Functional path:
 
@@ -32,6 +46,20 @@ GND shared
 Use short direct wiring. Keep PA6->PA0 and PA6->PB8 as short and similar as
 practical. Keep PA1->PB9 short. Avoid breadboard routing for timing evidence.
 
+## Observer Wiring
+
+Observer-only firmware does not drive PA6, does not configure PA0/TIM2 as a
+functional input path, and does not drive PA1. It only observes external edges:
+
+```text
+external actor trigger edge -> observer PB8/TIM4_CH3
+external actor ack edge     -> observer PB9/TIM4_CH4
+GND shared
+```
+
+`dual_edge_timing_observer_v1` identifies only the observer firmware/profile. It
+does not identify a complete dual-board topology or BBB orchestration loop.
+
 ## Firmware
 
 ```sh
@@ -39,12 +67,16 @@ make fw
 FW_FEATURES="sync_trigger_out sync_trigger_in" make fw
 FW_FEATURES="sync_trigger_out sync_trigger_in sync_timing_capture" make fw
 FW_FEATURES="sync_trigger_out sync_trigger_in sync_timing_capture" make flash-ur
+FW_FEATURES="sync_timing_observer" make fw
 ```
 
 `sync_timing_capture` emits only the `SYNC_TIMING_CAPTURE_V1` text report over
 USART2. It does not emit RPL0 in the same run and does not change RPL0 format,
 replay/diff behavior, `precision` CLI behavior, `sync_trigger_out`,
 `sync_trigger_in`, or the strict `< 100 ns` threshold.
+
+`sync_timing_observer` also emits only `SYNC_TIMING_CAPTURE_V1` over USART2. It
+does not emit RPL0 and does not enable actor-side PA6/PA0/PA1 behavior.
 
 TIM4 is configured as a free-running 16-bit capture timer at 90 MHz:
 
@@ -61,6 +93,16 @@ keeps the acknowledgment path and TIM4 capture interrupts enabled for a bounded
 grace interval. This lets the final PA0-triggered PA1 acknowledgment and
 PB9/TIM4_CH4 capture arrive before the final drain, shutdown, pending-trigger
 accounting, and report.
+
+In single-board mode, `trigger_count` means generated PA6 trigger pulses. In
+observer-only mode, `trigger_count` means observed PB8/TIM4_CH3 trigger
+captures. Observer-only mode stops after 10,000 observed trigger captures and
+then uses the same bounded grace, drain, finalization, and report flow.
+
+Observer-only pairing is count-based. If a new PB8/TIM4_CH3 trigger capture
+arrives while an earlier trigger timestamp is still unpaired, firmware replaces
+the pending timestamp. It does not increment `missed_ack_count` immediately;
+finalization derives misses once as `trigger_count - paired_ack_count`.
 
 `max_delta_ticks` is authoritative. `max_delta_ns` is display-only. Pass is valid
 only when:
@@ -100,6 +142,12 @@ wiring_profile=single_board_split_capture_v1
 measured_path=PB9_PA1_minus_PB8_PA6
 ```
 
+Observer-only firmware emits the same V1 fields but uses:
+
+```text
+wiring_profile=dual_edge_observer_v1
+```
+
 ## Retained Artifact
 
 Capture and retain the report:
@@ -107,6 +155,11 @@ Capture and retain the report:
 ```sh
 python3 scripts/hil_timing_capture.py \
   --profile single_board_tim2_hardware_ack_v1 \
+  --serial /dev/ttyACM0 \
+  --out artifacts/hil_timing/<run_id>
+
+python3 scripts/hil_timing_capture.py \
+  --profile dual_edge_timing_observer_v1 \
   --serial /dev/ttyACM0 \
   --out artifacts/hil_timing/<run_id>
 ```
@@ -136,6 +189,14 @@ artifacts/hil_timing/<run_id>/
 PA6/D12 -> PA0/A0
 PA6/D12 -> PB8/TIM4_CH3
 PA1/A1  -> PB9/TIM4_CH4
+GND shared
+```
+
+For `dual_edge_timing_observer_v1`, `wiring.txt` records:
+
+```text
+external actor trigger edge -> observer PB8/TIM4_CH3
+external actor ack edge     -> observer PB9/TIM4_CH4
 GND shared
 ```
 
@@ -176,12 +237,24 @@ The flat fields `measured_path`, `capture_trigger`, `capture_ack`,
 `timing_report.txt` remains the raw `SYNC_TIMING_CAPTURE_V1` firmware report;
 the report does not encode the acknowledgment mechanism.
 
-## Supported Timing Evidence Profile
+## Supported Timing Evidence Profiles
 
 Profile:
 
 ```text
 single_board_tim2_hardware_ack_v1
+```
+
+Feature set:
+
+```text
+sync_trigger_out sync_trigger_in sync_timing_capture
+```
+
+Wiring profile:
+
+```text
+single_board_split_capture_v1
 ```
 
 Functional path:
@@ -207,6 +280,49 @@ Non-claims:
 It does not prove the EXTI software acknowledgment path passes. It is not exact
 internal PA0-to-PA1 silicon latency. It is not, by itself, RPL0/replay
 authority or release evidence.
+
+Profile:
+
+```text
+dual_edge_timing_observer_v1
+```
+
+Feature set:
+
+```text
+sync_timing_observer
+```
+
+Wiring profile:
+
+```text
+dual_edge_observer_v1
+```
+
+Functional path:
+
+```text
+external actor trigger edge and acknowledgment edge are actor-defined
+```
+
+Measurement path:
+
+```text
+PB8/TIM4_CH3 observes external actor trigger edge
+PB9/TIM4_CH4 observes external actor acknowledgment edge
+```
+
+Claim:
+
+This profile supports only the observer-board measurement claim: external actor
+trigger-to-ack timing observed through PB8/PB9.
+
+Non-claims:
+
+It does not prove actor internal PA0-to-PA1 silicon latency. It does not prove a
+software EXTI acknowledgment path timing pass unless the actor profile states
+that separately. It is not platform proof, RPL0/replay authority, or release
+evidence.
 
 ## Replay Carryforward
 

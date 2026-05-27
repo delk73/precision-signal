@@ -14,6 +14,7 @@ signal-model-seeded-lfsr8 = []
 sync_trigger_out = []
 sync_trigger_in = []
 sync_timing_capture = []
+sync_timing_observer = []
 # Diagnostic-only ISR probe symbol for low-level debugger sessions.
 # Not part of the canonical release/capture workflow.
 debug-irq-count = []
