@@ -113,6 +113,45 @@ def main() -> int:
         ]:
             raise AssertionError("observer_profile: missing claim boundary")
 
+        context_out = root / "context"
+        context_out.mkdir()
+        (context_out / "run_context.json").write_text("{}\n", encoding="utf-8")
+        (context_out / "notes.txt").write_text("manual notes\n", encoding="utf-8")
+        proc = run_capture(
+            "dual_edge_timing_observer_v1",
+            valid_report("dual_edge_observer_v1"),
+            context_out,
+        )
+        assert_ok("allows_manual_context_files", proc)
+        if not (context_out / "run_context.json").is_file():
+            raise AssertionError("allows_manual_context_files: run_context.json removed")
+        if not (context_out / "notes.txt").is_file():
+            raise AssertionError("allows_manual_context_files: notes.txt removed")
+
+        generated_out = root / "generated_exists"
+        generated_out.mkdir()
+        (generated_out / "timing_report.txt").write_text("old report\n", encoding="utf-8")
+        proc = run_capture(
+            "dual_edge_timing_observer_v1",
+            valid_report("dual_edge_observer_v1"),
+            generated_out,
+        )
+        assert_fail("rejects_existing_generated_output", proc, "generated output already exists")
+
+        unexpected_out = root / "unexpected_exists"
+        unexpected_out.mkdir()
+        (unexpected_out / "operator.log").write_text("extra\n", encoding="utf-8")
+        proc = run_capture(
+            "dual_edge_timing_observer_v1",
+            valid_report("dual_edge_observer_v1"),
+            unexpected_out,
+        )
+        assert_fail(
+            "rejects_unexpected_existing_file",
+            proc,
+            "output directory has unexpected existing files",
+        )
+
         bad_out = root / "bad_observer"
         proc = run_capture(
             "dual_edge_timing_observer_v1",

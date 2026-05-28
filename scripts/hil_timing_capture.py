@@ -12,6 +12,8 @@ import serial
 REPORT_SCHEMA = "SYNC_TIMING_CAPTURE_V1"
 TIMER_HZ = 90_000_000
 THRESHOLD_TICKS = 9
+GENERATED_ARTIFACT_FILES = {"timing_report.txt", "meta.json", "wiring.txt"}
+ALLOWED_CONTEXT_FILES = {"run_context.json", "notes.txt"}
 PROFILE_DEFINITIONS = {
     "single_board_tim2_hardware_ack_v1": {
         "evidence_profile": "single_board_tim2_hardware_ack_v1",
@@ -264,8 +266,7 @@ def write_artifact(
     profile: dict[str, object],
     overwrite: bool,
 ) -> None:
-    if out_dir.exists() and any(out_dir.iterdir()) and not overwrite:
-        raise ValueError(f"output directory exists and is non-empty: {out_dir}")
+    validate_output_directory(out_dir, overwrite)
 
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "timing_report.txt").write_text(report, encoding="utf-8")
@@ -301,6 +302,30 @@ def write_artifact(
     (out_dir / "meta.json").write_text(
         json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
+
+
+def validate_output_directory(out_dir: Path, overwrite: bool) -> None:
+    if not out_dir.exists():
+        return
+    existing = {path.name for path in out_dir.iterdir()}
+    if not existing or overwrite:
+        return
+
+    generated = sorted(existing & GENERATED_ARTIFACT_FILES)
+    if generated:
+        raise ValueError(
+            "generated output already exists: "
+            + ", ".join(generated)
+            + f" in {out_dir}"
+        )
+
+    unexpected = sorted(existing - ALLOWED_CONTEXT_FILES)
+    if unexpected:
+        raise ValueError(
+            "output directory has unexpected existing files: "
+            + ", ".join(unexpected)
+            + f" in {out_dir}"
+        )
 
 
 def main() -> int:
