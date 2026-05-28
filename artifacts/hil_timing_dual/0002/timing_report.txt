@@ -1,0 +1,15 @@
+SYNC_TIMING_CAPTURE_V1
+timer_hz=90000000
+threshold_ticks=9
+trigger_count=10000
+ack_count=10002
+missed_ack_count=0
+unexpected_ack_count=2
+capture_error_count=0
+max_delta_ticks=6
+max_delta_ns=66
+result=FAIL
+capture_trigger=PB8_TIM4_CH3
+capture_ack=PB9_TIM4_CH4
+wiring_profile=dual_edge_observer_v1
+measured_path=PB9_PA1_minus_PB8_PA6

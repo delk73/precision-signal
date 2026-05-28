@@ -66,3 +66,4 @@ __pycache__/
 .codex
 meta/*
 artifacts/model_validation/
+notes.txt
