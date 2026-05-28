@@ -35,7 +35,7 @@ midstream trigger-to-ack latency or post-final shutdown/finalization behavior.
   evidence-window-only PASS/FAIL. Do not silently reinterpret existing `result`.
 - Arming boundary definition: use a named trigger-count boundary,
   `SYNC_TIMING_EVIDENCE_WINDOW_START_TRIGGER = 8`. The startup window is
-  accepted `trigger_count < 8`; the evidence window starts at accepted
+  classified as accepted `trigger_count < 8`; the evidence window starts at accepted
   `trigger_count >= 8`.
 - Evidence-window size: require exactly 10,000 evidence-window trigger/ack
   pairs for evidence-window PASS. Because startup triggers are excluded from
