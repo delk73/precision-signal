@@ -1,7 +1,7 @@
 # Dual-Board Observer Evidence-Window Arming Design
 
-Status: design record only. This document does not authorize firmware,
-parser, runner, artifact, or PASS/FAIL behavior changes by itself.
+Status: implemented for dual-board observer timing diagnostics. The design keeps
+raw full-run `result` separate from `evidence_window_result`.
 
 ## Current Evidence
 
@@ -61,7 +61,7 @@ last_in_window_unexpected_ack_trigger_count
 post_final_trigger_ack_count
 ```
 
-Add evidence-window fields:
+Implemented evidence-window fields:
 
 ```text
 evidence_window_start_trigger_count=
@@ -75,7 +75,8 @@ evidence_window_max_delta_ns=
 evidence_window_result=
 ```
 
-Optional startup fields for implementation consideration:
+Optional startup fields were considered but are not part of the implemented
+report:
 
 ```text
 startup_ack_count=
@@ -117,9 +118,9 @@ weaken the generated artifact claim boundary
 claim replay authority, release evidence, or platform proof
 ```
 
-## Implementation Packet Scope
+## Implementation Scope
 
-A later implementation packet should be limited to:
+The implementation is limited to:
 
 - Firmware accounting for startup and evidence-window counters.
 - Host parser and metadata retention for the new fields.
@@ -130,6 +131,5 @@ A later implementation packet should be limited to:
   observed, startup counters classify pre-evidence behavior, and evidence-window
   counters control only `evidence_window_result`.
 
-The implementation packet must not change runner orchestration, generated-file
-policy, board alias validation, timing threshold, or external-observer claim
-boundary.
+The implementation does not change runner orchestration, generated-file policy,
+board alias validation, timing threshold, or external-observer claim boundary.

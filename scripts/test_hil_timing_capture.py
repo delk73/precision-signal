@@ -72,6 +72,15 @@ capture_error_count=0
 max_delta_ticks=8
 max_delta_ns=88
 result=PASS
+evidence_window_start_trigger_count=8
+evidence_window_trigger_count=10000
+evidence_window_ack_count=10000
+evidence_window_unexpected_ack_count=0
+evidence_window_missed_ack_count=0
+evidence_window_capture_error_count=0
+evidence_window_max_delta_ticks=8
+evidence_window_max_delta_ns=88
+evidence_window_result=PASS
 capture_trigger=PB8_TIM4_CH3
 capture_ack=PB9_TIM4_CH4
 wiring_profile={wiring_profile}
@@ -194,7 +203,7 @@ def main() -> int:
                 "last_in_window_unexpected_ack_trigger_count=42\n",
             )
             .replace("post_final_trigger_ack_count=0\n", "post_final_trigger_ack_count=1\n")
-            .replace("result=PASS\n", "result=FAIL\n")
+            .replace("max_delta_ns=88\nresult=PASS\n", "max_delta_ns=88\nresult=FAIL\n")
         )
         proc = run_capture("dual_edge_timing_observer_v1", boundary_report, boundary_out)
         assert_ok("accepts_boundary_unexpected_ack_counts", proc)
@@ -289,6 +298,142 @@ def main() -> int:
             "rejects_first_in_window_position_after_last",
             proc,
             "first 43 > last 42",
+        )
+
+        startup_unexpected_evidence_pass_out = root / "startup_unexpected_evidence_pass"
+        startup_unexpected_evidence_pass_report = (
+            valid_report("dual_edge_observer_v1")
+            .replace(
+                "unexpected_ack_count=0\npre_first_trigger_ack_count=0\n",
+                "unexpected_ack_count=1\npre_first_trigger_ack_count=1\n",
+            )
+            .replace("max_delta_ns=88\nresult=PASS\n", "max_delta_ns=88\nresult=FAIL\n")
+        )
+        proc = run_capture(
+            "dual_edge_timing_observer_v1",
+            startup_unexpected_evidence_pass_report,
+            startup_unexpected_evidence_pass_out,
+        )
+        assert_ok("accepts_startup_unexpected_ack_with_evidence_window_pass", proc)
+        startup_meta = read_meta(startup_unexpected_evidence_pass_out)
+        if startup_meta["result"] != "FAIL":
+            raise AssertionError("startup_unexpected_evidence_pass: wrong raw result")
+        if startup_meta["evidence_window_result"] != "PASS":
+            raise AssertionError("startup_unexpected_evidence_pass: wrong evidence result")
+
+        trigger5_unexpected_evidence_pass_out = root / "trigger5_unexpected_evidence_pass"
+        trigger5_unexpected_evidence_pass_report = (
+            valid_report("dual_edge_observer_v1")
+            .replace(
+                "unexpected_ack_count=0\npre_first_trigger_ack_count=0\n",
+                "unexpected_ack_count=1\npre_first_trigger_ack_count=0\n",
+            )
+            .replace(
+                "in_window_unexpected_ack_count=0\n",
+                "in_window_unexpected_ack_count=1\n",
+            )
+            .replace(
+                "first_in_window_unexpected_ack_trigger_count=0\n",
+                "first_in_window_unexpected_ack_trigger_count=5\n",
+            )
+            .replace(
+                "last_in_window_unexpected_ack_trigger_count=0\n",
+                "last_in_window_unexpected_ack_trigger_count=5\n",
+            )
+            .replace("max_delta_ns=88\nresult=PASS\n", "max_delta_ns=88\nresult=FAIL\n")
+        )
+        proc = run_capture(
+            "dual_edge_timing_observer_v1",
+            trigger5_unexpected_evidence_pass_report,
+            trigger5_unexpected_evidence_pass_out,
+        )
+        assert_ok("accepts_trigger5_unexpected_ack_with_evidence_window_pass", proc)
+        trigger5_meta = read_meta(trigger5_unexpected_evidence_pass_out)
+        if trigger5_meta["evidence_window_result"] != "PASS":
+            raise AssertionError("trigger5_unexpected_evidence_pass: wrong evidence result")
+        if trigger5_meta["first_in_window_unexpected_ack_trigger_count"] != 5:
+            raise AssertionError("trigger5_unexpected_evidence_pass: wrong first position")
+
+        evidence_unexpected_out = root / "evidence_unexpected"
+        evidence_unexpected_report = (
+            trigger5_unexpected_evidence_pass_report
+            .replace(
+                "first_in_window_unexpected_ack_trigger_count=5\n",
+                "first_in_window_unexpected_ack_trigger_count=8\n",
+            )
+            .replace(
+                "last_in_window_unexpected_ack_trigger_count=5\n",
+                "last_in_window_unexpected_ack_trigger_count=8\n",
+            )
+            .replace(
+                "evidence_window_ack_count=10000\n",
+                "evidence_window_ack_count=10001\n",
+            )
+            .replace(
+                "evidence_window_unexpected_ack_count=0\n",
+                "evidence_window_unexpected_ack_count=1\n",
+            )
+            .replace("evidence_window_result=PASS\n", "evidence_window_result=FAIL\n")
+        )
+        proc = run_capture("dual_edge_timing_observer_v1", evidence_unexpected_report, evidence_unexpected_out)
+        assert_ok("accepts_evidence_window_unexpected_ack_fail", proc)
+
+        evidence_delta_fail_out = root / "evidence_delta_fail"
+        evidence_delta_fail_report = (
+            valid_report("dual_edge_observer_v1")
+            .replace("evidence_window_max_delta_ticks=8\n", "evidence_window_max_delta_ticks=10\n")
+            .replace("evidence_window_result=PASS\n", "evidence_window_result=FAIL\n")
+        )
+        proc = run_capture("dual_edge_timing_observer_v1", evidence_delta_fail_report, evidence_delta_fail_out)
+        assert_ok("accepts_evidence_window_delta_fail", proc)
+
+        evidence_trigger_count_fail_out = root / "evidence_trigger_count_fail"
+        evidence_trigger_count_fail_report = (
+            valid_report("dual_edge_observer_v1")
+            .replace("evidence_window_trigger_count=10000\n", "evidence_window_trigger_count=9999\n")
+            .replace("evidence_window_result=PASS\n", "evidence_window_result=FAIL\n")
+        )
+        proc = run_capture(
+            "dual_edge_timing_observer_v1",
+            evidence_trigger_count_fail_report,
+            evidence_trigger_count_fail_out,
+        )
+        assert_ok("accepts_evidence_window_trigger_count_fail", proc)
+
+        evidence_ack_count_fail_out = root / "evidence_ack_count_fail"
+        evidence_ack_count_fail_report = (
+            valid_report("dual_edge_observer_v1")
+            .replace("evidence_window_ack_count=10000\n", "evidence_window_ack_count=9999\n")
+            .replace("evidence_window_result=PASS\n", "evidence_window_result=FAIL\n")
+        )
+        proc = run_capture(
+            "dual_edge_timing_observer_v1",
+            evidence_ack_count_fail_report,
+            evidence_ack_count_fail_out,
+        )
+        assert_ok("accepts_evidence_window_ack_count_fail", proc)
+
+        missing_evidence_out = root / "missing_evidence_fields"
+        missing_evidence_report = valid_report("dual_edge_observer_v1").replace(
+            "evidence_window_result=PASS\n", ""
+        )
+        proc = run_capture("dual_edge_timing_observer_v1", missing_evidence_report, missing_evidence_out)
+        assert_fail("rejects_missing_evidence_window_fields", proc, "missing required report fields")
+
+        inconsistent_evidence_out = root / "inconsistent_evidence_result"
+        inconsistent_evidence_report = valid_report("dual_edge_observer_v1").replace(
+            "evidence_window_unexpected_ack_count=0\n",
+            "evidence_window_unexpected_ack_count=1\n",
+        )
+        proc = run_capture(
+            "dual_edge_timing_observer_v1",
+            inconsistent_evidence_report,
+            inconsistent_evidence_out,
+        )
+        assert_fail(
+            "rejects_inconsistent_evidence_window_result",
+            proc,
+            "inconsistent evidence_window_result",
         )
 
         context_out = root / "context"

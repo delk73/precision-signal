@@ -101,8 +101,8 @@ then uses the same bounded grace, drain, finalization, and report flow.
 
 Evidence-window arming for future dual-board observer work is captured in
 [Dual-Board Observer Evidence-Window Arming Design](DUAL_BOARD_OBSERVER_EVIDENCE_WINDOW_ARMING.md).
-That design record does not change the current firmware report or PASS/FAIL
-semantics.
+The implemented observer report keeps raw full-run counters separate from the
+declared evidence-window counters.
 
 Observer-only pairing is count-based. If a new PB8/TIM4_CH3 trigger capture
 arrives while an earlier trigger timestamp is still unpaired, firmware replaces
@@ -110,7 +110,7 @@ the pending timestamp. It does not increment `missed_ack_count` immediately;
 finalization derives misses once as `trigger_count - paired_ack_count`.
 
 `max_delta_ticks` is authoritative. `max_delta_ns` is display-only. Pass is valid
-only when:
+for the raw full-run `result` only when:
 
 ```text
 missed_ack_count == 0
@@ -147,6 +147,12 @@ do not relax PASS semantics; any nonzero `unexpected_ack_count` remains
 `capture_error_count` records TIM4 CH3/CH4 overcapture flags; any nonzero value
 means at least one capture event was overwritten before firmware handled it.
 
+Raw full-run counters report all observed startup and evidence-window behavior.
+`evidence_window_result` applies only to the declared evidence window, which
+starts at `evidence_window_start_trigger_count=8`. A PASS evidence-window result
+does not mean the raw full run had no startup transients. Any nonzero raw
+`unexpected_ack_count` still makes raw `result=FAIL`.
+
 ## Report
 
 ```text
@@ -166,6 +172,15 @@ capture_error_count=
 max_delta_ticks=
 max_delta_ns=
 result=PASS|FAIL
+evidence_window_start_trigger_count=8
+evidence_window_trigger_count=
+evidence_window_ack_count=
+evidence_window_unexpected_ack_count=
+evidence_window_missed_ack_count=
+evidence_window_capture_error_count=
+evidence_window_max_delta_ticks=
+evidence_window_max_delta_ns=
+evidence_window_result=PASS|FAIL
 capture_trigger=PB8_TIM4_CH3
 capture_ack=PB9_TIM4_CH4
 wiring_profile=single_board_split_capture_v1

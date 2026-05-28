@@ -12,6 +12,8 @@ import serial
 REPORT_SCHEMA = "SYNC_TIMING_CAPTURE_V1"
 TIMER_HZ = 90_000_000
 THRESHOLD_TICKS = 9
+EVIDENCE_WINDOW_START_TRIGGER = 8
+EVIDENCE_WINDOW_TRIGGER_COUNT = 10_000
 GENERATED_ARTIFACT_FILES = {"timing_report.txt", "meta.json", "wiring.txt"}
 ALLOWED_CONTEXT_FILES = {"run_context.json", "notes.txt"}
 PROFILE_DEFINITIONS = {
@@ -113,6 +115,15 @@ REQUIRED_FIELDS = (
     "max_delta_ticks",
     "max_delta_ns",
     "result",
+    "evidence_window_start_trigger_count",
+    "evidence_window_trigger_count",
+    "evidence_window_ack_count",
+    "evidence_window_unexpected_ack_count",
+    "evidence_window_missed_ack_count",
+    "evidence_window_capture_error_count",
+    "evidence_window_max_delta_ticks",
+    "evidence_window_max_delta_ns",
+    "evidence_window_result",
 )
 
 
@@ -161,7 +172,6 @@ def expected_fields(profile: dict[str, object]) -> dict[str, str]:
     return {
         "timer_hz": str(TIMER_HZ),
         "threshold_ticks": str(THRESHOLD_TICKS),
-        "trigger_count": "10000",
         "capture_trigger": str(profile["capture_trigger"]),
         "capture_ack": str(profile["capture_ack"]),
         "wiring_profile": str(profile["wiring_profile"]),
@@ -205,6 +215,14 @@ def parse_report(text: str, profile: dict[str, object]) -> dict[str, str]:
         "capture_error_count",
         "max_delta_ticks",
         "max_delta_ns",
+        "evidence_window_start_trigger_count",
+        "evidence_window_trigger_count",
+        "evidence_window_ack_count",
+        "evidence_window_unexpected_ack_count",
+        "evidence_window_missed_ack_count",
+        "evidence_window_capture_error_count",
+        "evidence_window_max_delta_ticks",
+        "evidence_window_max_delta_ns",
     ):
         try:
             value = int(fields[key], 10)
@@ -215,6 +233,10 @@ def parse_report(text: str, profile: dict[str, object]) -> dict[str, str]:
 
     if fields["result"] not in ("PASS", "FAIL"):
         raise ValueError(f"invalid result: {fields['result']!r}")
+    if fields["evidence_window_result"] not in ("PASS", "FAIL"):
+        raise ValueError(
+            f"invalid evidence_window_result: {fields['evidence_window_result']!r}"
+        )
     unexpected_ack_total = (
         int(fields["pre_first_trigger_ack_count"], 10)
         + int(fields["in_window_unexpected_ack_count"], 10)
@@ -265,6 +287,30 @@ def parse_report(text: str, profile: dict[str, object]) -> dict[str, str]:
     if fields["result"] != expected_result:
         raise ValueError(
             f"inconsistent result: expected {expected_result!r}, got {fields['result']!r}"
+        )
+    if int(fields["evidence_window_start_trigger_count"], 10) != EVIDENCE_WINDOW_START_TRIGGER:
+        raise ValueError(
+            "invalid evidence_window_start_trigger_count: expected "
+            f"{EVIDENCE_WINDOW_START_TRIGGER}, got "
+            f"{fields['evidence_window_start_trigger_count']}"
+        )
+    expected_evidence_window_result = (
+        "PASS"
+        if int(fields["evidence_window_trigger_count"], 10)
+        == EVIDENCE_WINDOW_TRIGGER_COUNT
+        and int(fields["evidence_window_ack_count"], 10)
+        == EVIDENCE_WINDOW_TRIGGER_COUNT
+        and int(fields["evidence_window_missed_ack_count"], 10) == 0
+        and int(fields["evidence_window_unexpected_ack_count"], 10) == 0
+        and int(fields["evidence_window_capture_error_count"], 10) == 0
+        and int(fields["evidence_window_max_delta_ticks"], 10) <= THRESHOLD_TICKS
+        else "FAIL"
+    )
+    if fields["evidence_window_result"] != expected_evidence_window_result:
+        raise ValueError(
+            "inconsistent evidence_window_result: expected "
+            f"{expected_evidence_window_result!r}, got "
+            f"{fields['evidence_window_result']!r}"
         )
 
     return fields
@@ -437,6 +483,25 @@ def write_artifact(
         "max_delta_ticks": int(fields["max_delta_ticks"], 10),
         "max_delta_ns": int(fields["max_delta_ns"], 10),
         "result": fields["result"],
+        "evidence_window_start_trigger_count": int(
+            fields["evidence_window_start_trigger_count"], 10
+        ),
+        "evidence_window_trigger_count": int(fields["evidence_window_trigger_count"], 10),
+        "evidence_window_ack_count": int(fields["evidence_window_ack_count"], 10),
+        "evidence_window_unexpected_ack_count": int(
+            fields["evidence_window_unexpected_ack_count"], 10
+        ),
+        "evidence_window_missed_ack_count": int(
+            fields["evidence_window_missed_ack_count"], 10
+        ),
+        "evidence_window_capture_error_count": int(
+            fields["evidence_window_capture_error_count"], 10
+        ),
+        "evidence_window_max_delta_ticks": int(
+            fields["evidence_window_max_delta_ticks"], 10
+        ),
+        "evidence_window_max_delta_ns": int(fields["evidence_window_max_delta_ns"], 10),
+        "evidence_window_result": fields["evidence_window_result"],
     }
     (out_dir / "meta.json").write_text(
         json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
