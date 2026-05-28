@@ -65,6 +65,8 @@ missed_ack_count=0
 unexpected_ack_count=0
 pre_first_trigger_ack_count=0
 in_window_unexpected_ack_count=0
+first_in_window_unexpected_ack_trigger_count=0
+last_in_window_unexpected_ack_trigger_count=0
 post_final_trigger_ack_count=0
 capture_error_count=0
 max_delta_ticks=8
@@ -165,6 +167,8 @@ def main() -> int:
         for field in (
             "pre_first_trigger_ack_count",
             "in_window_unexpected_ack_count",
+            "first_in_window_unexpected_ack_trigger_count",
+            "last_in_window_unexpected_ack_trigger_count",
             "post_final_trigger_ack_count",
         ):
             if observer_meta[field] != 0:
@@ -181,6 +185,14 @@ def main() -> int:
                 "in_window_unexpected_ack_count=0\n",
                 "in_window_unexpected_ack_count=1\n",
             )
+            .replace(
+                "first_in_window_unexpected_ack_trigger_count=0\n",
+                "first_in_window_unexpected_ack_trigger_count=42\n",
+            )
+            .replace(
+                "last_in_window_unexpected_ack_trigger_count=0\n",
+                "last_in_window_unexpected_ack_trigger_count=42\n",
+            )
             .replace("post_final_trigger_ack_count=0\n", "post_final_trigger_ack_count=1\n")
             .replace("result=PASS\n", "result=FAIL\n")
         )
@@ -193,6 +205,10 @@ def main() -> int:
             raise AssertionError("accepts_boundary_unexpected_ack_counts: wrong pre count")
         if boundary_meta["in_window_unexpected_ack_count"] != 1:
             raise AssertionError("accepts_boundary_unexpected_ack_counts: wrong in-window count")
+        if boundary_meta["first_in_window_unexpected_ack_trigger_count"] != 42:
+            raise AssertionError("accepts_boundary_unexpected_ack_counts: wrong first position")
+        if boundary_meta["last_in_window_unexpected_ack_trigger_count"] != 42:
+            raise AssertionError("accepts_boundary_unexpected_ack_counts: wrong last position")
         if boundary_meta["post_final_trigger_ack_count"] != 1:
             raise AssertionError("accepts_boundary_unexpected_ack_counts: wrong post count")
 
@@ -209,6 +225,70 @@ def main() -> int:
             "rejects_inconsistent_boundary_unexpected_ack_counts",
             proc,
             "inconsistent unexpected_ack_count",
+        )
+
+        zero_in_window_nonzero_position_out = root / "zero_in_window_nonzero_position"
+        zero_in_window_nonzero_position_report = valid_report("dual_edge_observer_v1").replace(
+            "first_in_window_unexpected_ack_trigger_count=0\n",
+            "first_in_window_unexpected_ack_trigger_count=1\n",
+        )
+        proc = run_capture(
+            "dual_edge_timing_observer_v1",
+            zero_in_window_nonzero_position_report,
+            zero_in_window_nonzero_position_out,
+        )
+        assert_fail(
+            "rejects_zero_in_window_count_with_nonzero_position",
+            proc,
+            "positions must be zero",
+        )
+
+        in_window_missing_first_out = root / "in_window_missing_first"
+        in_window_missing_first_report = boundary_report.replace(
+            "first_in_window_unexpected_ack_trigger_count=42\n",
+            "first_in_window_unexpected_ack_trigger_count=0\n",
+        )
+        proc = run_capture(
+            "dual_edge_timing_observer_v1",
+            in_window_missing_first_report,
+            in_window_missing_first_out,
+        )
+        assert_fail(
+            "rejects_in_window_count_with_zero_first_position",
+            proc,
+            "positions must be nonzero",
+        )
+
+        in_window_missing_last_out = root / "in_window_missing_last"
+        in_window_missing_last_report = boundary_report.replace(
+            "last_in_window_unexpected_ack_trigger_count=42\n",
+            "last_in_window_unexpected_ack_trigger_count=0\n",
+        )
+        proc = run_capture(
+            "dual_edge_timing_observer_v1",
+            in_window_missing_last_report,
+            in_window_missing_last_out,
+        )
+        assert_fail(
+            "rejects_in_window_count_with_zero_last_position",
+            proc,
+            "positions must be nonzero",
+        )
+
+        first_after_last_out = root / "first_after_last"
+        first_after_last_report = boundary_report.replace(
+            "first_in_window_unexpected_ack_trigger_count=42\n",
+            "first_in_window_unexpected_ack_trigger_count=43\n",
+        )
+        proc = run_capture(
+            "dual_edge_timing_observer_v1",
+            first_after_last_report,
+            first_after_last_out,
+        )
+        assert_fail(
+            "rejects_first_in_window_position_after_last",
+            proc,
+            "first 43 > last 42",
         )
 
         context_out = root / "context"

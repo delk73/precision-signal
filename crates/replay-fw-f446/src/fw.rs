@@ -186,6 +186,10 @@ static TIMING_PRE_FIRST_TRIGGER_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 static TIMING_IN_WINDOW_UNEXPECTED_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_FIRST_IN_WINDOW_UNEXPECTED_ACK_TRIGGER_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_LAST_IN_WINDOW_UNEXPECTED_ACK_TRIGGER_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 static TIMING_POST_FINAL_TRIGGER_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 static TIMING_CAPTURE_ERROR_COUNT: AtomicU32 = AtomicU32::new(0);
@@ -808,6 +812,8 @@ fn reset_sync_timing_state() {
     TIMING_UNEXPECTED_ACK_COUNT.store(0, Ordering::Release);
     TIMING_PRE_FIRST_TRIGGER_ACK_COUNT.store(0, Ordering::Release);
     TIMING_IN_WINDOW_UNEXPECTED_ACK_COUNT.store(0, Ordering::Release);
+    TIMING_FIRST_IN_WINDOW_UNEXPECTED_ACK_TRIGGER_COUNT.store(0, Ordering::Release);
+    TIMING_LAST_IN_WINDOW_UNEXPECTED_ACK_TRIGGER_COUNT.store(0, Ordering::Release);
     TIMING_POST_FINAL_TRIGGER_ACK_COUNT.store(0, Ordering::Release);
     TIMING_CAPTURE_ERROR_COUNT.store(0, Ordering::Release);
     TIMING_MAX_DELTA_TICKS.store(0, Ordering::Release);
@@ -988,7 +994,12 @@ fn process_sync_timing_unexpected_ack() {
     } else if trigger_count >= SYNC_TIMING_TRIGGER_TARGET {
         TIMING_POST_FINAL_TRIGGER_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
     } else {
-        TIMING_IN_WINDOW_UNEXPECTED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+        let previous = TIMING_IN_WINDOW_UNEXPECTED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+        if previous == 0 {
+            TIMING_FIRST_IN_WINDOW_UNEXPECTED_ACK_TRIGGER_COUNT
+                .store(trigger_count, Ordering::Release);
+        }
+        TIMING_LAST_IN_WINDOW_UNEXPECTED_ACK_TRIGGER_COUNT.store(trigger_count, Ordering::Release);
     }
 }
 
@@ -1030,6 +1041,10 @@ fn dump_sync_timing_report() {
                 TIMING_PRE_FIRST_TRIGGER_ACK_COUNT.load(Ordering::Acquire);
             let in_window_unexpected_ack_count =
                 TIMING_IN_WINDOW_UNEXPECTED_ACK_COUNT.load(Ordering::Acquire);
+            let first_in_window_unexpected_ack_trigger_count =
+                TIMING_FIRST_IN_WINDOW_UNEXPECTED_ACK_TRIGGER_COUNT.load(Ordering::Acquire);
+            let last_in_window_unexpected_ack_trigger_count =
+                TIMING_LAST_IN_WINDOW_UNEXPECTED_ACK_TRIGGER_COUNT.load(Ordering::Acquire);
             let post_final_trigger_ack_count =
                 TIMING_POST_FINAL_TRIGGER_ACK_COUNT.load(Ordering::Acquire);
             let capture_error_count = TIMING_CAPTURE_ERROR_COUNT.load(Ordering::Acquire);
@@ -1062,6 +1077,16 @@ fn dump_sync_timing_report() {
                 usart2,
                 "in_window_unexpected_ack_count",
                 in_window_unexpected_ack_count,
+            );
+            write_report_u32(
+                usart2,
+                "first_in_window_unexpected_ack_trigger_count",
+                first_in_window_unexpected_ack_trigger_count,
+            );
+            write_report_u32(
+                usart2,
+                "last_in_window_unexpected_ack_trigger_count",
+                last_in_window_unexpected_ack_trigger_count,
             );
             write_report_u32(
                 usart2,

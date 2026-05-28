@@ -1,0 +1,50 @@
+{
+  "ack_count": 10002,
+  "ack_output": "external_actor_PA1_A1",
+  "artifact_kind": "hil_timing_capture",
+  "capture_ack": "PB9_TIM4_CH4",
+  "capture_error_count": 0,
+  "capture_trigger": "PB8_TIM4_CH3",
+  "claim_boundary": {
+    "does_not_prove": [
+      "actor internal PA0-to-PA1 silicon latency",
+      "software EXTI acknowledgment path timing pass unless actor profile states it",
+      "platform proof",
+      "RPL0/replay authority",
+      "release evidence"
+    ],
+    "proves": "observer board measured external actor trigger-to-ack timing through PB8/PB9"
+  },
+  "evidence_profile": "dual_edge_timing_observer_v1",
+  "feature_set": "sync_timing_observer",
+  "first_in_window_unexpected_ack_trigger_count": 5,
+  "functional_path": {
+    "ack_mechanism": "external_actor_defined",
+    "ack_output": "external_actor_PA1_A1",
+    "trigger_input": "external_actor_PA0_A0_or_profile_defined",
+    "trigger_output": "external_actor_PA6_D12"
+  },
+  "in_window_unexpected_ack_count": 1,
+  "last_in_window_unexpected_ack_trigger_count": 5,
+  "max_delta_ns": 66,
+  "max_delta_ticks": 6,
+  "measured_path": "PB9_PA1_minus_PB8_PA6",
+  "measurement_path": {
+    "ack_capture": "observer_PB9_TIM4_CH4",
+    "measured_delta": "ack_capture_minus_trigger_capture",
+    "trigger_capture": "observer_PB8_TIM4_CH3"
+  },
+  "missed_ack_count": 0,
+  "post_final_trigger_ack_count": 0,
+  "pre_first_trigger_ack_count": 1,
+  "result": "FAIL",
+  "run_profile": "dual_board_observer",
+  "schema": "SYNC_TIMING_CAPTURE_V1",
+  "threshold_ticks": 9,
+  "timer_hz": 90000000,
+  "trigger_count": 10000,
+  "trigger_input": "external_actor_PA0_A0_or_profile_defined",
+  "trigger_output": "external_actor_PA6_D12",
+  "unexpected_ack_count": 2,
+  "wiring_profile": "dual_edge_observer_v1"
+}

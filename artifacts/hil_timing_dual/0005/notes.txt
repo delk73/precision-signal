@@ -1,0 +1,18 @@
+Run captured with the no-button Makefile runner:
+
+make hil-dual-observer-run RUN=0005
+
+Classification:
+Retained failed external-observer diagnostic evidence.
+
+Run 0005 locates the repeatable in-window unexpected ack at trigger_count=5.
+This supports the diagnosis that the remaining event-stream failure is an
+early-run arming/startup boundary behavior, not steady-state trigger-to-ack
+latency or midstream capture instability.
+
+The paired trigger-to-ack timing was within threshold:
+
+max_delta_ticks=6 <= threshold_ticks=9
+
+The run remains FAIL evidence because unexpected_ack_count=2. PASS semantics are
+unchanged.

@@ -106,6 +106,8 @@ REQUIRED_FIELDS = (
     "unexpected_ack_count",
     "pre_first_trigger_ack_count",
     "in_window_unexpected_ack_count",
+    "first_in_window_unexpected_ack_trigger_count",
+    "last_in_window_unexpected_ack_trigger_count",
     "post_final_trigger_ack_count",
     "capture_error_count",
     "max_delta_ticks",
@@ -197,6 +199,8 @@ def parse_report(text: str, profile: dict[str, object]) -> dict[str, str]:
         "unexpected_ack_count",
         "pre_first_trigger_ack_count",
         "in_window_unexpected_ack_count",
+        "first_in_window_unexpected_ack_trigger_count",
+        "last_in_window_unexpected_ack_trigger_count",
         "post_final_trigger_ack_count",
         "capture_error_count",
         "max_delta_ticks",
@@ -220,6 +224,35 @@ def parse_report(text: str, profile: dict[str, object]) -> dict[str, str]:
         raise ValueError(
             "inconsistent unexpected_ack_count: expected sum of boundary counts "
             f"{unexpected_ack_total}, got {fields['unexpected_ack_count']}"
+        )
+    in_window_unexpected_ack_count = int(fields["in_window_unexpected_ack_count"], 10)
+    first_in_window_ack_trigger_count = int(
+        fields["first_in_window_unexpected_ack_trigger_count"], 10
+    )
+    last_in_window_ack_trigger_count = int(
+        fields["last_in_window_unexpected_ack_trigger_count"], 10
+    )
+    if in_window_unexpected_ack_count == 0:
+        if first_in_window_ack_trigger_count != 0 or last_in_window_ack_trigger_count != 0:
+            raise ValueError(
+                "in-window unexpected ack trigger positions must be zero when "
+                "in_window_unexpected_ack_count is zero"
+            )
+    else:
+        if first_in_window_ack_trigger_count == 0 or last_in_window_ack_trigger_count == 0:
+            raise ValueError(
+                "in-window unexpected ack trigger positions must be nonzero when "
+                "in_window_unexpected_ack_count is nonzero"
+            )
+    if (
+        first_in_window_ack_trigger_count != 0
+        and last_in_window_ack_trigger_count != 0
+        and first_in_window_ack_trigger_count > last_in_window_ack_trigger_count
+    ):
+        raise ValueError(
+            "invalid in-window unexpected ack trigger positions: "
+            f"first {first_in_window_ack_trigger_count} > "
+            f"last {last_in_window_ack_trigger_count}"
         )
     expected_result = (
         "PASS"
@@ -392,6 +425,12 @@ def write_artifact(
         "pre_first_trigger_ack_count": int(fields["pre_first_trigger_ack_count"], 10),
         "in_window_unexpected_ack_count": int(
             fields["in_window_unexpected_ack_count"], 10
+        ),
+        "first_in_window_unexpected_ack_trigger_count": int(
+            fields["first_in_window_unexpected_ack_trigger_count"], 10
+        ),
+        "last_in_window_unexpected_ack_trigger_count": int(
+            fields["last_in_window_unexpected_ack_trigger_count"], 10
         ),
         "post_final_trigger_ack_count": int(fields["post_final_trigger_ack_count"], 10),
         "capture_error_count": int(fields["capture_error_count"], 10),

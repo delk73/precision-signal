@@ -215,6 +215,8 @@ def timing_summary(out_dir: Path) -> str:
         f"unexpected_ack_count={fields['unexpected_ack_count']} "
         f"pre_first_trigger_ack_count={fields['pre_first_trigger_ack_count']} "
         f"in_window_unexpected_ack_count={fields['in_window_unexpected_ack_count']} "
+        f"first_in_window_unexpected_ack_trigger_count={fields['first_in_window_unexpected_ack_trigger_count']} "
+        f"last_in_window_unexpected_ack_trigger_count={fields['last_in_window_unexpected_ack_trigger_count']} "
         f"post_final_trigger_ack_count={fields['post_final_trigger_ack_count']} "
         f"capture_error_count={fields['capture_error_count']} "
         f"max_delta_ticks={fields['max_delta_ticks']} "

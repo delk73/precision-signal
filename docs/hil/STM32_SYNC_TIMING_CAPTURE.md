@@ -131,6 +131,14 @@ pre_first_trigger_ack_count
 + post_final_trigger_ack_count
 ```
 
+`first_in_window_unexpected_ack_trigger_count` and
+`last_in_window_unexpected_ack_trigger_count` locate in-window unexpected
+acknowledgments relative to the accepted trigger stream. Zero means no in-window
+unexpected acknowledgment was observed. For a single in-window unexpected
+acknowledgment, first and last are equal. These fields are diagnostic-only and
+do not relax PASS semantics; any nonzero `unexpected_ack_count` remains
+`result=FAIL`.
+
 `capture_error_count` records TIM4 CH3/CH4 overcapture flags; any nonzero value
 means at least one capture event was overwritten before firmware handled it.
 
@@ -146,6 +154,8 @@ missed_ack_count=
 unexpected_ack_count=
 pre_first_trigger_ack_count=
 in_window_unexpected_ack_count=
+first_in_window_unexpected_ack_trigger_count=
+last_in_window_unexpected_ack_trigger_count=
 post_final_trigger_ack_count=
 capture_error_count=
 max_delta_ticks=
