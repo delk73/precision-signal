@@ -99,6 +99,11 @@ observer-only mode, `trigger_count` means observed PB8/TIM4_CH3 trigger
 captures. Observer-only mode stops after 10,000 observed trigger captures and
 then uses the same bounded grace, drain, finalization, and report flow.
 
+Evidence-window arming for future dual-board observer work is captured in
+[Dual-Board Observer Evidence-Window Arming Design](DUAL_BOARD_OBSERVER_EVIDENCE_WINDOW_ARMING.md).
+That design record does not change the current firmware report or PASS/FAIL
+semantics.
+
 Observer-only pairing is count-based. If a new PB8/TIM4_CH3 trigger capture
 arrives while an earlier trigger timestamp is still unpaired, firmware replaces
 the pending timestamp. It does not increment `missed_ack_count` immediately;
