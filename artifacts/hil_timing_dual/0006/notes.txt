@@ -1,0 +1,50 @@
+Run captured with the no-button Makefile runner:
+
+make hil-dual-observer-run RUN=0006
+
+Classification:
+Retained dual-board external-observer evidence-window PASS with raw full-run
+FAIL.
+
+Raw full-run result:
+
+result=FAIL
+trigger_count=10007
+ack_count=10009
+unexpected_ack_count=2
+pre_first_trigger_ack_count=1
+in_window_unexpected_ack_count=1
+first_in_window_unexpected_ack_trigger_count=4
+last_in_window_unexpected_ack_trigger_count=4
+post_final_trigger_ack_count=0
+
+The raw full-run result remains FAIL because startup/early-run unexpected ack
+behavior was observed. This preserves the raw observation stream and does not
+hide startup behavior.
+
+Evidence-window result:
+
+evidence_window_result=PASS
+evidence_window_trigger_count=10000
+evidence_window_ack_count=10000
+evidence_window_unexpected_ack_count=0
+evidence_window_max_delta_ticks=6
+evidence_window_max_delta_ns=66
+threshold_ticks=9
+
+The declared evidence window passed: it captured 10,000 clean trigger/ack pairs,
+with no evidence-window unexpected ack events and paired timing within
+threshold:
+
+evidence_window_max_delta_ticks=6 <= threshold_ticks=9
+
+Interpretation:
+The retained run demonstrates the intended two-phase evidence model:
+- raw full-run counters still report early-run/startup behavior;
+- raw result remains FAIL when raw unexpected_ack_count is nonzero;
+- evidence_window_result applies only to the declared evidence window;
+- the evidence window was clean and within timing threshold.
+
+This is external-observer evidence only. It does not claim actor internal silicon
+latency, software EXTI timing proof, platform proof, RPL0/replay authority,
+release evidence, or replay equivalence.

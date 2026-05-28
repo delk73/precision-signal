@@ -34,6 +34,12 @@
 - added the `artifacts/hil_timing_dual/<run_id>/` namespace and first
   dual-board observer topology packet for retaining external-observer STM32
   timing evidence without mixing it into the single-board HIL timing artifacts.
+- retained `artifacts/hil_timing_dual/0006` as the first dual-board
+  external-observer evidence-window PASS with raw full-run FAIL. Raw counters
+  remain strict and report early-run unexpected ack behavior, while
+  `evidence_window_result=PASS` records a clean 10,000-trigger evidence window
+  with `evidence_window_unexpected_ack_count=0` and
+  `evidence_window_max_delta_ticks=6`.
 
 ### Changed
 
