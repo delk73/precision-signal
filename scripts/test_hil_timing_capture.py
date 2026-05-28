@@ -34,6 +34,27 @@ def run_capture(profile: str, report: str, out_dir: Path) -> subprocess.Complete
     )
 
 
+def run_live_capture(profile: str, serial: str, out_dir: Path) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
+        [
+            "python3",
+            "scripts/hil_timing_capture.py",
+            "--profile",
+            profile,
+            "--serial",
+            serial,
+            "--out",
+            str(out_dir),
+            "--timeout",
+            "0.01",
+        ],
+        cwd=REPO_ROOT,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+
 def valid_report(wiring_profile: str) -> str:
     return f"""SYNC_TIMING_CAPTURE_V1
 timer_hz=90000000
@@ -51,6 +72,32 @@ capture_ack=PB9_TIM4_CH4
 wiring_profile={wiring_profile}
 measured_path=PB9_PA1_minus_PB8_PA6
 """
+
+
+def valid_dual_board_context(confirmed: bool = True) -> dict[str, object]:
+    return {
+        "board_alias_confirmation": {
+            "confirmed_from_dev_serial_by_id": confirmed,
+            "required_mappings": {
+                "066CFF505487525067182651": "actor / Board A",
+                "0668FF514988525067215029": "observer / Board B",
+            },
+        },
+        "board_aliases": {
+            "actor": {
+                "stlink_serial": "066CFF505487525067182651",
+                "vcp_by_id": "/dev/serial/by-id/usb-STMicroelectronics_STM32_STLink_066CFF505487525067182651-if02",
+                "firmware_features": "sync_trigger_out sync_trigger_in sync_timing_capture",
+                "role": "external_actor",
+            },
+            "observer": {
+                "stlink_serial": "0668FF514988525067215029",
+                "vcp_by_id": "/dev/serial/by-id/usb-STMicroelectronics_STM32_STLink_0668FF514988525067215029-if02",
+                "firmware_features": "sync_timing_observer",
+                "role": "external_observer",
+            },
+        },
+    }
 
 
 def assert_ok(name: str, proc: subprocess.CompletedProcess[str]) -> None:
@@ -167,6 +214,130 @@ def main() -> int:
             bad_single_out,
         )
         assert_fail("single_board_rejects_observer_wiring", proc, "invalid wiring_profile")
+
+        missing_context_out = root / "missing_context"
+        proc = run_live_capture(
+            "dual_edge_timing_observer_v1",
+            "/dev/serial/by-id/usb-STMicroelectronics_STM32_STLink_0668FF514988525067215029-if02",
+            missing_context_out,
+        )
+        assert_fail(
+            "live_observer_requires_run_context",
+            proc,
+            "missing required dual-board run context",
+        )
+
+        unconfirmed_out = root / "unconfirmed_context"
+        unconfirmed_out.mkdir()
+        (unconfirmed_out / "run_context.json").write_text(
+            json.dumps(valid_dual_board_context(confirmed=False)) + "\n",
+            encoding="utf-8",
+        )
+        proc = run_live_capture(
+            "dual_edge_timing_observer_v1",
+            "/dev/serial/by-id/usb-STMicroelectronics_STM32_STLink_0668FF514988525067215029-if02",
+            unconfirmed_out,
+        )
+        assert_fail(
+            "live_observer_requires_alias_confirmation",
+            proc,
+            "confirmed from /dev/serial/by-id/",
+        )
+
+        missing_role_out = root / "missing_role_context"
+        missing_role_out.mkdir()
+        context = valid_dual_board_context()
+        del context["board_aliases"]["observer"]["role"]
+        (missing_role_out / "run_context.json").write_text(
+            json.dumps(context) + "\n",
+            encoding="utf-8",
+        )
+        proc = run_live_capture(
+            "dual_edge_timing_observer_v1",
+            "/dev/serial/by-id/usb-STMicroelectronics_STM32_STLink_0668FF514988525067215029-if02",
+            missing_role_out,
+        )
+        assert_fail(
+            "live_observer_requires_alias_role",
+            proc,
+            "missing observer fields: role",
+        )
+
+        stale_role_out = root / "stale_role_context"
+        stale_role_out.mkdir()
+        context = valid_dual_board_context()
+        context["board_aliases"]["observer"]["role"] = "external_actor"
+        (stale_role_out / "run_context.json").write_text(
+            json.dumps(context) + "\n",
+            encoding="utf-8",
+        )
+        proc = run_live_capture(
+            "dual_edge_timing_observer_v1",
+            "/dev/serial/by-id/usb-STMicroelectronics_STM32_STLink_0668FF514988525067215029-if02",
+            stale_role_out,
+        )
+        assert_fail(
+            "live_observer_rejects_stale_alias_role",
+            proc,
+            "invalid observer.role",
+        )
+
+        missing_mappings_out = root / "missing_mappings_context"
+        missing_mappings_out.mkdir()
+        context = valid_dual_board_context()
+        del context["board_alias_confirmation"]["required_mappings"]
+        (missing_mappings_out / "run_context.json").write_text(
+            json.dumps(context) + "\n",
+            encoding="utf-8",
+        )
+        proc = run_live_capture(
+            "dual_edge_timing_observer_v1",
+            "/dev/serial/by-id/usb-STMicroelectronics_STM32_STLink_0668FF514988525067215029-if02",
+            missing_mappings_out,
+        )
+        assert_fail(
+            "live_observer_requires_confirmation_mappings",
+            proc,
+            "board_alias_confirmation.required_mappings",
+        )
+
+        stale_mappings_out = root / "stale_mappings_context"
+        stale_mappings_out.mkdir()
+        context = valid_dual_board_context()
+        context["board_alias_confirmation"]["required_mappings"][
+            "0668FF514988525067215029"
+        ] = "actor / Board A"
+        (stale_mappings_out / "run_context.json").write_text(
+            json.dumps(context) + "\n",
+            encoding="utf-8",
+        )
+        proc = run_live_capture(
+            "dual_edge_timing_observer_v1",
+            "/dev/serial/by-id/usb-STMicroelectronics_STM32_STLink_0668FF514988525067215029-if02",
+            stale_mappings_out,
+        )
+        assert_fail(
+            "live_observer_rejects_stale_confirmation_mappings",
+            proc,
+            "confirmation mapping mismatch",
+        )
+
+        mismatched_serial_out = root / "mismatched_serial_context"
+        mismatched_serial_out.mkdir()
+        (mismatched_serial_out / "run_context.json").write_text(
+            json.dumps(valid_dual_board_context()) + "\n",
+            encoding="utf-8",
+        )
+        proc = run_live_capture(
+            "dual_edge_timing_observer_v1",
+            "/dev/serial/by-id/usb-STMicroelectronics_STM32_STLink_066CFF505487525067182651-if02",
+            mismatched_serial_out,
+        )
+        assert_fail(
+            "live_observer_requires_observer_serial",
+            proc,
+            "must match board_aliases.observer.vcp_by_id",
+        )
 
     print("PASS: HIL timing capture profile regression suite")
     return 0

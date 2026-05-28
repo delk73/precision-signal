@@ -272,6 +272,36 @@ topology and procedure context. `notes.txt` records operator interpretation,
 bench details, board identity, serial path, ST-LINK/VCP ambiguity, reset
 ordering, and result classification.
 
+Before retained dual-board capture, `run_context.json` must bind logical board
+roles to stable USB/ST-LINK identities under `board_aliases.actor` and
+`board_aliases.observer`. Each alias requires `stlink_serial`, `vcp_by_id`,
+`firmware_features`, and `role`; the live capture command must use
+`board_aliases.observer.vcp_by_id` as `--serial`.
+
+`run_context.json` is manual context and may be updated before capture after
+bench enumeration. Confirm the aliases with:
+
+```sh
+ls -l /dev/serial/by-id/
+```
+
+Expected bench mappings:
+
+```text
+066CFF505487525067182651 -> actor / Board A
+0668FF514988525067215029 -> observer / Board B
+```
+
+After confirming those mappings from `/dev/serial/by-id/`, set
+`board_alias_confirmation.confirmed_from_dev_serial_by_id=true` in
+`run_context.json`. The confirmation block must also retain
+`required_mappings` with the actor ST-LINK serial mapped to `actor / Board A`
+and the observer ST-LINK serial mapped to `observer / Board B`.
+
+Do not use `ttyACM0`/`ttyACM1` ordering as board identity, and do not use
+post-flash `st-info` as observer board-state authority once observer firmware is
+running.
+
 For the `dual_board_tim2_hardware_ack_observed_v1` topology, Board A is the
 actor and Board B is the observer:
 

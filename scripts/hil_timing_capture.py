@@ -91,6 +91,12 @@ GND shared
 """,
     },
 }
+DUAL_BOARD_PROFILES = {"dual_edge_timing_observer_v1"}
+REQUIRED_BOARD_ALIAS_FIELDS = ("stlink_serial", "vcp_by_id", "firmware_features", "role")
+EXPECTED_BOARD_ALIAS_ROLES = {
+    "actor": "external_actor",
+    "observer": "external_observer",
+}
 REQUIRED_FIELDS = (
     "timer_hz",
     "threshold_ticks",
@@ -259,6 +265,79 @@ def read_report(input_path: str) -> str:
     return Path(input_path).read_text(encoding="utf-8")
 
 
+def validate_dual_board_run_context(
+    out_dir: Path, serial_path: str, profile_name: str
+) -> None:
+    if profile_name not in DUAL_BOARD_PROFILES:
+        return
+
+    context_path = out_dir / "run_context.json"
+    try:
+        context = json.loads(context_path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise ValueError(f"missing required dual-board run context: {context_path}") from exc
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"malformed dual-board run context: {context_path}: {exc}") from exc
+
+    aliases = context.get("board_aliases")
+    if not isinstance(aliases, dict):
+        raise ValueError("dual-board run context missing board_aliases")
+
+    for alias in ("actor", "observer"):
+        entry = aliases.get(alias)
+        if not isinstance(entry, dict):
+            raise ValueError(f"dual-board run context missing board_aliases.{alias}")
+        missing = [
+            field
+            for field in REQUIRED_BOARD_ALIAS_FIELDS
+            if not isinstance(entry.get(field), str) or not entry[field]
+        ]
+        if missing:
+            raise ValueError(
+                f"dual-board run context missing {alias} fields: {', '.join(missing)}"
+            )
+        expected_role = EXPECTED_BOARD_ALIAS_ROLES[alias]
+        actual_role = entry["role"]
+        if actual_role != expected_role:
+            raise ValueError(
+                f"dual-board run context invalid {alias}.role: "
+                f"expected {expected_role!r}, got {actual_role!r}"
+            )
+
+    observer_serial = aliases["observer"]["vcp_by_id"]
+    if serial_path != observer_serial:
+        raise ValueError(
+            "dual-board capture serial must match board_aliases.observer.vcp_by_id: "
+            f"expected {observer_serial!r}, got {serial_path!r}"
+        )
+
+    confirmation = context.get("board_alias_confirmation")
+    if not isinstance(confirmation, dict) or not confirmation.get(
+        "confirmed_from_dev_serial_by_id"
+    ):
+        raise ValueError(
+            "dual-board aliases must be confirmed from /dev/serial/by-id/ before capture"
+        )
+
+    required_mappings = confirmation.get("required_mappings")
+    if not isinstance(required_mappings, dict):
+        raise ValueError(
+            "dual-board run context missing board_alias_confirmation.required_mappings"
+        )
+
+    expected_mappings = {
+        aliases["actor"]["stlink_serial"]: "actor / Board A",
+        aliases["observer"]["stlink_serial"]: "observer / Board B",
+    }
+    for stlink_serial, expected_alias in expected_mappings.items():
+        actual_alias = required_mappings.get(stlink_serial)
+        if actual_alias != expected_alias:
+            raise ValueError(
+                "dual-board confirmation mapping mismatch: "
+                f"{stlink_serial} must map to {expected_alias!r}, got {actual_alias!r}"
+            )
+
+
 def write_artifact(
     out_dir: Path,
     report: str,
@@ -335,6 +414,7 @@ def main() -> int:
         if args.input is not None:
             report = read_report(args.input)
         else:
+            validate_dual_board_run_context(Path(args.out), args.serial, args.profile)
             report = capture_report(args.serial, args.baud, args.timeout, profile)
         fields = parse_report(report, profile)
         write_artifact(Path(args.out), report, fields, profile, args.overwrite)
