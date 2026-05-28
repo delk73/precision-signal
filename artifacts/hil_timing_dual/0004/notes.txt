@@ -1,0 +1,49 @@
+Run captured with the no-button Makefile runner:
+
+make hil-dual-observer-run RUN=0004
+
+Classification:
+Retained failed external-observer diagnostic evidence.
+
+The paired trigger-to-ack timing was within threshold:
+
+max_delta_ticks=6 <= threshold_ticks=9
+
+The retained run still fails because unexpected_ack_count=1. The boundary
+diagnostic fields locate that unexpected ack before the first accepted trigger:
+
+pre_first_trigger_ack_count=1
+in_window_unexpected_ack_count=0
+post_final_trigger_ack_count=0
+
+This indicates a startup/arming boundary ack in the retained run, not a paired
+timing latency failure.
+
+Scratch repeat follow-up:
+Three scratch repeats using the same no-button runner produced a consistent
+nearby pattern:
+
+unexpected_ack_count=2
+pre_first_trigger_ack_count=1
+in_window_unexpected_ack_count=1
+post_final_trigger_ack_count=0
+max_delta_ticks=6
+max_delta_ns=66
+result=FAIL
+
+The scratch repeats confirm that paired timing remains stable and within
+threshold while the event stream remains non-clean. They refine the diagnosis:
+there is consistently one pre-first-trigger ack and, in scratch repeats, one
+in-window unpaired ack. No post-final ack was observed.
+
+Boundary diagnosis:
+- Startup/arming boundary behavior is confirmed by pre_first_trigger_ack_count.
+- A repeatable in-window unpaired ack also appears in scratch repeats.
+- End-of-run/finalization boundary is not implicated by current evidence.
+- This remains FAIL evidence, not PASS timing evidence.
+
+Next diagnostic target:
+Locate the in-window unexpected ack position by recording the trigger count at
+the first and/or last in-window unexpected ack. If it occurs near the first
+accepted trigger, it may still be an arming/start boundary effect. If it occurs
+midstream, investigate ack-line signal/capture behavior.
