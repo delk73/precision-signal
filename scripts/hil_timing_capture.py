@@ -104,6 +104,9 @@ REQUIRED_FIELDS = (
     "ack_count",
     "missed_ack_count",
     "unexpected_ack_count",
+    "pre_first_trigger_ack_count",
+    "in_window_unexpected_ack_count",
+    "post_final_trigger_ack_count",
     "capture_error_count",
     "max_delta_ticks",
     "max_delta_ns",
@@ -192,6 +195,9 @@ def parse_report(text: str, profile: dict[str, object]) -> dict[str, str]:
         "ack_count",
         "missed_ack_count",
         "unexpected_ack_count",
+        "pre_first_trigger_ack_count",
+        "in_window_unexpected_ack_count",
+        "post_final_trigger_ack_count",
         "capture_error_count",
         "max_delta_ticks",
         "max_delta_ns",
@@ -205,6 +211,16 @@ def parse_report(text: str, profile: dict[str, object]) -> dict[str, str]:
 
     if fields["result"] not in ("PASS", "FAIL"):
         raise ValueError(f"invalid result: {fields['result']!r}")
+    unexpected_ack_total = (
+        int(fields["pre_first_trigger_ack_count"], 10)
+        + int(fields["in_window_unexpected_ack_count"], 10)
+        + int(fields["post_final_trigger_ack_count"], 10)
+    )
+    if int(fields["unexpected_ack_count"], 10) != unexpected_ack_total:
+        raise ValueError(
+            "inconsistent unexpected_ack_count: expected sum of boundary counts "
+            f"{unexpected_ack_total}, got {fields['unexpected_ack_count']}"
+        )
     expected_result = (
         "PASS"
         if int(fields["missed_ack_count"], 10) == 0
@@ -373,6 +389,11 @@ def write_artifact(
         "ack_count": int(fields["ack_count"], 10),
         "missed_ack_count": int(fields["missed_ack_count"], 10),
         "unexpected_ack_count": int(fields["unexpected_ack_count"], 10),
+        "pre_first_trigger_ack_count": int(fields["pre_first_trigger_ack_count"], 10),
+        "in_window_unexpected_ack_count": int(
+            fields["in_window_unexpected_ack_count"], 10
+        ),
+        "post_final_trigger_ack_count": int(fields["post_final_trigger_ack_count"], 10),
         "capture_error_count": int(fields["capture_error_count"], 10),
         "max_delta_ticks": int(fields["max_delta_ticks"], 10),
         "max_delta_ns": int(fields["max_delta_ns"], 10),

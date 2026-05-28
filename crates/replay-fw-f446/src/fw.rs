@@ -182,6 +182,12 @@ static TIMING_MISSED_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 static TIMING_UNEXPECTED_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_PRE_FIRST_TRIGGER_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_IN_WINDOW_UNEXPECTED_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_POST_FINAL_TRIGGER_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 static TIMING_CAPTURE_ERROR_COUNT: AtomicU32 = AtomicU32::new(0);
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 static TIMING_MAX_DELTA_TICKS: AtomicU32 = AtomicU32::new(0);
@@ -800,6 +806,9 @@ fn reset_sync_timing_state() {
     TIMING_PAIRED_ACK_COUNT.store(0, Ordering::Release);
     TIMING_MISSED_ACK_COUNT.store(0, Ordering::Release);
     TIMING_UNEXPECTED_ACK_COUNT.store(0, Ordering::Release);
+    TIMING_PRE_FIRST_TRIGGER_ACK_COUNT.store(0, Ordering::Release);
+    TIMING_IN_WINDOW_UNEXPECTED_ACK_COUNT.store(0, Ordering::Release);
+    TIMING_POST_FINAL_TRIGGER_ACK_COUNT.store(0, Ordering::Release);
     TIMING_CAPTURE_ERROR_COUNT.store(0, Ordering::Release);
     TIMING_MAX_DELTA_TICKS.store(0, Ordering::Release);
     TIMING_LATEST_TRIGGER_VALID.store(false, Ordering::Release);
@@ -960,7 +969,7 @@ fn process_sync_timing_passive_trigger(timestamp: u16) {
 fn process_sync_timing_ack(timestamp: u16) {
     TIMING_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
     if !TIMING_LATEST_TRIGGER_VALID.swap(false, Ordering::AcqRel) {
-        TIMING_UNEXPECTED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+        process_sync_timing_unexpected_ack();
         return;
     }
 
@@ -968,6 +977,19 @@ fn process_sync_timing_ack(timestamp: u16) {
     let delta_ticks = u32::from(timestamp.wrapping_sub(trigger_ts));
     TIMING_PAIRED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
     update_sync_timing_max_delta(delta_ticks);
+}
+
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+fn process_sync_timing_unexpected_ack() {
+    let trigger_count = TIMING_TRIGGER_COUNT.load(Ordering::Acquire);
+    TIMING_UNEXPECTED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+    if trigger_count == 0 {
+        TIMING_PRE_FIRST_TRIGGER_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+    } else if trigger_count >= SYNC_TIMING_TRIGGER_TARGET {
+        TIMING_POST_FINAL_TRIGGER_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+    } else {
+        TIMING_IN_WINDOW_UNEXPECTED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+    }
 }
 
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
@@ -1004,6 +1026,12 @@ fn dump_sync_timing_report() {
             let ack_count = TIMING_ACK_COUNT.load(Ordering::Acquire);
             let missed_ack_count = TIMING_MISSED_ACK_COUNT.load(Ordering::Acquire);
             let unexpected_ack_count = TIMING_UNEXPECTED_ACK_COUNT.load(Ordering::Acquire);
+            let pre_first_trigger_ack_count =
+                TIMING_PRE_FIRST_TRIGGER_ACK_COUNT.load(Ordering::Acquire);
+            let in_window_unexpected_ack_count =
+                TIMING_IN_WINDOW_UNEXPECTED_ACK_COUNT.load(Ordering::Acquire);
+            let post_final_trigger_ack_count =
+                TIMING_POST_FINAL_TRIGGER_ACK_COUNT.load(Ordering::Acquire);
             let capture_error_count = TIMING_CAPTURE_ERROR_COUNT.load(Ordering::Acquire);
             let max_delta_ticks = TIMING_MAX_DELTA_TICKS.load(Ordering::Acquire);
             let max_delta_ns =
@@ -1025,6 +1053,21 @@ fn dump_sync_timing_report() {
             write_report_u32(usart2, "ack_count", ack_count);
             write_report_u32(usart2, "missed_ack_count", missed_ack_count);
             write_report_u32(usart2, "unexpected_ack_count", unexpected_ack_count);
+            write_report_u32(
+                usart2,
+                "pre_first_trigger_ack_count",
+                pre_first_trigger_ack_count,
+            );
+            write_report_u32(
+                usart2,
+                "in_window_unexpected_ack_count",
+                in_window_unexpected_ack_count,
+            );
+            write_report_u32(
+                usart2,
+                "post_final_trigger_ack_count",
+                post_final_trigger_ack_count,
+            );
             write_report_u32(usart2, "capture_error_count", capture_error_count);
             write_report_u32(usart2, "max_delta_ticks", max_delta_ticks);
             write_report_u64(usart2, "max_delta_ns", max_delta_ns);

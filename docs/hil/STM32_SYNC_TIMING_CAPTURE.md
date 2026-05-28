@@ -119,6 +119,18 @@ A failing timing result is acceptable if reported honestly as `result=FAIL`.
 `unexpected_ack_count` records PB9/TIM4_CH4 acknowledgment captures that arrived
 when no trigger was pending. Any nonzero `unexpected_ack_count` means the timing
 evidence failed because the acknowledgment stream contained an unpaired capture.
+The boundary diagnostic fields split `unexpected_ack_count` into acknowledgments
+before the first accepted trigger, acknowledgments inside the 10,000-trigger
+window that could not be paired one-to-one, and acknowledgments after the final
+accepted trigger before report finalization. These fields explain a failure;
+they do not change PASS policy. `unexpected_ack_count` must equal:
+
+```text
+pre_first_trigger_ack_count
++ in_window_unexpected_ack_count
++ post_final_trigger_ack_count
+```
+
 `capture_error_count` records TIM4 CH3/CH4 overcapture flags; any nonzero value
 means at least one capture event was overwritten before firmware handled it.
 
@@ -132,6 +144,9 @@ trigger_count=10000
 ack_count=
 missed_ack_count=
 unexpected_ack_count=
+pre_first_trigger_ack_count=
+in_window_unexpected_ack_count=
+post_final_trigger_ack_count=
 capture_error_count=
 max_delta_ticks=
 max_delta_ns=

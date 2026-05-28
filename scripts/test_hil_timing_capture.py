@@ -63,6 +63,9 @@ trigger_count=10000
 ack_count=10000
 missed_ack_count=0
 unexpected_ack_count=0
+pre_first_trigger_ack_count=0
+in_window_unexpected_ack_count=0
+post_final_trigger_ack_count=0
 capture_error_count=0
 max_delta_ticks=8
 max_delta_ns=88
@@ -159,6 +162,54 @@ def main() -> int:
             "does_not_prove"
         ]:
             raise AssertionError("observer_profile: missing claim boundary")
+        for field in (
+            "pre_first_trigger_ack_count",
+            "in_window_unexpected_ack_count",
+            "post_final_trigger_ack_count",
+        ):
+            if observer_meta[field] != 0:
+                raise AssertionError(f"observer_profile: wrong {field}")
+
+        boundary_out = root / "boundary_counts"
+        boundary_report = (
+            valid_report("dual_edge_observer_v1")
+            .replace(
+                "unexpected_ack_count=0\npre_first_trigger_ack_count=0\n",
+                "unexpected_ack_count=3\npre_first_trigger_ack_count=1\n",
+            )
+            .replace(
+                "in_window_unexpected_ack_count=0\n",
+                "in_window_unexpected_ack_count=1\n",
+            )
+            .replace("post_final_trigger_ack_count=0\n", "post_final_trigger_ack_count=1\n")
+            .replace("result=PASS\n", "result=FAIL\n")
+        )
+        proc = run_capture("dual_edge_timing_observer_v1", boundary_report, boundary_out)
+        assert_ok("accepts_boundary_unexpected_ack_counts", proc)
+        boundary_meta = read_meta(boundary_out)
+        if boundary_meta["unexpected_ack_count"] != 3:
+            raise AssertionError("accepts_boundary_unexpected_ack_counts: wrong total")
+        if boundary_meta["pre_first_trigger_ack_count"] != 1:
+            raise AssertionError("accepts_boundary_unexpected_ack_counts: wrong pre count")
+        if boundary_meta["in_window_unexpected_ack_count"] != 1:
+            raise AssertionError("accepts_boundary_unexpected_ack_counts: wrong in-window count")
+        if boundary_meta["post_final_trigger_ack_count"] != 1:
+            raise AssertionError("accepts_boundary_unexpected_ack_counts: wrong post count")
+
+        bad_boundary_out = root / "bad_boundary_counts"
+        bad_boundary_report = boundary_report.replace(
+            "post_final_trigger_ack_count=1\n", "post_final_trigger_ack_count=0\n"
+        )
+        proc = run_capture(
+            "dual_edge_timing_observer_v1",
+            bad_boundary_report,
+            bad_boundary_out,
+        )
+        assert_fail(
+            "rejects_inconsistent_boundary_unexpected_ack_counts",
+            proc,
+            "inconsistent unexpected_ack_count",
+        )
 
         context_out = root / "context"
         context_out.mkdir()
