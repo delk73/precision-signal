@@ -328,6 +328,37 @@ python3 scripts/hil_timing_capture.py \
   --out artifacts/hil_timing_dual/<run_id>
 ```
 
+The repeatable no-button runner path is:
+
+```sh
+make hil-dual-observer-run RUN=<run_id>
+```
+
+### ST-LINK attach recovery note
+
+The standard operator path remains:
+
+```sh
+STFLASH_SERIAL=<serial> FW_FEATURES="<features>" make flash-ur
+```
+
+On this bench, an STM32 board may occasionally fail the first `make flash-ur`
+attempt after being disconnected or after entering a bad attach/run state. The
+observed recovery is:
+
+1. Hold the board RESET button down.
+2. Plug the board USB in while RESET is held.
+3. Start the same `make flash-ur` command.
+4. Release RESET during/after the first failed attach attempt, then rerun the
+   same `make flash-ur` command if needed.
+
+Do not replace the Makefile flash path with direct `st-flash` commands. This is
+a recovery procedure for ST-LINK attach state only; it is not the normal capture
+or reset procedure.
+
+If observer flash fails, `hil-dual-observer-run` exits before starting capture.
+Recover the board with the same `make flash-ur` path, then rerun the runner.
+
 The retained result determines the allowed claim. `PASS` means the external
 observer measured Board A's TIM2 hardware-ack path under the existing gate.
 `FAIL` with clean counters means the external observer produced honest timing
