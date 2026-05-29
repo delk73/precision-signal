@@ -47,3 +47,7 @@ Locate the in-window unexpected ack position by recording the trigger count at
 the first and/or last in-window unexpected ack. If it occurs near the first
 accepted trigger, it may still be an arming/start boundary effect. If it occurs
 midstream, investigate ack-line signal/capture behavior.
+
+This is external-observer evidence only. It does not claim actor internal silicon
+latency, software EXTI timing proof, platform proof, RPL0/replay authority,
+release evidence, or replay equivalence.

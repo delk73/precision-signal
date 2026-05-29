@@ -361,23 +361,27 @@ Board A still needs the local `PA6/D12 -> PA0/A0` functional loop because the
 actor TIM2 hardware acknowledgment path is triggered from PA0/TIM2_CH1. Board B
 does not need PA0 or PA1 connected; it only observes PB8/PB9 plus shared ground.
 
-Use flash-before-capture on both boards:
+### Dual-board observer retained run
 
-```sh
-STFLASH_SERIAL=<observer_stlink_serial> FW_FEATURES="sync_timing_observer" make flash-ur
-STFLASH_SERIAL=<actor_stlink_serial> FW_FEATURES="sync_trigger_out sync_trigger_in sync_timing_capture" make flash-ur
+1. Confirm board aliases in `run_context.json`.
+2. Use by-id serials, not `ttyACM` ordering.
+3. Run:
 
-python3 scripts/hil_timing_capture.py \
-  --profile dual_edge_timing_observer_v1 \
-  --serial <observer_serial> \
-  --out artifacts/hil_timing_dual/<run_id>
-```
+   ```sh
+   make hil-dual-observer-run RUN=<id>
+   ```
 
-The repeatable no-button runner path is:
+4. For scratch validation:
 
-```sh
-make hil-dual-observer-run RUN=<run_id>
-```
+   ```sh
+   make hil-dual-observer-scratch RUN=<id>
+   ```
+
+5. Inspect raw `result` and `evidence_window_result` separately.
+
+Raw result reports all observed startup and evidence-window behavior.
+`evidence_window_result` applies only to the declared evidence window. A raw
+`FAIL` with `evidence_window_result=PASS` is valid and intentional.
 
 ### ST-LINK attach recovery note
 

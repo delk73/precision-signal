@@ -16,3 +16,7 @@ max_delta_ticks=6 <= threshold_ticks=9
 
 The run remains FAIL evidence because unexpected_ack_count=2. PASS semantics are
 unchanged.
+
+This is external-observer evidence only. It does not claim actor internal silicon
+latency, software EXTI timing proof, platform proof, RPL0/replay authority,
+release evidence, or replay equivalence.

@@ -82,6 +82,10 @@ help:
 	echo "  make doc-link-check"
 	echo "  make check-workspace"
 	echo "  make test"
+	echo "  make hil-dual-observer-run RUN=<id>"
+	echo "    Run retained dual-board observer capture using artifacts/hil_timing_dual/<id>/run_context.json."
+	echo "  make hil-dual-observer-scratch RUN=<id>"
+	echo "    Run the same confirmed alias context into /tmp/dual_observer_probe for scratch validation."
 	echo "  make help-all"
 
 help-all:
