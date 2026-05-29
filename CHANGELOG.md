@@ -34,11 +34,20 @@
 - added the `artifacts/hil_timing_dual/<run_id>/` namespace and first
   dual-board observer topology packet for retaining external-observer STM32
   timing evidence without mixing it into the single-board HIL timing artifacts.
+- added no-button dual-board observer runner targets:
+  `make hil-dual-observer-run RUN=<id>` for retained captures and
+  `make hil-dual-observer-scratch RUN=<id>` for scratch validation using the
+  same confirmed alias context.
+- added dual-board observer evidence-window arming. Raw full-run `result`
+  remains strict, while `evidence_window_result` reports PASS/FAIL for the
+  declared 10,000-trigger evidence window.
 - retained `artifacts/hil_timing_dual/0006` as the first dual-board
   external-observer evidence-window PASS with raw full-run FAIL. Raw counters
   remain strict and report early-run unexpected ack behavior, while
   `evidence_window_result=PASS` records a clean 10,000-trigger evidence window
-  with `evidence_window_unexpected_ack_count=0` and
+  with `evidence_window_trigger_count=10000`,
+  `evidence_window_ack_count=10000`,
+  `evidence_window_unexpected_ack_count=0`, and
   `evidence_window_max_delta_ticks=6`.
 
 ### Changed
