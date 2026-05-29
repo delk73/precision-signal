@@ -12,6 +12,10 @@ import serial
 REPORT_SCHEMA = "SYNC_TIMING_CAPTURE_V1"
 TIMER_HZ = 90_000_000
 THRESHOLD_TICKS = 9
+EVIDENCE_WINDOW_START_TRIGGER = 8
+EVIDENCE_WINDOW_TRIGGER_COUNT = 10_000
+GENERATED_ARTIFACT_FILES = {"timing_report.txt", "meta.json", "wiring.txt"}
+ALLOWED_CONTEXT_FILES = {"run_context.json", "notes.txt"}
 PROFILE_DEFINITIONS = {
     "single_board_tim2_hardware_ack_v1": {
         "evidence_profile": "single_board_tim2_hardware_ack_v1",
@@ -89,6 +93,12 @@ GND shared
 """,
     },
 }
+DUAL_BOARD_PROFILES = {"dual_edge_timing_observer_v1"}
+REQUIRED_BOARD_ALIAS_FIELDS = ("stlink_serial", "vcp_by_id", "firmware_features", "role")
+EXPECTED_BOARD_ALIAS_ROLES = {
+    "actor": "external_actor",
+    "observer": "external_observer",
+}
 REQUIRED_FIELDS = (
     "timer_hz",
     "threshold_ticks",
@@ -96,10 +106,24 @@ REQUIRED_FIELDS = (
     "ack_count",
     "missed_ack_count",
     "unexpected_ack_count",
+    "pre_first_trigger_ack_count",
+    "in_window_unexpected_ack_count",
+    "first_in_window_unexpected_ack_trigger_count",
+    "last_in_window_unexpected_ack_trigger_count",
+    "post_final_trigger_ack_count",
     "capture_error_count",
     "max_delta_ticks",
     "max_delta_ns",
     "result",
+    "evidence_window_start_trigger_count",
+    "evidence_window_trigger_count",
+    "evidence_window_ack_count",
+    "evidence_window_unexpected_ack_count",
+    "evidence_window_missed_ack_count",
+    "evidence_window_capture_error_count",
+    "evidence_window_max_delta_ticks",
+    "evidence_window_max_delta_ns",
+    "evidence_window_result",
 )
 
 
@@ -148,7 +172,6 @@ def expected_fields(profile: dict[str, object]) -> dict[str, str]:
     return {
         "timer_hz": str(TIMER_HZ),
         "threshold_ticks": str(THRESHOLD_TICKS),
-        "trigger_count": "10000",
         "capture_trigger": str(profile["capture_trigger"]),
         "capture_ack": str(profile["capture_ack"]),
         "wiring_profile": str(profile["wiring_profile"]),
@@ -184,9 +207,22 @@ def parse_report(text: str, profile: dict[str, object]) -> dict[str, str]:
         "ack_count",
         "missed_ack_count",
         "unexpected_ack_count",
+        "pre_first_trigger_ack_count",
+        "in_window_unexpected_ack_count",
+        "first_in_window_unexpected_ack_trigger_count",
+        "last_in_window_unexpected_ack_trigger_count",
+        "post_final_trigger_ack_count",
         "capture_error_count",
         "max_delta_ticks",
         "max_delta_ns",
+        "evidence_window_start_trigger_count",
+        "evidence_window_trigger_count",
+        "evidence_window_ack_count",
+        "evidence_window_unexpected_ack_count",
+        "evidence_window_missed_ack_count",
+        "evidence_window_capture_error_count",
+        "evidence_window_max_delta_ticks",
+        "evidence_window_max_delta_ns",
     ):
         try:
             value = int(fields[key], 10)
@@ -197,6 +233,49 @@ def parse_report(text: str, profile: dict[str, object]) -> dict[str, str]:
 
     if fields["result"] not in ("PASS", "FAIL"):
         raise ValueError(f"invalid result: {fields['result']!r}")
+    if fields["evidence_window_result"] not in ("PASS", "FAIL"):
+        raise ValueError(
+            f"invalid evidence_window_result: {fields['evidence_window_result']!r}"
+        )
+    unexpected_ack_total = (
+        int(fields["pre_first_trigger_ack_count"], 10)
+        + int(fields["in_window_unexpected_ack_count"], 10)
+        + int(fields["post_final_trigger_ack_count"], 10)
+    )
+    if int(fields["unexpected_ack_count"], 10) != unexpected_ack_total:
+        raise ValueError(
+            "inconsistent unexpected_ack_count: expected sum of boundary counts "
+            f"{unexpected_ack_total}, got {fields['unexpected_ack_count']}"
+        )
+    in_window_unexpected_ack_count = int(fields["in_window_unexpected_ack_count"], 10)
+    first_in_window_ack_trigger_count = int(
+        fields["first_in_window_unexpected_ack_trigger_count"], 10
+    )
+    last_in_window_ack_trigger_count = int(
+        fields["last_in_window_unexpected_ack_trigger_count"], 10
+    )
+    if in_window_unexpected_ack_count == 0:
+        if first_in_window_ack_trigger_count != 0 or last_in_window_ack_trigger_count != 0:
+            raise ValueError(
+                "in-window unexpected ack trigger positions must be zero when "
+                "in_window_unexpected_ack_count is zero"
+            )
+    else:
+        if first_in_window_ack_trigger_count == 0 or last_in_window_ack_trigger_count == 0:
+            raise ValueError(
+                "in-window unexpected ack trigger positions must be nonzero when "
+                "in_window_unexpected_ack_count is nonzero"
+            )
+    if (
+        first_in_window_ack_trigger_count != 0
+        and last_in_window_ack_trigger_count != 0
+        and first_in_window_ack_trigger_count > last_in_window_ack_trigger_count
+    ):
+        raise ValueError(
+            "invalid in-window unexpected ack trigger positions: "
+            f"first {first_in_window_ack_trigger_count} > "
+            f"last {last_in_window_ack_trigger_count}"
+        )
     expected_result = (
         "PASS"
         if int(fields["missed_ack_count"], 10) == 0
@@ -208,6 +287,30 @@ def parse_report(text: str, profile: dict[str, object]) -> dict[str, str]:
     if fields["result"] != expected_result:
         raise ValueError(
             f"inconsistent result: expected {expected_result!r}, got {fields['result']!r}"
+        )
+    if int(fields["evidence_window_start_trigger_count"], 10) != EVIDENCE_WINDOW_START_TRIGGER:
+        raise ValueError(
+            "invalid evidence_window_start_trigger_count: expected "
+            f"{EVIDENCE_WINDOW_START_TRIGGER}, got "
+            f"{fields['evidence_window_start_trigger_count']}"
+        )
+    expected_evidence_window_result = (
+        "PASS"
+        if int(fields["evidence_window_trigger_count"], 10)
+        == EVIDENCE_WINDOW_TRIGGER_COUNT
+        and int(fields["evidence_window_ack_count"], 10)
+        == EVIDENCE_WINDOW_TRIGGER_COUNT
+        and int(fields["evidence_window_missed_ack_count"], 10) == 0
+        and int(fields["evidence_window_unexpected_ack_count"], 10) == 0
+        and int(fields["evidence_window_capture_error_count"], 10) == 0
+        and int(fields["evidence_window_max_delta_ticks"], 10) <= THRESHOLD_TICKS
+        else "FAIL"
+    )
+    if fields["evidence_window_result"] != expected_evidence_window_result:
+        raise ValueError(
+            "inconsistent evidence_window_result: expected "
+            f"{expected_evidence_window_result!r}, got "
+            f"{fields['evidence_window_result']!r}"
         )
 
     return fields
@@ -257,6 +360,79 @@ def read_report(input_path: str) -> str:
     return Path(input_path).read_text(encoding="utf-8")
 
 
+def validate_dual_board_run_context(
+    out_dir: Path, serial_path: str, profile_name: str
+) -> None:
+    if profile_name not in DUAL_BOARD_PROFILES:
+        return
+
+    context_path = out_dir / "run_context.json"
+    try:
+        context = json.loads(context_path.read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise ValueError(f"missing required dual-board run context: {context_path}") from exc
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"malformed dual-board run context: {context_path}: {exc}") from exc
+
+    aliases = context.get("board_aliases")
+    if not isinstance(aliases, dict):
+        raise ValueError("dual-board run context missing board_aliases")
+
+    for alias in ("actor", "observer"):
+        entry = aliases.get(alias)
+        if not isinstance(entry, dict):
+            raise ValueError(f"dual-board run context missing board_aliases.{alias}")
+        missing = [
+            field
+            for field in REQUIRED_BOARD_ALIAS_FIELDS
+            if not isinstance(entry.get(field), str) or not entry[field]
+        ]
+        if missing:
+            raise ValueError(
+                f"dual-board run context missing {alias} fields: {', '.join(missing)}"
+            )
+        expected_role = EXPECTED_BOARD_ALIAS_ROLES[alias]
+        actual_role = entry["role"]
+        if actual_role != expected_role:
+            raise ValueError(
+                f"dual-board run context invalid {alias}.role: "
+                f"expected {expected_role!r}, got {actual_role!r}"
+            )
+
+    observer_serial = aliases["observer"]["vcp_by_id"]
+    if serial_path != observer_serial:
+        raise ValueError(
+            "dual-board capture serial must match board_aliases.observer.vcp_by_id: "
+            f"expected {observer_serial!r}, got {serial_path!r}"
+        )
+
+    confirmation = context.get("board_alias_confirmation")
+    if not isinstance(confirmation, dict) or not confirmation.get(
+        "confirmed_from_dev_serial_by_id"
+    ):
+        raise ValueError(
+            "dual-board aliases must be confirmed from /dev/serial/by-id/ before capture"
+        )
+
+    required_mappings = confirmation.get("required_mappings")
+    if not isinstance(required_mappings, dict):
+        raise ValueError(
+            "dual-board run context missing board_alias_confirmation.required_mappings"
+        )
+
+    expected_mappings = {
+        aliases["actor"]["stlink_serial"]: "actor / Board A",
+        aliases["observer"]["stlink_serial"]: "observer / Board B",
+    }
+    for stlink_serial, expected_alias in expected_mappings.items():
+        actual_alias = required_mappings.get(stlink_serial)
+        if actual_alias != expected_alias:
+            raise ValueError(
+                "dual-board confirmation mapping mismatch: "
+                f"{stlink_serial} must map to {expected_alias!r}, got {actual_alias!r}"
+            )
+
+
 def write_artifact(
     out_dir: Path,
     report: str,
@@ -264,8 +440,7 @@ def write_artifact(
     profile: dict[str, object],
     overwrite: bool,
 ) -> None:
-    if out_dir.exists() and any(out_dir.iterdir()) and not overwrite:
-        raise ValueError(f"output directory exists and is non-empty: {out_dir}")
+    validate_output_directory(out_dir, overwrite)
 
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "timing_report.txt").write_text(report, encoding="utf-8")
@@ -293,14 +468,68 @@ def write_artifact(
         "ack_count": int(fields["ack_count"], 10),
         "missed_ack_count": int(fields["missed_ack_count"], 10),
         "unexpected_ack_count": int(fields["unexpected_ack_count"], 10),
+        "pre_first_trigger_ack_count": int(fields["pre_first_trigger_ack_count"], 10),
+        "in_window_unexpected_ack_count": int(
+            fields["in_window_unexpected_ack_count"], 10
+        ),
+        "first_in_window_unexpected_ack_trigger_count": int(
+            fields["first_in_window_unexpected_ack_trigger_count"], 10
+        ),
+        "last_in_window_unexpected_ack_trigger_count": int(
+            fields["last_in_window_unexpected_ack_trigger_count"], 10
+        ),
+        "post_final_trigger_ack_count": int(fields["post_final_trigger_ack_count"], 10),
         "capture_error_count": int(fields["capture_error_count"], 10),
         "max_delta_ticks": int(fields["max_delta_ticks"], 10),
         "max_delta_ns": int(fields["max_delta_ns"], 10),
         "result": fields["result"],
+        "evidence_window_start_trigger_count": int(
+            fields["evidence_window_start_trigger_count"], 10
+        ),
+        "evidence_window_trigger_count": int(fields["evidence_window_trigger_count"], 10),
+        "evidence_window_ack_count": int(fields["evidence_window_ack_count"], 10),
+        "evidence_window_unexpected_ack_count": int(
+            fields["evidence_window_unexpected_ack_count"], 10
+        ),
+        "evidence_window_missed_ack_count": int(
+            fields["evidence_window_missed_ack_count"], 10
+        ),
+        "evidence_window_capture_error_count": int(
+            fields["evidence_window_capture_error_count"], 10
+        ),
+        "evidence_window_max_delta_ticks": int(
+            fields["evidence_window_max_delta_ticks"], 10
+        ),
+        "evidence_window_max_delta_ns": int(fields["evidence_window_max_delta_ns"], 10),
+        "evidence_window_result": fields["evidence_window_result"],
     }
     (out_dir / "meta.json").write_text(
         json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
+
+
+def validate_output_directory(out_dir: Path, overwrite: bool) -> None:
+    if not out_dir.exists():
+        return
+    existing = {path.name for path in out_dir.iterdir()}
+    if not existing or overwrite:
+        return
+
+    generated = sorted(existing & GENERATED_ARTIFACT_FILES)
+    if generated:
+        raise ValueError(
+            "generated output already exists: "
+            + ", ".join(generated)
+            + f" in {out_dir}"
+        )
+
+    unexpected = sorted(existing - ALLOWED_CONTEXT_FILES)
+    if unexpected:
+        raise ValueError(
+            "output directory has unexpected existing files: "
+            + ", ".join(unexpected)
+            + f" in {out_dir}"
+        )
 
 
 def main() -> int:
@@ -310,6 +539,7 @@ def main() -> int:
         if args.input is not None:
             report = read_report(args.input)
         else:
+            validate_dual_board_run_context(Path(args.out), args.serial, args.profile)
             report = capture_report(args.serial, args.baud, args.timeout, profile)
         fields = parse_report(report, profile)
         write_artifact(Path(args.out), report, fields, profile, args.overwrite)

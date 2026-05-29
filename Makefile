@@ -19,6 +19,8 @@ FW_ELF := target/$(FW_TARGET)/debug/$(FW_PKG)
 FW_BIN := target/$(FW_TARGET)/debug/$(FW_PKG).bin
 FLASH_ADDR := 0x08000000
 STFLASH ?= st-flash
+STFLASH_SERIAL ?=
+STFLASH_SERIAL_ARG = $(if $(strip $(STFLASH_SERIAL)),--serial $(strip $(STFLASH_SERIAL)),)
 FLASH_HEAD := target/flash-head.bin
 FLASH_FULL := target/flash-full.bin
 SERIAL ?= /dev/ttyACM0
@@ -66,7 +68,7 @@ comma := ,
 FW_FEATURES_EFFECTIVE = $(if $(strip $(FW_FEATURES)),$(strip $(FW_FEATURES)),$(strip $(REPLAY_FW_FEATURES)))
 FW_FEATURES_ARG = $(if $(strip $(FW_FEATURES_EFFECTIVE)),--features $(subst $(space),$(comma),$(strip $(FW_FEATURES_EFFECTIVE))),)
 
-.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check bench-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-summary firmware-release-check fw-release-archive-current fw-release-archive release release-proof release-summary release-1.7.0 release-1.8.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
+.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check bench-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur hil-dual-observer-run hil-dual-observer-scratch demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-summary firmware-release-check fw-release-archive-current fw-release-archive release release-proof release-summary release-1.7.0 release-1.8.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
 
 help:
 	echo "Active operator / validation path:"
@@ -80,6 +82,10 @@ help:
 	echo "  make doc-link-check"
 	echo "  make check-workspace"
 	echo "  make test"
+	echo "  make hil-dual-observer-run RUN=<id>"
+	echo "    Run retained dual-board observer capture using artifacts/hil_timing_dual/<id>/run_context.json."
+	echo "  make hil-dual-observer-scratch RUN=<id>"
+	echo "    Run the same confirmed alias context into /tmp/dual_observer_probe for scratch validation."
 	echo "  make help-all"
 
 help-all:
@@ -254,30 +260,38 @@ fw-bin: fw
 	ls -lh "$(FW_BIN)"
 
 flash: fw-bin stflash-check
-	$(STFLASH) --reset write "$(FW_BIN)" "$(FLASH_ADDR)"
+	$(STFLASH) $(STFLASH_SERIAL_ARG) --reset write "$(FW_BIN)" "$(FLASH_ADDR)"
 
 flash-ur: fw-bin stflash-check
-	$(STFLASH) --connect-under-reset --freq=200K --reset write "$(FW_BIN)" "$(FLASH_ADDR)"
+	$(STFLASH) $(STFLASH_SERIAL_ARG) --connect-under-reset --freq=200K --reset write "$(FW_BIN)" "$(FLASH_ADDR)"
 
 flash-verify: fw-bin stflash-check
 	rm -f "$(FLASH_HEAD)"
-	$(STFLASH) read "$(FLASH_HEAD)" "$(FLASH_ADDR)" 64
+	$(STFLASH) $(STFLASH_SERIAL_ARG) read "$(FLASH_HEAD)" "$(FLASH_ADDR)" 64
 	test -s "$(FLASH_HEAD)"
 	hexdump -C "$(FLASH_HEAD)" | sed -n '1,4p'
 	$(PYTHON) scripts/check_flash_vectors.py "$(FLASH_HEAD)"
 
 flash-verify-ur: fw-bin stflash-check
 	rm -f "$(FLASH_HEAD)"
-	$(STFLASH) --connect-under-reset --freq=200K read "$(FLASH_HEAD)" "$(FLASH_ADDR)" 64
+	$(STFLASH) $(STFLASH_SERIAL_ARG) --connect-under-reset --freq=200K read "$(FLASH_HEAD)" "$(FLASH_ADDR)" 64
 	test -s "$(FLASH_HEAD)"
 	hexdump -C "$(FLASH_HEAD)" | sed -n '1,4p'
 	$(PYTHON) scripts/check_flash_vectors.py "$(FLASH_HEAD)"
 
 flash-compare: fw-bin stflash-check
-	bash scripts/compare_flash_image.sh --label flash-compare --stflash "$(STFLASH)" --addr "$(FLASH_ADDR)" --image "$(FW_BIN)" --out "$(FLASH_FULL)"
+	bash scripts/compare_flash_image.sh --label flash-compare --stflash "$(STFLASH)" $(STFLASH_SERIAL_ARG) --addr "$(FLASH_ADDR)" --image "$(FW_BIN)" --out "$(FLASH_FULL)"
 
 flash-compare-ur: fw-bin stflash-check
-	bash scripts/compare_flash_image.sh --label flash-compare-ur --stflash "$(STFLASH)" --addr "$(FLASH_ADDR)" --image "$(FW_BIN)" --out "$(FLASH_FULL)" --under-reset
+	bash scripts/compare_flash_image.sh --label flash-compare-ur --stflash "$(STFLASH)" $(STFLASH_SERIAL_ARG) --addr "$(FLASH_ADDR)" --image "$(FW_BIN)" --out "$(FLASH_FULL)" --under-reset
+
+hil-dual-observer-run:
+	@test -n "$(RUN)" || { echo "FAIL: RUN is required. Usage: make hil-dual-observer-run RUN=0003"; exit 1; }
+	$(PYTHON) scripts/hil_dual_observer_run.py --run-id "$(RUN)"
+
+hil-dual-observer-scratch:
+	@test -n "$(RUN)" || { echo "FAIL: RUN is required. Usage: make hil-dual-observer-scratch RUN=0003"; exit 1; }
+	$(PYTHON) scripts/hil_dual_observer_run.py --run-id "$(RUN)" --out /tmp/dual_observer_probe --scratch --overwrite-generated
 
 demo-signal:
 	echo "Signal demo runs on two machines."

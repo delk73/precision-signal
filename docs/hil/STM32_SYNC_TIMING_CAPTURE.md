@@ -99,13 +99,18 @@ observer-only mode, `trigger_count` means observed PB8/TIM4_CH3 trigger
 captures. Observer-only mode stops after 10,000 observed trigger captures and
 then uses the same bounded grace, drain, finalization, and report flow.
 
+Evidence-window arming for future dual-board observer work is captured in
+[Dual-Board Observer Evidence-Window Arming Design](DUAL_BOARD_OBSERVER_EVIDENCE_WINDOW_ARMING.md).
+The implemented observer report keeps raw full-run counters separate from the
+declared evidence-window counters.
+
 Observer-only pairing is count-based. If a new PB8/TIM4_CH3 trigger capture
 arrives while an earlier trigger timestamp is still unpaired, firmware replaces
 the pending timestamp. It does not increment `missed_ack_count` immediately;
 finalization derives misses once as `trigger_count - paired_ack_count`.
 
 `max_delta_ticks` is authoritative. `max_delta_ns` is display-only. Pass is valid
-only when:
+for the raw full-run `result` only when:
 
 ```text
 missed_ack_count == 0
@@ -119,8 +124,34 @@ A failing timing result is acceptable if reported honestly as `result=FAIL`.
 `unexpected_ack_count` records PB9/TIM4_CH4 acknowledgment captures that arrived
 when no trigger was pending. Any nonzero `unexpected_ack_count` means the timing
 evidence failed because the acknowledgment stream contained an unpaired capture.
+The boundary diagnostic fields split `unexpected_ack_count` into acknowledgments
+before the first accepted trigger, acknowledgments inside the 10,000-trigger
+window that could not be paired one-to-one, and acknowledgments after the final
+accepted trigger before report finalization. These fields explain a failure;
+they do not change PASS policy. `unexpected_ack_count` must equal:
+
+```text
+pre_first_trigger_ack_count
++ in_window_unexpected_ack_count
++ post_final_trigger_ack_count
+```
+
+`first_in_window_unexpected_ack_trigger_count` and
+`last_in_window_unexpected_ack_trigger_count` locate in-window unexpected
+acknowledgments relative to the accepted trigger stream. Zero means no in-window
+unexpected acknowledgment was observed. For a single in-window unexpected
+acknowledgment, first and last are equal. These fields are diagnostic-only and
+do not relax PASS semantics; any nonzero `unexpected_ack_count` remains
+`result=FAIL`.
+
 `capture_error_count` records TIM4 CH3/CH4 overcapture flags; any nonzero value
 means at least one capture event was overwritten before firmware handled it.
+
+Raw full-run counters report all observed startup and evidence-window behavior.
+`evidence_window_result` applies only to the declared evidence window, which
+starts at `evidence_window_start_trigger_count=8`. A PASS evidence-window result
+does not mean the raw full run had no startup transients. Any nonzero raw
+`unexpected_ack_count` still makes raw `result=FAIL`.
 
 ## Report
 
@@ -132,10 +163,24 @@ trigger_count=10000
 ack_count=
 missed_ack_count=
 unexpected_ack_count=
+pre_first_trigger_ack_count=
+in_window_unexpected_ack_count=
+first_in_window_unexpected_ack_trigger_count=
+last_in_window_unexpected_ack_trigger_count=
+post_final_trigger_ack_count=
 capture_error_count=
 max_delta_ticks=
 max_delta_ns=
 result=PASS|FAIL
+evidence_window_start_trigger_count=8
+evidence_window_trigger_count=
+evidence_window_ack_count=
+evidence_window_unexpected_ack_count=
+evidence_window_missed_ack_count=
+evidence_window_capture_error_count=
+evidence_window_max_delta_ticks=
+evidence_window_max_delta_ns=
+evidence_window_result=PASS|FAIL
 capture_trigger=PB8_TIM4_CH3
 capture_ack=PB9_TIM4_CH4
 wiring_profile=single_board_split_capture_v1
@@ -236,6 +281,139 @@ The flat fields `measured_path`, `capture_trigger`, `capture_ack`,
 `trigger_output`, `trigger_input`, and `ack_output` remain for compatibility.
 `timing_report.txt` remains the raw `SYNC_TIMING_CAPTURE_V1` firmware report;
 the report does not encode the acknowledgment mechanism.
+
+## Dual-Board Observer Artifact
+
+Dual-board observer evidence is retained under a separate namespace:
+
+```text
+artifacts/hil_timing_dual/<run_id>/
+  timing_report.txt
+  meta.json
+  wiring.txt
+  run_context.json
+  notes.txt
+```
+
+Do not edit generated files after capture:
+
+```text
+timing_report.txt
+meta.json
+wiring.txt
+```
+
+For `dual_edge_timing_observer_v1`, generated `wiring.txt` remains the
+observer-profile wiring:
+
+```text
+external actor trigger edge -> observer PB8/TIM4_CH3
+external actor ack edge     -> observer PB9/TIM4_CH4
+GND shared
+```
+
+`meta.json` is observer artifact metadata. `run_context.json` is the dual-board
+topology and procedure context. `notes.txt` records operator interpretation,
+bench details, board identity, serial path, ST-LINK/VCP ambiguity, reset
+ordering, and result classification.
+
+Before retained dual-board capture, `run_context.json` must bind logical board
+roles to stable USB/ST-LINK identities under `board_aliases.actor` and
+`board_aliases.observer`. Each alias requires `stlink_serial`, `vcp_by_id`,
+`firmware_features`, and `role`; the live capture command must use
+`board_aliases.observer.vcp_by_id` as `--serial`.
+
+`run_context.json` is manual context and may be updated before capture after
+bench enumeration. Confirm the aliases with:
+
+```sh
+ls -l /dev/serial/by-id/
+```
+
+Expected bench mappings:
+
+```text
+066CFF505487525067182651 -> actor / Board A
+0668FF514988525067215029 -> observer / Board B
+```
+
+After confirming those mappings from `/dev/serial/by-id/`, set
+`board_alias_confirmation.confirmed_from_dev_serial_by_id=true` in
+`run_context.json`. The confirmation block must also retain
+`required_mappings` with the actor ST-LINK serial mapped to `actor / Board A`
+and the observer ST-LINK serial mapped to `observer / Board B`.
+
+Do not use `ttyACM0`/`ttyACM1` ordering as board identity, and do not use
+post-flash `st-info` as observer board-state authority once observer firmware is
+running.
+
+For the `dual_board_tim2_hardware_ack_observed_v1` topology, Board A is the
+actor and Board B is the observer:
+
+```text
+Board A PA6/D12 -> Board A PA0/A0
+Board A PA6/D12 -> Board B PB8/TIM4_CH3
+Board A PA1/A1  -> Board B PB9/TIM4_CH4
+Board A GND     -> Board B GND
+```
+
+Board A still needs the local `PA6/D12 -> PA0/A0` functional loop because the
+actor TIM2 hardware acknowledgment path is triggered from PA0/TIM2_CH1. Board B
+does not need PA0 or PA1 connected; it only observes PB8/PB9 plus shared ground.
+
+### Dual-board observer retained run
+
+1. Confirm board aliases in `run_context.json`.
+2. Use by-id serials, not `ttyACM` ordering.
+3. Run:
+
+   ```sh
+   make hil-dual-observer-run RUN=<id>
+   ```
+
+4. For scratch validation:
+
+   ```sh
+   make hil-dual-observer-scratch RUN=<id>
+   ```
+
+5. Inspect raw `result` and `evidence_window_result` separately.
+
+Raw result reports all observed startup and evidence-window behavior.
+`evidence_window_result` applies only to the declared evidence window. A raw
+`FAIL` with `evidence_window_result=PASS` is valid and intentional.
+
+### ST-LINK attach recovery note
+
+The standard operator path remains:
+
+```sh
+STFLASH_SERIAL=<serial> FW_FEATURES="<features>" make flash-ur
+```
+
+On this bench, an STM32 board may occasionally fail the first `make flash-ur`
+attempt after being disconnected or after entering a bad attach/run state. The
+observed recovery is:
+
+1. Hold the board RESET button down.
+2. Plug the board USB in while RESET is held.
+3. Start the same `make flash-ur` command.
+4. Release RESET during/after the first failed attach attempt, then rerun the
+   same `make flash-ur` command if needed.
+
+Do not replace the Makefile flash path with direct `st-flash` commands. This is
+a recovery procedure for ST-LINK attach state only; it is not the normal capture
+or reset procedure.
+
+If observer flash fails, `hil-dual-observer-run` exits before starting capture.
+Recover the board with the same `make flash-ur` path, then rerun the runner.
+
+The retained result determines the allowed claim. `PASS` means the external
+observer measured Board A's TIM2 hardware-ack path under the existing gate.
+`FAIL` with clean counters means the external observer produced honest timing
+evidence, but the observed path did not satisfy the gate. Timeout or nonzero
+integrity counters must be retained/classified as bring-up failure, not timing
+success.
 
 ## Supported Timing Evidence Profiles
 

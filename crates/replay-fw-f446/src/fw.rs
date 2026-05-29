@@ -101,6 +101,8 @@ compile_error!(
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 const SYNC_TIMING_TRIGGER_TARGET: u32 = 10_000;
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+const SYNC_TIMING_EVIDENCE_WINDOW_START_TRIGGER: u32 = 8;
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 const SYNC_TIMING_TIMER_HZ: u32 = 90_000_000;
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 const SYNC_TIMING_THRESHOLD_TICKS: u32 = 9;
@@ -182,13 +184,39 @@ static TIMING_MISSED_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 static TIMING_UNEXPECTED_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_PRE_FIRST_TRIGGER_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_IN_WINDOW_UNEXPECTED_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_FIRST_IN_WINDOW_UNEXPECTED_ACK_TRIGGER_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_LAST_IN_WINDOW_UNEXPECTED_ACK_TRIGGER_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_POST_FINAL_TRIGGER_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 static TIMING_CAPTURE_ERROR_COUNT: AtomicU32 = AtomicU32::new(0);
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 static TIMING_MAX_DELTA_TICKS: AtomicU32 = AtomicU32::new(0);
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_EVIDENCE_WINDOW_TRIGGER_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_EVIDENCE_WINDOW_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_EVIDENCE_WINDOW_PAIRED_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_EVIDENCE_WINDOW_MISSED_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_EVIDENCE_WINDOW_UNEXPECTED_ACK_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_EVIDENCE_WINDOW_CAPTURE_ERROR_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_EVIDENCE_WINDOW_MAX_DELTA_TICKS: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 static TIMING_LATEST_TRIGGER_VALID: AtomicBool = AtomicBool::new(false);
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 static TIMING_LATEST_TRIGGER_TS: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_LATEST_TRIGGER_COUNT: AtomicU32 = AtomicU32::new(0);
 
 pub fn fw_main() -> ! {
     let dp = loop {
@@ -299,17 +327,22 @@ pub fn fw_main() -> ! {
     }
 
     #[cfg(all(feature = "sync_timing_capture", not(feature = "sync_timing_observer")))]
-    while TIMING_TRIGGER_COUNT.load(Ordering::Acquire) < SYNC_TIMING_TRIGGER_TARGET {
+    while TIMING_EVIDENCE_WINDOW_TRIGGER_COUNT.load(Ordering::Acquire) < SYNC_TIMING_TRIGGER_TARGET
+    {
         pulse_sync_trigger_output();
         let next = TIMING_TRIGGER_COUNT.fetch_add(1, Ordering::AcqRel) + 1;
-        if next >= SYNC_TIMING_TRIGGER_TARGET {
+        process_sync_timing_accepted_trigger(next);
+        if TIMING_EVIDENCE_WINDOW_TRIGGER_COUNT.load(Ordering::Acquire)
+            >= SYNC_TIMING_TRIGGER_TARGET
+        {
             break;
         }
         cortex_m::asm::delay(18_000);
     }
 
     #[cfg(feature = "sync_timing_observer")]
-    while TIMING_TRIGGER_COUNT.load(Ordering::Acquire) < SYNC_TIMING_TRIGGER_TARGET {
+    while TIMING_EVIDENCE_WINDOW_TRIGGER_COUNT.load(Ordering::Acquire) < SYNC_TIMING_TRIGGER_TARGET
+    {
         cortex_m::asm::wfi();
         drain_tim4_sync_timing_capture();
     }
@@ -462,10 +495,12 @@ fn drain_tim4_sync_timing_capture() {
             if (sr_bits & TIM_SR_CC3OF) != 0 {
                 clear_mask |= TIM_SR_CC3OF;
                 TIMING_CAPTURE_ERROR_COUNT.fetch_add(1, Ordering::AcqRel);
+                process_sync_timing_evidence_window_capture_error();
             }
             if (sr_bits & TIM_SR_CC4OF) != 0 {
                 clear_mask |= TIM_SR_CC4OF;
                 TIMING_CAPTURE_ERROR_COUNT.fetch_add(1, Ordering::AcqRel);
+                process_sync_timing_evidence_window_capture_error();
             }
             if clear_mask != 0 {
                 // TIMx_SR capture flags are rc_w0: write 0 to handled flags and
@@ -800,10 +835,23 @@ fn reset_sync_timing_state() {
     TIMING_PAIRED_ACK_COUNT.store(0, Ordering::Release);
     TIMING_MISSED_ACK_COUNT.store(0, Ordering::Release);
     TIMING_UNEXPECTED_ACK_COUNT.store(0, Ordering::Release);
+    TIMING_PRE_FIRST_TRIGGER_ACK_COUNT.store(0, Ordering::Release);
+    TIMING_IN_WINDOW_UNEXPECTED_ACK_COUNT.store(0, Ordering::Release);
+    TIMING_FIRST_IN_WINDOW_UNEXPECTED_ACK_TRIGGER_COUNT.store(0, Ordering::Release);
+    TIMING_LAST_IN_WINDOW_UNEXPECTED_ACK_TRIGGER_COUNT.store(0, Ordering::Release);
+    TIMING_POST_FINAL_TRIGGER_ACK_COUNT.store(0, Ordering::Release);
     TIMING_CAPTURE_ERROR_COUNT.store(0, Ordering::Release);
     TIMING_MAX_DELTA_TICKS.store(0, Ordering::Release);
+    TIMING_EVIDENCE_WINDOW_TRIGGER_COUNT.store(0, Ordering::Release);
+    TIMING_EVIDENCE_WINDOW_ACK_COUNT.store(0, Ordering::Release);
+    TIMING_EVIDENCE_WINDOW_PAIRED_ACK_COUNT.store(0, Ordering::Release);
+    TIMING_EVIDENCE_WINDOW_MISSED_ACK_COUNT.store(0, Ordering::Release);
+    TIMING_EVIDENCE_WINDOW_UNEXPECTED_ACK_COUNT.store(0, Ordering::Release);
+    TIMING_EVIDENCE_WINDOW_CAPTURE_ERROR_COUNT.store(0, Ordering::Release);
+    TIMING_EVIDENCE_WINDOW_MAX_DELTA_TICKS.store(0, Ordering::Release);
     TIMING_LATEST_TRIGGER_VALID.store(false, Ordering::Release);
     TIMING_LATEST_TRIGGER_TS.store(0, Ordering::Release);
+    TIMING_LATEST_TRIGGER_COUNT.store(0, Ordering::Release);
 }
 
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
@@ -949,25 +997,69 @@ fn wait_for_final_sync_timing_ack() {
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 fn process_sync_timing_passive_trigger(timestamp: u16) {
     #[cfg(feature = "sync_timing_observer")]
-    TIMING_TRIGGER_COUNT.fetch_add(1, Ordering::AcqRel);
+    let trigger_count = {
+        let trigger_count = TIMING_TRIGGER_COUNT.fetch_add(1, Ordering::AcqRel) + 1;
+        process_sync_timing_accepted_trigger(trigger_count);
+        trigger_count
+    };
+    #[cfg(not(feature = "sync_timing_observer"))]
+    let trigger_count = TIMING_TRIGGER_COUNT.load(Ordering::Acquire);
     // Replacing an unpaired trigger does not increment missed_ack_count here;
     // finalization derives misses as trigger_count - paired_ack_count.
     TIMING_LATEST_TRIGGER_TS.store(u32::from(timestamp), Ordering::Release);
+    TIMING_LATEST_TRIGGER_COUNT.store(trigger_count, Ordering::Release);
     TIMING_LATEST_TRIGGER_VALID.store(true, Ordering::Release);
+}
+
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+fn process_sync_timing_accepted_trigger(trigger_count: u32) {
+    if trigger_count >= SYNC_TIMING_EVIDENCE_WINDOW_START_TRIGGER {
+        TIMING_EVIDENCE_WINDOW_TRIGGER_COUNT.fetch_add(1, Ordering::AcqRel);
+    }
 }
 
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 fn process_sync_timing_ack(timestamp: u16) {
     TIMING_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
     if !TIMING_LATEST_TRIGGER_VALID.swap(false, Ordering::AcqRel) {
-        TIMING_UNEXPECTED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+        process_sync_timing_unexpected_ack();
         return;
     }
 
     let trigger_ts = TIMING_LATEST_TRIGGER_TS.load(Ordering::Acquire) as u16;
+    let trigger_count = TIMING_LATEST_TRIGGER_COUNT.load(Ordering::Acquire);
     let delta_ticks = u32::from(timestamp.wrapping_sub(trigger_ts));
     TIMING_PAIRED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
     update_sync_timing_max_delta(delta_ticks);
+    if trigger_count >= SYNC_TIMING_EVIDENCE_WINDOW_START_TRIGGER {
+        TIMING_EVIDENCE_WINDOW_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+        TIMING_EVIDENCE_WINDOW_PAIRED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+        update_sync_timing_evidence_window_max_delta(delta_ticks);
+    }
+}
+
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+fn process_sync_timing_unexpected_ack() {
+    let trigger_count = TIMING_TRIGGER_COUNT.load(Ordering::Acquire);
+    TIMING_UNEXPECTED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+    if trigger_count == 0 {
+        TIMING_PRE_FIRST_TRIGGER_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+    } else if TIMING_EVIDENCE_WINDOW_TRIGGER_COUNT.load(Ordering::Acquire)
+        >= SYNC_TIMING_TRIGGER_TARGET
+    {
+        TIMING_POST_FINAL_TRIGGER_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+    } else {
+        let previous = TIMING_IN_WINDOW_UNEXPECTED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+        if previous == 0 {
+            TIMING_FIRST_IN_WINDOW_UNEXPECTED_ACK_TRIGGER_COUNT
+                .store(trigger_count, Ordering::Release);
+        }
+        TIMING_LAST_IN_WINDOW_UNEXPECTED_ACK_TRIGGER_COUNT.store(trigger_count, Ordering::Release);
+        if trigger_count >= SYNC_TIMING_EVIDENCE_WINDOW_START_TRIGGER {
+            TIMING_EVIDENCE_WINDOW_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+            TIMING_EVIDENCE_WINDOW_UNEXPECTED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+        }
+    }
 }
 
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
@@ -987,11 +1079,47 @@ fn update_sync_timing_max_delta(delta_ticks: u32) {
 }
 
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+fn update_sync_timing_evidence_window_max_delta(delta_ticks: u32) {
+    let mut current = TIMING_EVIDENCE_WINDOW_MAX_DELTA_TICKS.load(Ordering::Acquire);
+    while delta_ticks > current {
+        match TIMING_EVIDENCE_WINDOW_MAX_DELTA_TICKS.compare_exchange(
+            current,
+            delta_ticks,
+            Ordering::AcqRel,
+            Ordering::Acquire,
+        ) {
+            Ok(_) => return,
+            Err(next) => current = next,
+        }
+    }
+}
+
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+fn process_sync_timing_evidence_window_capture_error() {
+    let trigger_count = TIMING_TRIGGER_COUNT.load(Ordering::Acquire);
+    let evidence_window_trigger_count =
+        TIMING_EVIDENCE_WINDOW_TRIGGER_COUNT.load(Ordering::Acquire);
+    if trigger_count >= SYNC_TIMING_EVIDENCE_WINDOW_START_TRIGGER
+        && evidence_window_trigger_count < SYNC_TIMING_TRIGGER_TARGET
+    {
+        TIMING_EVIDENCE_WINDOW_CAPTURE_ERROR_COUNT.fetch_add(1, Ordering::AcqRel);
+    }
+}
+
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 fn finalize_sync_timing_capture() {
     let trigger_count = TIMING_TRIGGER_COUNT.load(Ordering::Acquire);
     let paired_ack_count = TIMING_PAIRED_ACK_COUNT.load(Ordering::Acquire);
     TIMING_MISSED_ACK_COUNT.store(
         trigger_count.saturating_sub(paired_ack_count),
+        Ordering::Release,
+    );
+    let evidence_window_trigger_count =
+        TIMING_EVIDENCE_WINDOW_TRIGGER_COUNT.load(Ordering::Acquire);
+    let evidence_window_paired_ack_count =
+        TIMING_EVIDENCE_WINDOW_PAIRED_ACK_COUNT.load(Ordering::Acquire);
+    TIMING_EVIDENCE_WINDOW_MISSED_ACK_COUNT.store(
+        evidence_window_trigger_count.saturating_sub(evidence_window_paired_ack_count),
         Ordering::Release,
     );
 }
@@ -1004,14 +1132,51 @@ fn dump_sync_timing_report() {
             let ack_count = TIMING_ACK_COUNT.load(Ordering::Acquire);
             let missed_ack_count = TIMING_MISSED_ACK_COUNT.load(Ordering::Acquire);
             let unexpected_ack_count = TIMING_UNEXPECTED_ACK_COUNT.load(Ordering::Acquire);
+            let pre_first_trigger_ack_count =
+                TIMING_PRE_FIRST_TRIGGER_ACK_COUNT.load(Ordering::Acquire);
+            let in_window_unexpected_ack_count =
+                TIMING_IN_WINDOW_UNEXPECTED_ACK_COUNT.load(Ordering::Acquire);
+            let first_in_window_unexpected_ack_trigger_count =
+                TIMING_FIRST_IN_WINDOW_UNEXPECTED_ACK_TRIGGER_COUNT.load(Ordering::Acquire);
+            let last_in_window_unexpected_ack_trigger_count =
+                TIMING_LAST_IN_WINDOW_UNEXPECTED_ACK_TRIGGER_COUNT.load(Ordering::Acquire);
+            let post_final_trigger_ack_count =
+                TIMING_POST_FINAL_TRIGGER_ACK_COUNT.load(Ordering::Acquire);
             let capture_error_count = TIMING_CAPTURE_ERROR_COUNT.load(Ordering::Acquire);
             let max_delta_ticks = TIMING_MAX_DELTA_TICKS.load(Ordering::Acquire);
             let max_delta_ns =
                 (u64::from(max_delta_ticks) * 1_000_000_000u64) / u64::from(SYNC_TIMING_TIMER_HZ);
+            let evidence_window_trigger_count =
+                TIMING_EVIDENCE_WINDOW_TRIGGER_COUNT.load(Ordering::Acquire);
+            let evidence_window_ack_count =
+                TIMING_EVIDENCE_WINDOW_ACK_COUNT.load(Ordering::Acquire);
+            let evidence_window_missed_ack_count =
+                TIMING_EVIDENCE_WINDOW_MISSED_ACK_COUNT.load(Ordering::Acquire);
+            let evidence_window_unexpected_ack_count =
+                TIMING_EVIDENCE_WINDOW_UNEXPECTED_ACK_COUNT.load(Ordering::Acquire);
+            let evidence_window_capture_error_count =
+                TIMING_EVIDENCE_WINDOW_CAPTURE_ERROR_COUNT.load(Ordering::Acquire);
+            let evidence_window_max_delta_ticks =
+                TIMING_EVIDENCE_WINDOW_MAX_DELTA_TICKS.load(Ordering::Acquire);
+            let evidence_window_max_delta_ns = (u64::from(evidence_window_max_delta_ticks)
+                * 1_000_000_000u64)
+                / u64::from(SYNC_TIMING_TIMER_HZ);
             let result = if missed_ack_count == 0
                 && unexpected_ack_count == 0
                 && capture_error_count == 0
                 && max_delta_ticks < SYNC_TIMING_THRESHOLD_TICKS
+            {
+                "PASS"
+            } else {
+                "FAIL"
+            };
+            let evidence_window_result = if evidence_window_trigger_count
+                == SYNC_TIMING_TRIGGER_TARGET
+                && evidence_window_ack_count == SYNC_TIMING_TRIGGER_TARGET
+                && evidence_window_missed_ack_count == 0
+                && evidence_window_unexpected_ack_count == 0
+                && evidence_window_capture_error_count == 0
+                && evidence_window_max_delta_ticks <= SYNC_TIMING_THRESHOLD_TICKS
             {
                 "PASS"
             } else {
@@ -1025,10 +1190,76 @@ fn dump_sync_timing_report() {
             write_report_u32(usart2, "ack_count", ack_count);
             write_report_u32(usart2, "missed_ack_count", missed_ack_count);
             write_report_u32(usart2, "unexpected_ack_count", unexpected_ack_count);
+            write_report_u32(
+                usart2,
+                "pre_first_trigger_ack_count",
+                pre_first_trigger_ack_count,
+            );
+            write_report_u32(
+                usart2,
+                "in_window_unexpected_ack_count",
+                in_window_unexpected_ack_count,
+            );
+            write_report_u32(
+                usart2,
+                "first_in_window_unexpected_ack_trigger_count",
+                first_in_window_unexpected_ack_trigger_count,
+            );
+            write_report_u32(
+                usart2,
+                "last_in_window_unexpected_ack_trigger_count",
+                last_in_window_unexpected_ack_trigger_count,
+            );
+            write_report_u32(
+                usart2,
+                "post_final_trigger_ack_count",
+                post_final_trigger_ack_count,
+            );
             write_report_u32(usart2, "capture_error_count", capture_error_count);
             write_report_u32(usart2, "max_delta_ticks", max_delta_ticks);
             write_report_u64(usart2, "max_delta_ns", max_delta_ns);
             write_report_str(usart2, "result", result);
+            write_report_u32(
+                usart2,
+                "evidence_window_start_trigger_count",
+                SYNC_TIMING_EVIDENCE_WINDOW_START_TRIGGER,
+            );
+            write_report_u32(
+                usart2,
+                "evidence_window_trigger_count",
+                evidence_window_trigger_count,
+            );
+            write_report_u32(
+                usart2,
+                "evidence_window_ack_count",
+                evidence_window_ack_count,
+            );
+            write_report_u32(
+                usart2,
+                "evidence_window_unexpected_ack_count",
+                evidence_window_unexpected_ack_count,
+            );
+            write_report_u32(
+                usart2,
+                "evidence_window_missed_ack_count",
+                evidence_window_missed_ack_count,
+            );
+            write_report_u32(
+                usart2,
+                "evidence_window_capture_error_count",
+                evidence_window_capture_error_count,
+            );
+            write_report_u32(
+                usart2,
+                "evidence_window_max_delta_ticks",
+                evidence_window_max_delta_ticks,
+            );
+            write_report_u64(
+                usart2,
+                "evidence_window_max_delta_ns",
+                evidence_window_max_delta_ns,
+            );
+            write_report_str(usart2, "evidence_window_result", evidence_window_result);
             write_report_str(usart2, "capture_trigger", "PB8_TIM4_CH3");
             write_report_str(usart2, "capture_ack", "PB9_TIM4_CH4");
             #[cfg(feature = "sync_timing_capture")]

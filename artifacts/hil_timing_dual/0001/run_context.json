@@ -1,0 +1,35 @@
+{
+  "actor": {
+    "local_functional_wiring": [
+      "Board A PA6/D12 -> Board A PA0/A0"
+    ],
+    "profile": "single_board_tim2_hardware_ack_v1",
+    "role": "actor"
+  },
+  "claim_boundary": {
+    "does_not_prove": [
+      "platform proof",
+      "RPL0/replay authority",
+      "release evidence",
+      "dual-board ring/BBB orchestration complete",
+      "exact actor internal PA0-to-PA1 silicon latency"
+    ],
+    "proves": "limited by retained result; PASS proves the observer measured the actor's externally visible trigger-to-ack timing path under the gate, clean FAIL proves honest external timing evidence that did not satisfy the gate"
+  },
+  "observer": {
+    "observed_wiring": [
+      "Board A PA6/D12 -> Board B PB8/TIM4_CH3",
+      "Board A PA1/A1 -> Board B PB9/TIM4_CH4",
+      "Board A GND -> Board B GND"
+    ],
+    "profile": "dual_edge_timing_observer_v1",
+    "role": "observer"
+  },
+  "procedure": {
+    "actor_flash_command": "STFLASH_SERIAL=066CFF505487525067182651 FW_FEATURES=\"sync_trigger_out sync_trigger_in sync_timing_capture\" make flash-ur",
+    "capture_command": "python3 scripts/hil_timing_capture.py --profile dual_edge_timing_observer_v1 --serial <observer_serial> --out artifacts/hil_timing_dual/0001",
+    "flash_before_capture": true,
+    "observer_flash_command": "STFLASH_SERIAL=0668FF514988525067215029 FW_FEATURES=\"sync_timing_observer\" make flash-ur"
+  },
+  "topology_profile": "dual_board_tim2_hardware_ack_observed_v1"
+}

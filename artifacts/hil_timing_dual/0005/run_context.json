@@ -1,0 +1,46 @@
+{
+  "board_alias_confirmation": {
+    "command": "ls -l /dev/serial/by-id/",
+    "confirmed_from_dev_serial_by_id": true,
+    "required_mappings": {
+      "0668FF514988525067215029": "observer / Board B",
+      "066CFF505487525067182651": "actor / Board A"
+    },
+    "status": "confirmed on bench from /dev/serial/by-id/ on 2026-05-28"
+  },
+  "board_aliases": {
+    "actor": {
+      "firmware_features": "sync_trigger_out sync_trigger_in sync_timing_capture",
+      "label": "Board A - Blue Case",
+      "role": "external_actor",
+      "stlink_serial": "066CFF505487525067182651",
+      "vcp_by_id": "/dev/serial/by-id/usb-STMicroelectronics_STM32_STLink_066CFF505487525067182651-if02"
+    },
+    "observer": {
+      "firmware_features": "sync_timing_observer",
+      "label": "Board B - Black Case",
+      "role": "external_observer",
+      "stlink_serial": "0668FF514988525067215029",
+      "vcp_by_id": "/dev/serial/by-id/usb-STMicroelectronics_STM32_STLink_0668FF514988525067215029-if02"
+    }
+  },
+  "constraints": [
+    "No direct st-flash as operator path.",
+    "No st-info between observer flash and capture.",
+    "No ttyACM ordering as identity.",
+    "No hand-editing generated timing_report.txt, meta.json, or wiring.txt."
+  ],
+  "operator_commands": {
+    "actor_flash": "STFLASH_SERIAL=066CFF505487525067182651 FW_FEATURES=\"sync_trigger_out sync_trigger_in sync_timing_capture\" make flash-ur",
+    "observer_capture": "python3 scripts/hil_timing_capture.py --profile dual_edge_timing_observer_v1 --serial /dev/serial/by-id/usb-STMicroelectronics_STM32_STLink_0668FF514988525067215029-if02 --out artifacts/hil_timing_dual/0005",
+    "observer_flash": "STFLASH_SERIAL=0668FF514988525067215029 FW_FEATURES=\"sync_timing_observer\" make flash-ur"
+  },
+  "procedure": {
+    "capture_profile": "dual_edge_timing_observer_v1",
+    "confirm_aliases_before_capture": true,
+    "flash_before_capture": true,
+    "identity_authority": "/dev/serial/by-id/",
+    "observer_state_authority_after_flash": "observer firmware report over VCP; do not use post-flash st-info"
+  },
+  "topology_profile": "dual_board_tim2_hardware_ack_observed_v1"
+}
