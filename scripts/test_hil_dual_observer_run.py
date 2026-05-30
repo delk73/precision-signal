@@ -129,6 +129,7 @@ class Harness:
     def __init__(self) -> None:
         self.events: list[tuple[str, object]] = []
         self.flash_fail_serials: set[str] = set()
+        self.flash_fail_features: set[str] = set()
         self.capture_returncode = 0
         self.capture_writes_report = True
         self.terminate_exits = True
@@ -140,9 +141,23 @@ class Harness:
             env = kwargs.get("env")
             assert isinstance(env, dict)
             serial = env.get("STFLASH_SERIAL")
-            features = env.get("FW_FEATURES")
-            self.events.append(("flash", (command, serial, features)))
-            return FakeCompleted(1 if serial in self.flash_fail_serials else 0)
+            has_features = "FW_FEATURES" in env
+            features = env["FW_FEATURES"] if has_features else None
+            cwd = kwargs.get("cwd")
+            self.events.append(
+                (
+                    "flash",
+                    {
+                        "command": command,
+                        "cwd": cwd,
+                        "serial": serial,
+                        "features": features,
+                        "has_features": has_features,
+                    },
+                )
+            )
+            failed = serial in self.flash_fail_serials or features in self.flash_fail_features
+            return FakeCompleted(1 if failed else 0)
 
         def fake_popen(command: list[str], **kwargs: object) -> FakePopen:
             return FakePopen(command, self)
@@ -212,6 +227,7 @@ def context_out_scratch_uses_context_aliases(root: Path) -> None:
     context_path = root / "run_context.json"
     out_dir = root / "scratch"
     write_context(context_path)
+    source_context_bytes = context_path.read_bytes()
     with Harness() as harness:
         rc = run_main_quiet(
             [
@@ -226,10 +242,16 @@ def context_out_scratch_uses_context_aliases(root: Path) -> None:
     assert_ok("context_out_scratch_uses_context_aliases", rc)
     if not (out_dir / "run_context.json").is_file():
         raise AssertionError("context_out_scratch_uses_context_aliases: missing copied context")
+    assert_equal(
+        "copied context bytes",
+        (out_dir / "run_context.json").read_bytes(),
+        source_context_bytes,
+    )
     flash_events = [event for event in harness.events if event[0] == "flash"]
-    assert_equal("flash count", len(flash_events), 2)
-    assert_equal("observer serial", flash_events[0][1][1], OBSERVER_STLINK)
-    assert_equal("actor serial", flash_events[1][1][1], ACTOR_STLINK)
+    assert_equal("flash count", len(flash_events), 3)
+    assert_equal("quiesce serial", flash_events[0][1]["serial"], ACTOR_STLINK)
+    assert_equal("observer serial", flash_events[1][1]["serial"], OBSERVER_STLINK)
+    assert_equal("actor serial", flash_events[2][1]["serial"], ACTOR_STLINK)
 
 
 def bad_context_fails_before_flash(root: Path) -> None:
@@ -267,6 +289,23 @@ def generated_files_fail_before_flash(root: Path) -> None:
     assert_equal("no flash", [event for event in harness.events if event[0] == "flash"], [])
 
 
+def retained_generated_files_fail_before_flash(root: Path) -> None:
+    run_root = root / "retained"
+    out_dir = run_root / "0009"
+    context_path = out_dir / "run_context.json"
+    write_context(context_path)
+    (out_dir / "timing_report.txt").write_text("old\n", encoding="utf-8")
+    original_run_root = runner.DEFAULT_RUN_ROOT
+    runner.DEFAULT_RUN_ROOT = run_root
+    try:
+        with Harness() as harness:
+            rc = run_main_quiet(["--run-id", "0009"])
+    finally:
+        runner.DEFAULT_RUN_ROOT = original_run_root
+    assert_fail("retained_generated_files_fail_before_flash", rc)
+    assert_equal("no flash", [event for event in harness.events if event[0] == "flash"], [])
+
+
 def observer_flash_failure_prevents_capture(root: Path) -> None:
     context_path = root / "observer_fail_context.json"
     out_dir = root / "observer_fail_out"
@@ -292,7 +331,7 @@ def actor_flash_failure_terminates_capture(root: Path) -> None:
     out_dir = root / "actor_fail_out"
     write_context(context_path)
     with Harness() as harness:
-        harness.flash_fail_serials.add(ACTOR_STLINK)
+        harness.flash_fail_features.add("sync_trigger_out sync_trigger_in sync_timing_capture")
         rc = run_main_quiet(
             [
                 "--context",
@@ -309,7 +348,37 @@ def actor_flash_failure_terminates_capture(root: Path) -> None:
         raise AssertionError("actor_flash_failure_terminates_capture: capture was not terminated")
 
 
-def success_order_is_observer_capture_actor_wait(root: Path) -> None:
+def quiesce_failure_prevents_observer_capture_and_generated_artifacts(root: Path) -> None:
+    context_path = root / "quiesce_fail_context.json"
+    out_dir = root / "quiesce_fail_out"
+    write_context(context_path)
+    with Harness() as harness:
+        harness.flash_fail_features.add("")
+        rc = run_main_quiet(
+            [
+                "--context",
+                str(context_path),
+                "--out",
+                str(out_dir),
+                "--scratch",
+                "--overwrite-generated",
+            ]
+        )
+    assert_fail("quiesce_failure_prevents_observer_capture_and_generated_artifacts", rc)
+    flash_events = [event for event in harness.events if event[0] == "flash"]
+    assert_equal("only quiesce flash", len(flash_events), 1)
+    assert_equal("quiesce serial", flash_events[0][1]["serial"], ACTOR_STLINK)
+    assert_equal("quiesce features", flash_events[0][1]["features"], "")
+    assert_equal("no capture", [event for event in harness.events if event[0] == "capture-start"], [])
+    for name in ("timing_report.txt", "meta.json", "wiring.txt"):
+        if (out_dir / name).exists():
+            raise AssertionError(
+                "quiesce_failure_prevents_observer_capture_and_generated_artifacts: "
+                f"unexpected generated artifact {name}"
+            )
+
+
+def success_order_is_quiesce_observer_capture_actor_wait(root: Path) -> None:
     context_path = root / "success_context.json"
     out_dir = root / "success_out"
     write_context(context_path)
@@ -324,13 +393,51 @@ def success_order_is_observer_capture_actor_wait(root: Path) -> None:
                 "--overwrite-generated",
             ]
         )
-    assert_ok("success_order_is_observer_capture_actor_wait", rc)
+    assert_ok("success_order_is_quiesce_observer_capture_actor_wait", rc)
     event_names = [event[0] for event in harness.events]
     assert_equal(
         "success order",
-        event_names[:4],
-        ["flash", "capture-start", "flash", "capture-wait"],
+        event_names[:5],
+        ["flash", "flash", "capture-start", "flash", "capture-wait"],
     )
+    flash_events = [event[1] for event in harness.events if event[0] == "flash"]
+    assert_equal("quiesce features", flash_events[0]["features"], "")
+    assert_equal("observer features", flash_events[1]["features"], "sync_timing_observer")
+    assert_equal(
+        "active actor features",
+        flash_events[2]["features"],
+        "sync_trigger_out sync_trigger_in sync_timing_capture",
+    )
+
+
+def quiesce_uses_existing_under_reset_make_path(root: Path) -> None:
+    context_path = root / "make_path_context.json"
+    out_dir = root / "make_path_out"
+    write_context(context_path)
+    with Harness() as harness:
+        rc = run_main_quiet(
+            [
+                "--context",
+                str(context_path),
+                "--out",
+                str(out_dir),
+                "--scratch",
+                "--overwrite-generated",
+                "--make",
+                "custom-make",
+            ]
+        )
+    assert_ok("quiesce_uses_existing_under_reset_make_path", rc)
+    flash_events = [event[1] for event in harness.events if event[0] == "flash"]
+    quiesce = flash_events[0]
+    assert_equal("quiesce command", quiesce["command"], ["custom-make", "flash-ur"])
+    assert_equal("quiesce cwd", quiesce["cwd"], runner.REPO_ROOT)
+    if "st-flash" in quiesce["command"]:
+        raise AssertionError("quiesce_uses_existing_under_reset_make_path: direct st-flash call")
+    for flash in flash_events:
+        assert_equal("flash command", flash["command"], ["custom-make", "flash-ur"])
+        assert_equal("flash cwd", flash["cwd"], runner.REPO_ROOT)
+        assert_equal("FW_FEATURES present", flash["has_features"], True)
 
 
 def scratch_rejects_unexpected_existing_file(root: Path) -> None:
@@ -363,9 +470,12 @@ def main() -> int:
         context_out_scratch_uses_context_aliases(root)
         bad_context_fails_before_flash(root)
         generated_files_fail_before_flash(root)
+        retained_generated_files_fail_before_flash(root)
         observer_flash_failure_prevents_capture(root)
         actor_flash_failure_terminates_capture(root)
-        success_order_is_observer_capture_actor_wait(root)
+        quiesce_failure_prevents_observer_capture_and_generated_artifacts(root)
+        success_order_is_quiesce_observer_capture_actor_wait(root)
+        quiesce_uses_existing_under_reset_make_path(root)
         scratch_rejects_unexpected_existing_file(root)
 
     print("PASS: HIL dual observer runner regression suite")

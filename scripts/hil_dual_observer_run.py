@@ -139,10 +139,10 @@ def make_flash_command(make_cmd: str) -> list[str]:
     return [make_cmd, "flash-ur"]
 
 
-def make_flash_env(alias_entry: dict[str, str]) -> dict[str, str]:
+def make_flash_env(alias_entry: dict[str, str], firmware_features: str) -> dict[str, str]:
     env = os.environ.copy()
     env["STFLASH_SERIAL"] = alias_entry["stlink_serial"]
-    env["FW_FEATURES"] = alias_entry["firmware_features"]
+    env["FW_FEATURES"] = firmware_features
     return env
 
 
@@ -157,12 +157,17 @@ def terminate_capture(proc: subprocess.Popen[str]) -> None:
         proc.wait(timeout=2)
 
 
-def run_flash(make_cmd: str, alias_name: str, alias_entry: dict[str, str]) -> None:
+def run_flash(
+    make_cmd: str,
+    alias_name: str,
+    alias_entry: dict[str, str],
+    firmware_features: str,
+) -> None:
     print(f"flashing {alias_name} with make flash-ur", flush=True)
     proc = subprocess.run(
         make_flash_command(make_cmd),
         cwd=REPO_ROOT,
-        env=make_flash_env(alias_entry),
+        env=make_flash_env(alias_entry, firmware_features),
         text=True,
         check=False,
     )
@@ -244,7 +249,8 @@ def run(args: argparse.Namespace) -> int:
 
     capture_proc: subprocess.Popen[str] | None = None
     try:
-        run_flash(args.make, "observer", observer)
+        run_flash(args.make, "actor quiesce", actor, "")
+        run_flash(args.make, "observer", observer, observer["firmware_features"])
         capture_proc = start_capture(
             out_dir,
             observer_vcp,
@@ -253,7 +259,7 @@ def run(args: argparse.Namespace) -> int:
             args.overwrite_generated,
         )
         try:
-            run_flash(args.make, "actor", actor)
+            run_flash(args.make, "actor", actor, actor["firmware_features"])
         except RuntimeError:
             terminate_capture(capture_proc)
             raise
