@@ -9,6 +9,7 @@ import time
 import serial
 
 DEFAULT_STFLASH = "st-flash"
+DEFAULT_STFLASH_FREQ = "200"
 DEFAULT_SETTLE_DELAY = 0.25
 PREAMBLE_READ_SLICE = 0.25
 CSV_HEADER = b"index,interval_us\n"
@@ -29,15 +30,16 @@ def parse_args() -> argparse.Namespace:
         help="Reset trigger mode for this CSV support tool; manual is legacy/debug only.",
     )
     parser.add_argument("--stflash", default=DEFAULT_STFLASH)
+    parser.add_argument("--stflash-freq", default=DEFAULT_STFLASH_FREQ)
     parser.add_argument("--reset-delay", type=float, default=0.25)
     parser.add_argument("--settle-delay", type=float, default=DEFAULT_SETTLE_DELAY)
     parser.add_argument("--debug-prefix", action="store_true")
     return parser.parse_args()
 
 
-def trigger_stlink_reset(stflash: str) -> None:
+def trigger_stlink_reset(stflash: str, stflash_freq: str) -> None:
     proc = subprocess.run(
-        [stflash, "--connect-under-reset", "--freq=200K", "reset"],
+        [stflash, "--connect-under-reset", f"--freq={stflash_freq}", "reset"],
         capture_output=True,
         text=True,
     )
@@ -115,7 +117,7 @@ def main() -> int:
         if args.reset_mode == "stlink":
             print("Listener active; triggering ST-LINK reset", flush=True)
             time.sleep(args.reset_delay)
-            trigger_stlink_reset(args.stflash)
+            trigger_stlink_reset(args.stflash, args.stflash_freq)
         else:
             # Legacy/debug CSV capture path only. Active RPL0 board bring-up uses
             # ST-LINK reset through make fw-gate.

@@ -391,6 +391,12 @@ The standard operator path remains:
 STFLASH_SERIAL=<serial> FW_FEATURES="<features>" make flash-ur
 ```
 
+The Makefile under-reset flash path uses `STFLASH_FREQ ?= 200`, emitted as
+`--freq=200`. This numeric kHz form is the supported compatibility spelling for
+the observed ST-LINK `st-flash` 1.7.0 dev-host path and the BBB `st-flash`
+1.8.0 bench path; do not use the older `--freq=200K` spelling in under-reset
+flash/read/reset commands.
+
 On this bench, an STM32 board may occasionally fail the first `make flash-ur`
 attempt after being disconnected or after entering a bad attach/run state. The
 observed recovery is:

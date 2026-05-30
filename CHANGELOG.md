@@ -67,6 +67,9 @@
 
 - added `make bench-check` bench readiness preflight for STM32 release operations, covering serial device presence, ST-LINK probe presence, required host binaries, and optional firmware build artifacts
 - added `make release-proof VERSION=<ver>` as the primary release-proof orchestration path across bench preflight, `make gate`, optional firmware capture/archive, bundle generation, bundle check transcript finalization, and summary generation
+- normalized under-reset ST-LINK flash frequency to `STFLASH_FREQ ?= 200`
+  (`--freq=200`) for compatibility across observed `st-flash` 1.7.0 and 1.8.0
+  hosts
 - added automated `summary.md` and `summary.json` release bundle summaries plus validation when summaries are present
 - preserved compatibility for historical retained bundles that do not include generated release summaries
 - consolidated the demo-facing Make surface: `demo-evidence-package`, `demo-divergence`, `replay-demo-audit`, and captured divergence support remain operator-visible, while historical Demo V2-V5 lifecycle flows are retained as fixtures/scripts rather than top-level Make targets
