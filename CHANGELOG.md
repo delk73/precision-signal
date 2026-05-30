@@ -58,6 +58,10 @@
   `evidence_window_max_delta_ticks=6`, and `threshold_ticks=9`; repeated BBB
   scratch loops exposed separate USB/ST-LINK transport instability deferred to
   BBB orchestration hardening
+- hardened BBB dual-board observer repeat execution with bounded ST-LINK/VCP
+  readiness checks and retry classification for transient USB/ST-LINK transport
+  failures during repeated flash/reset cycles; retained `0007` evidence remains
+  deferred until repeated scratch execution is mechanically boring
 
 ### Changed
 

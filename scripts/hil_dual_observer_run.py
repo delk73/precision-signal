@@ -10,7 +10,9 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
+from typing import Callable
 
 from hil_timing_capture import (
     ALLOWED_CONTEXT_FILES,
@@ -26,6 +28,20 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_PROFILE = "dual_edge_timing_observer_v1"
 DEFAULT_RUN_ROOT = Path("artifacts/hil_timing_dual")
 SCRATCH_ROOT = Path("/tmp").resolve()
+SERIAL_BY_ID_ROOT = Path("/dev/serial/by-id")
+DEVICE_SETTLE_SECONDS = 2.0
+DEVICE_READY_TIMEOUT_SECONDS = 15.0
+FLASH_RETRY_COUNT = 1
+RETRYABLE_STLINK_TRANSPORT_PATTERNS = (
+    "LIBUSB_ERROR_NO_DEVICE",
+    "LIBUSB_ERROR_TIMEOUT",
+    "GETLASTRWSTATUS2 read reply failed",
+    "READMEM_32BIT read reply failed",
+    "device reports readiness to read but returned no data",
+    "write_buffer_to_sram() == -1",
+    "stlink_flash_loader_run",
+    "stlink_fwrite_flash() == -1",
+)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -146,6 +162,59 @@ def make_flash_env(alias_entry: dict[str, str], firmware_features: str) -> dict[
     return env
 
 
+def observe_flash_identity(alias_entry: dict[str, str]) -> str | None:
+    serial = alias_entry.get("stlink_serial", "")
+    if not serial or not SERIAL_BY_ID_ROOT.is_dir():
+        return None
+    for path in sorted(SERIAL_BY_ID_ROOT.iterdir()):
+        if serial in path.name:
+            return str(path)
+    return None
+
+
+def observe_vcp_identity(vcp_path: str) -> str | None:
+    if vcp_path and Path(vcp_path).exists():
+        return vcp_path
+    return None
+
+
+def wait_for_stable_identity(
+    observe: Callable[[], str | None],
+    failure_message: str,
+    timeout_seconds: float = DEVICE_READY_TIMEOUT_SECONDS,
+    settle_seconds: float = DEVICE_SETTLE_SECONDS,
+) -> str:
+    deadline = time.monotonic() + timeout_seconds
+    poll_seconds = min(0.25, settle_seconds) if settle_seconds > 0 else 0
+    while time.monotonic() <= deadline:
+        first = observe()
+        if first is not None:
+            if time.monotonic() + settle_seconds > deadline:
+                break
+            if settle_seconds > 0:
+                time.sleep(settle_seconds)
+            second = observe()
+            if second == first and second is not None:
+                return second
+        if poll_seconds > 0:
+            time.sleep(min(poll_seconds, max(0.0, deadline - time.monotonic())))
+    raise RuntimeError(failure_message)
+
+
+def require_flash_identity(role: str, phase: str, alias_entry: dict[str, str]) -> str:
+    return wait_for_stable_identity(
+        lambda: observe_flash_identity(alias_entry),
+        f"{role} flash identity not ready for {phase}",
+    )
+
+
+def require_observer_vcp_for_capture(observer_vcp: str) -> str:
+    return wait_for_stable_identity(
+        lambda: observe_vcp_identity(observer_vcp),
+        "observer VCP not ready for capture start",
+    )
+
+
 def terminate_capture(proc: subprocess.Popen[str]) -> None:
     if proc.poll() is not None:
         return
@@ -157,22 +226,67 @@ def terminate_capture(proc: subprocess.Popen[str]) -> None:
         proc.wait(timeout=2)
 
 
-def run_flash(
+def retryable_flash_output(output: str) -> bool:
+    return any(pattern in output for pattern in RETRYABLE_STLINK_TRANSPORT_PATTERNS)
+
+
+def run_flash_attempt(
     make_cmd: str,
-    alias_name: str,
     alias_entry: dict[str, str],
     firmware_features: str,
-) -> None:
-    print(f"flashing {alias_name} with make flash-ur", flush=True)
-    proc = subprocess.run(
+) -> tuple[int, str]:
+    proc = subprocess.Popen(
         make_flash_command(make_cmd),
         cwd=REPO_ROOT,
         env=make_flash_env(alias_entry, firmware_features),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
         text=True,
-        check=False,
+        bufsize=1,
     )
-    if proc.returncode != 0:
-        raise RuntimeError(f"{alias_name} flash failed with exit code {proc.returncode}")
+    output: list[str] = []
+    if proc.stdout is not None:
+        for line in proc.stdout:
+            print(line, end="", flush=True)
+            output.append(line)
+    return proc.wait(), "".join(output)
+
+
+def run_flash(
+    make_cmd: str,
+    phase: str,
+    role: str,
+    alias_entry: dict[str, str],
+    firmware_features: str,
+) -> None:
+    attempts = FLASH_RETRY_COUNT + 1
+    recovery_attempted = False
+    for attempt in range(1, attempts + 1):
+        print(f"flashing {phase} with make flash-ur", flush=True)
+        returncode, output = run_flash_attempt(make_cmd, alias_entry, firmware_features)
+        if returncode == 0:
+            return
+        retryable = retryable_flash_output(output)
+        if attempt < attempts and retryable:
+            recovery_attempted = True
+            print(
+                f"WARN: {phase} flash failed with retryable ST-LINK transport "
+                f"error; waiting for {role} flash identity recovery",
+                flush=True,
+            )
+            require_flash_identity(role, phase, alias_entry)
+            print(
+                f"WARN: retrying {phase} flash attempt {attempt + 1}/{attempts}",
+                flush=True,
+            )
+            continue
+        if recovery_attempted or retryable:
+            raise RuntimeError(
+                f"{phase} flash failed after retryable ST-LINK transport recovery attempt"
+            )
+        raise RuntimeError(
+            f"{phase} flash failed with non-retryable exit code {returncode}"
+        )
 
 
 def capture_command(
@@ -249,8 +363,15 @@ def run(args: argparse.Namespace) -> int:
 
     capture_proc: subprocess.Popen[str] | None = None
     try:
-        run_flash(args.make, "actor quiesce", actor, "")
-        run_flash(args.make, "observer", observer, observer["firmware_features"])
+        require_flash_identity("actor", "actor quiesce", actor)
+        run_flash(args.make, "actor quiesce", "actor", actor, "")
+        require_flash_identity("actor", "actor quiesce", actor)
+
+        require_flash_identity("observer", "observer", observer)
+        run_flash(args.make, "observer", "observer", observer, observer["firmware_features"])
+        require_flash_identity("observer", "observer", observer)
+        require_observer_vcp_for_capture(observer_vcp)
+
         capture_proc = start_capture(
             out_dir,
             observer_vcp,
@@ -259,7 +380,8 @@ def run(args: argparse.Namespace) -> int:
             args.overwrite_generated,
         )
         try:
-            run_flash(args.make, "actor", actor, actor["firmware_features"])
+            require_flash_identity("actor", "actor active", actor)
+            run_flash(args.make, "actor active", "actor", actor, actor["firmware_features"])
         except RuntimeError:
             terminate_capture(capture_proc)
             raise

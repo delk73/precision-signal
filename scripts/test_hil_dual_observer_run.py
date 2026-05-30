@@ -86,9 +86,58 @@ def write_context(path: Path, context: dict[str, object] | None = None) -> None:
     path.write_text(json.dumps(context or valid_context()) + "\n", encoding="utf-8")
 
 
-class FakeCompleted:
-    def __init__(self, returncode: int) -> None:
+class FakeStdout:
+    def __init__(self, text: str) -> None:
+        self.lines = text.splitlines(keepends=True)
+
+    def __iter__(self) -> "FakeStdout":
+        return self
+
+    def __next__(self) -> str:
+        if not self.lines:
+            raise StopIteration
+        return self.lines.pop(0)
+
+
+class FakeFlashPopen:
+    def __init__(
+        self,
+        command: list[str],
+        kwargs: dict[str, object],
+        harness: "Harness",
+    ) -> None:
+        env = kwargs.get("env")
+        assert isinstance(env, dict)
+        serial = env.get("STFLASH_SERIAL")
+        has_features = "FW_FEATURES" in env
+        features = env["FW_FEATURES"] if has_features else None
+        cwd = kwargs.get("cwd")
+        results = harness.flash_results_by_features.get(str(features), [])
+        if results:
+            returncode, output = results.pop(0)
+        else:
+            failed = serial in harness.flash_fail_serials or features in harness.flash_fail_features
+            returncode = 1 if failed else 0
+            output = "flash failed\n" if failed else "flash ok\n"
         self.returncode = returncode
+        self.stdout = FakeStdout(output)
+        harness.events.append(
+            (
+                "flash",
+                {
+                    "command": command,
+                    "cwd": cwd,
+                    "serial": serial,
+                    "features": features,
+                    "has_features": has_features,
+                    "returncode": returncode,
+                    "output": output,
+                },
+            )
+        )
+
+    def wait(self, timeout: float | None = None) -> int:
+        return self.returncode
 
 
 class FakePopen:
@@ -130,45 +179,45 @@ class Harness:
         self.events: list[tuple[str, object]] = []
         self.flash_fail_serials: set[str] = set()
         self.flash_fail_features: set[str] = set()
+        self.flash_results_by_features: dict[str, list[tuple[int, str]]] = {}
+        self.flash_identity_present = {"actor": True, "observer": True}
+        self.observer_vcp_present = True
         self.capture_returncode = 0
         self.capture_writes_report = True
         self.terminate_exits = True
-        self._orig_run = runner.subprocess.run
         self._orig_popen = runner.subprocess.Popen
+        self._orig_require_flash_identity = runner.require_flash_identity
+        self._orig_require_observer_vcp_for_capture = runner.require_observer_vcp_for_capture
 
     def __enter__(self) -> "Harness":
-        def fake_run(command: list[str], **kwargs: object) -> FakeCompleted:
-            env = kwargs.get("env")
-            assert isinstance(env, dict)
-            serial = env.get("STFLASH_SERIAL")
-            has_features = "FW_FEATURES" in env
-            features = env["FW_FEATURES"] if has_features else None
-            cwd = kwargs.get("cwd")
-            self.events.append(
-                (
-                    "flash",
-                    {
-                        "command": command,
-                        "cwd": cwd,
-                        "serial": serial,
-                        "features": features,
-                        "has_features": has_features,
-                    },
-                )
-            )
-            failed = serial in self.flash_fail_serials or features in self.flash_fail_features
-            return FakeCompleted(1 if failed else 0)
-
         def fake_popen(command: list[str], **kwargs: object) -> FakePopen:
+            if command[-1:] == ["flash-ur"]:
+                return FakeFlashPopen(command, kwargs, self)
             return FakePopen(command, self)
 
-        runner.subprocess.run = fake_run
+        def fake_require_flash_identity(
+            role: str, phase: str, alias_entry: dict[str, str]
+        ) -> str:
+            self.events.append(("flash-ready", (role, phase)))
+            if not self.flash_identity_present[role]:
+                raise RuntimeError(f"{role} flash identity not ready for {phase}")
+            return alias_entry["stlink_serial"]
+
+        def fake_require_observer_vcp_for_capture(observer_vcp: str) -> str:
+            self.events.append(("vcp-ready", observer_vcp))
+            if not self.observer_vcp_present:
+                raise RuntimeError("observer VCP not ready for capture start")
+            return observer_vcp
+
         runner.subprocess.Popen = fake_popen
+        runner.require_flash_identity = fake_require_flash_identity
+        runner.require_observer_vcp_for_capture = fake_require_observer_vcp_for_capture
         return self
 
     def __exit__(self, exc_type: object, exc: object, tb: object) -> None:
-        runner.subprocess.run = self._orig_run
         runner.subprocess.Popen = self._orig_popen
+        runner.require_flash_identity = self._orig_require_flash_identity
+        runner.require_observer_vcp_for_capture = self._orig_require_observer_vcp_for_capture
 
 
 def assert_equal(name: str, actual: object, expected: object) -> None:
@@ -205,6 +254,14 @@ def scratch_requires_out() -> None:
 def run_main_quiet(argv: list[str]) -> int:
     with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
         return runner.main(argv)
+
+
+def run_main_capture(argv: list[str]) -> tuple[int, str, str]:
+    stdout = io.StringIO()
+    stderr = io.StringIO()
+    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+        rc = runner.main(argv)
+    return rc, stdout.getvalue(), stderr.getvalue()
 
 
 def scratch_rejects_outside_tmp(root: Path) -> None:
@@ -306,6 +363,63 @@ def retained_generated_files_fail_before_flash(root: Path) -> None:
     assert_equal("no flash", [event for event in harness.events if event[0] == "flash"], [])
 
 
+def missing_actor_flash_identity_before_quiesce_fails_before_flash(root: Path) -> None:
+    context_path = root / "missing_actor_identity_context.json"
+    out_dir = root / "missing_actor_identity_out"
+    write_context(context_path)
+    with Harness() as harness:
+        harness.flash_identity_present["actor"] = False
+        rc, _stdout, stderr = run_main_capture(
+            [
+                "--context",
+                str(context_path),
+                "--out",
+                str(out_dir),
+                "--scratch",
+                "--overwrite-generated",
+            ]
+        )
+    assert_fail("missing_actor_flash_identity_before_quiesce_fails_before_flash", rc)
+    if "FAIL: actor flash identity not ready for actor quiesce" not in stderr:
+        raise AssertionError(
+            "missing_actor_flash_identity_before_quiesce_fails_before_flash: "
+            f"unexpected stderr {stderr!r}"
+        )
+    assert_equal("no flash", [event for event in harness.events if event[0] == "flash"], [])
+
+
+def missing_observer_flash_identity_before_observer_flash_fails_before_capture(
+    root: Path,
+) -> None:
+    context_path = root / "missing_observer_identity_context.json"
+    out_dir = root / "missing_observer_identity_out"
+    write_context(context_path)
+    with Harness() as harness:
+        harness.flash_identity_present["observer"] = False
+        rc, _stdout, stderr = run_main_capture(
+            [
+                "--context",
+                str(context_path),
+                "--out",
+                str(out_dir),
+                "--scratch",
+                "--overwrite-generated",
+            ]
+        )
+    assert_fail(
+        "missing_observer_flash_identity_before_observer_flash_fails_before_capture",
+        rc,
+    )
+    if "FAIL: observer flash identity not ready for observer" not in stderr:
+        raise AssertionError(
+            "missing_observer_flash_identity_before_observer_flash_fails_before_capture: "
+            f"unexpected stderr {stderr!r}"
+        )
+    flash_events = [event for event in harness.events if event[0] == "flash"]
+    assert_equal("only actor quiesce flashed", len(flash_events), 1)
+    assert_equal("no capture", [event for event in harness.events if event[0] == "capture-start"], [])
+
+
 def observer_flash_failure_prevents_capture(root: Path) -> None:
     context_path = root / "observer_fail_context.json"
     out_dir = root / "observer_fail_out"
@@ -323,6 +437,45 @@ def observer_flash_failure_prevents_capture(root: Path) -> None:
             ]
         )
     assert_fail("observer_flash_failure_prevents_capture", rc)
+    assert_equal("no capture", [event for event in harness.events if event[0] == "capture-start"], [])
+
+
+def observer_vcp_timeout_after_observer_flash_settle_is_not_flash_retry(root: Path) -> None:
+    context_path = root / "observer_vcp_timeout_context.json"
+    out_dir = root / "observer_vcp_timeout_out"
+    write_context(context_path)
+    with Harness() as harness:
+        harness.observer_vcp_present = False
+        rc, _stdout, stderr = run_main_capture(
+            [
+                "--context",
+                str(context_path),
+                "--out",
+                str(out_dir),
+                "--scratch",
+                "--overwrite-generated",
+            ]
+        )
+    assert_fail("observer_vcp_timeout_after_observer_flash_settle_is_not_flash_retry", rc)
+    if "FAIL: observer VCP not ready for capture start" not in stderr:
+        raise AssertionError(
+            "observer_vcp_timeout_after_observer_flash_settle_is_not_flash_retry: "
+            f"unexpected stderr {stderr!r}"
+        )
+    event_names = [event[0] for event in harness.events]
+    expected_prefix = [
+        "flash-ready",
+        "flash",
+        "flash-ready",
+        "flash-ready",
+        "flash",
+        "flash-ready",
+        "vcp-ready",
+    ]
+    assert_equal("vcp timeout order", event_names[: len(expected_prefix)], expected_prefix)
+    flash_events = [event for event in harness.events if event[0] == "flash"]
+    assert_equal("quiesce and observer only", len(flash_events), 2)
+    assert_equal("observer flash succeeded", flash_events[1][1]["returncode"], 0)
     assert_equal("no capture", [event for event in harness.events if event[0] == "capture-start"], [])
 
 
@@ -346,6 +499,256 @@ def actor_flash_failure_terminates_capture(root: Path) -> None:
     event_names = [event[0] for event in harness.events]
     if "capture-terminate" not in event_names:
         raise AssertionError("actor_flash_failure_terminates_capture: capture was not terminated")
+
+
+def retryable_actor_active_flash_failure_recovers_and_waits_for_capture(root: Path) -> None:
+    context_path = root / "actor_retry_context.json"
+    out_dir = root / "actor_retry_out"
+    write_context(context_path)
+    active_features = "sync_trigger_out sync_trigger_in sync_timing_capture"
+    with Harness() as harness:
+        harness.flash_results_by_features[active_features] = [
+            (1, "LIBUSB_ERROR_TIMEOUT\n"),
+            (0, "flash ok\n"),
+        ]
+        rc, stdout, _stderr = run_main_capture(
+            [
+                "--context",
+                str(context_path),
+                "--out",
+                str(out_dir),
+                "--scratch",
+                "--overwrite-generated",
+            ]
+        )
+    assert_ok("retryable_actor_active_flash_failure_recovers_and_waits_for_capture", rc)
+    if (
+        "WARN: actor active flash failed with retryable ST-LINK transport error; "
+        "waiting for actor flash identity recovery"
+    ) not in stdout:
+        raise AssertionError(
+            "retryable_actor_active_flash_failure_recovers_and_waits_for_capture: "
+            "missing retry classification"
+        )
+    if "WARN: retrying actor active flash attempt 2/2" not in stdout:
+        raise AssertionError(
+            "retryable_actor_active_flash_failure_recovers_and_waits_for_capture: "
+            "missing retry attempt warning"
+        )
+    active_flashes = [
+        event for event in harness.events
+        if event[0] == "flash" and event[1]["features"] == active_features
+    ]
+    assert_equal("active actor attempts", len(active_flashes), 2)
+    active_readiness = [
+        event for event in harness.events
+        if event == ("flash-ready", ("actor", "actor active"))
+    ]
+    assert_equal("active actor readiness checks", len(active_readiness), 2)
+    if "capture-wait" not in [event[0] for event in harness.events]:
+        raise AssertionError(
+            "retryable_actor_active_flash_failure_recovers_and_waits_for_capture: "
+            "capture wait not reached"
+        )
+
+
+def retryable_observer_flash_failure_recovers_before_vcp_check(root: Path) -> None:
+    context_path = root / "observer_retry_context.json"
+    out_dir = root / "observer_retry_out"
+    write_context(context_path)
+    with Harness() as harness:
+        harness.flash_results_by_features["sync_timing_observer"] = [
+            (1, "LIBUSB_ERROR_NO_DEVICE\n"),
+            (0, "flash ok\n"),
+        ]
+        rc, stdout, _stderr = run_main_capture(
+            [
+                "--context",
+                str(context_path),
+                "--out",
+                str(out_dir),
+                "--scratch",
+                "--overwrite-generated",
+            ]
+        )
+    assert_ok("retryable_observer_flash_failure_recovers_before_vcp_check", rc)
+    if (
+        "WARN: observer flash failed with retryable ST-LINK transport error; "
+        "waiting for observer flash identity recovery"
+    ) not in stdout:
+        raise AssertionError(
+            "retryable_observer_flash_failure_recovers_before_vcp_check: "
+            "missing retry classification"
+        )
+    observer_flashes = [
+        event for event in harness.events
+        if event[0] == "flash" and event[1]["features"] == "sync_timing_observer"
+    ]
+    assert_equal("observer attempts", len(observer_flashes), 2)
+    event_names = [event[0] for event in harness.events]
+    last_observer_flash = max(
+        index for index, event in enumerate(harness.events)
+        if event[0] == "flash" and event[1]["features"] == "sync_timing_observer"
+    )
+    vcp_index = event_names.index("vcp-ready")
+    if vcp_index <= last_observer_flash:
+        raise AssertionError(
+            "retryable_observer_flash_failure_recovers_before_vcp_check: "
+            "observer VCP checked before observer retry completed"
+        )
+
+
+def retryable_observer_flash_failure_exhaustion_skips_capture(root: Path) -> None:
+    context_path = root / "observer_retry_exhaust_context.json"
+    out_dir = root / "observer_retry_exhaust_out"
+    write_context(context_path)
+    with Harness() as harness:
+        harness.flash_results_by_features["sync_timing_observer"] = [
+            (1, "LIBUSB_ERROR_NO_DEVICE\n"),
+            (1, "LIBUSB_ERROR_NO_DEVICE\n"),
+        ]
+        rc, _stdout, stderr = run_main_capture(
+            [
+                "--context",
+                str(context_path),
+                "--out",
+                str(out_dir),
+                "--scratch",
+                "--overwrite-generated",
+            ]
+        )
+    assert_fail("retryable_observer_flash_failure_exhaustion_skips_capture", rc)
+    if (
+        "FAIL: observer flash failed after retryable ST-LINK transport recovery attempt"
+        not in stderr
+    ):
+        raise AssertionError(
+            "retryable_observer_flash_failure_exhaustion_skips_capture: "
+            f"unexpected stderr {stderr!r}"
+        )
+    observer_flashes = [
+        event for event in harness.events
+        if event[0] == "flash" and event[1]["features"] == "sync_timing_observer"
+    ]
+    assert_equal("observer attempts", len(observer_flashes), 2)
+    assert_equal("no capture", [event for event in harness.events if event[0] == "capture-start"], [])
+
+
+def observer_retry_then_nonretryable_failure_reports_recovery_attempt(
+    root: Path,
+) -> None:
+    context_path = root / "observer_retry_then_nonretry_context.json"
+    out_dir = root / "observer_retry_then_nonretry_out"
+    write_context(context_path)
+    with Harness() as harness:
+        harness.flash_results_by_features["sync_timing_observer"] = [
+            (1, "LIBUSB_ERROR_NO_DEVICE\n"),
+            (1, "cargo build failed\n"),
+        ]
+        rc, _stdout, stderr = run_main_capture(
+            [
+                "--context",
+                str(context_path),
+                "--out",
+                str(out_dir),
+                "--scratch",
+                "--overwrite-generated",
+            ]
+        )
+    assert_fail("observer_retry_then_nonretryable_failure_reports_recovery_attempt", rc)
+    if (
+        "FAIL: observer flash failed after retryable ST-LINK transport recovery attempt"
+        not in stderr
+    ):
+        raise AssertionError(
+            "observer_retry_then_nonretryable_failure_reports_recovery_attempt: "
+            f"unexpected stderr {stderr!r}"
+        )
+    observer_flashes = [
+        event for event in harness.events
+        if event[0] == "flash" and event[1]["features"] == "sync_timing_observer"
+    ]
+    assert_equal("observer attempts", len(observer_flashes), 2)
+    assert_equal("no capture", [event for event in harness.events if event[0] == "capture-start"], [])
+
+
+def zero_retry_count_retryable_observer_flash_failure_does_not_succeed(
+    root: Path,
+) -> None:
+    context_path = root / "observer_zero_retry_context.json"
+    out_dir = root / "observer_zero_retry_out"
+    write_context(context_path)
+    original_retry_count = runner.FLASH_RETRY_COUNT
+    runner.FLASH_RETRY_COUNT = 0
+    try:
+        with Harness() as harness:
+            harness.flash_results_by_features["sync_timing_observer"] = [
+                (1, "LIBUSB_ERROR_NO_DEVICE\n"),
+            ]
+            rc, stdout, stderr = run_main_capture(
+                [
+                    "--context",
+                    str(context_path),
+                    "--out",
+                    str(out_dir),
+                    "--scratch",
+                    "--overwrite-generated",
+                ]
+            )
+    finally:
+        runner.FLASH_RETRY_COUNT = original_retry_count
+    assert_fail("zero_retry_count_retryable_observer_flash_failure_does_not_succeed", rc)
+    if (
+        "FAIL: observer flash failed after retryable ST-LINK transport recovery attempt"
+        not in stderr
+    ):
+        raise AssertionError(
+            "zero_retry_count_retryable_observer_flash_failure_does_not_succeed: "
+            f"unexpected stderr {stderr!r}"
+        )
+    if "WARN: retrying observer flash attempt" in stdout:
+        raise AssertionError(
+            "zero_retry_count_retryable_observer_flash_failure_does_not_succeed: "
+            "unexpected retry warning"
+        )
+    observer_flashes = [
+        event for event in harness.events
+        if event[0] == "flash" and event[1]["features"] == "sync_timing_observer"
+    ]
+    assert_equal("observer attempts", len(observer_flashes), 1)
+    assert_equal("no capture", [event for event in harness.events if event[0] == "capture-start"], [])
+
+
+def non_retryable_observer_flash_failure_is_not_retried(root: Path) -> None:
+    context_path = root / "observer_non_retry_context.json"
+    out_dir = root / "observer_non_retry_out"
+    write_context(context_path)
+    with Harness() as harness:
+        harness.flash_results_by_features["sync_timing_observer"] = [
+            (1, "cargo build failed\n"),
+        ]
+        rc, _stdout, stderr = run_main_capture(
+            [
+                "--context",
+                str(context_path),
+                "--out",
+                str(out_dir),
+                "--scratch",
+                "--overwrite-generated",
+            ]
+        )
+    assert_fail("non_retryable_observer_flash_failure_is_not_retried", rc)
+    if "FAIL: observer flash failed with non-retryable exit code 1" not in stderr:
+        raise AssertionError(
+            "non_retryable_observer_flash_failure_is_not_retried: "
+            f"unexpected stderr {stderr!r}"
+        )
+    observer_flashes = [
+        event for event in harness.events
+        if event[0] == "flash" and event[1]["features"] == "sync_timing_observer"
+    ]
+    assert_equal("observer attempts", len(observer_flashes), 1)
+    assert_equal("no capture", [event for event in harness.events if event[0] == "capture-start"], [])
 
 
 def quiesce_failure_prevents_observer_capture_and_generated_artifacts(root: Path) -> None:
@@ -397,9 +800,22 @@ def success_order_is_quiesce_observer_capture_actor_wait(root: Path) -> None:
     event_names = [event[0] for event in harness.events]
     assert_equal(
         "success order",
-        event_names[:5],
-        ["flash", "flash", "capture-start", "flash", "capture-wait"],
+        event_names[:10],
+        [
+            "flash-ready",
+            "flash",
+            "flash-ready",
+            "flash-ready",
+            "flash",
+            "flash-ready",
+            "vcp-ready",
+            "capture-start",
+            "flash-ready",
+            "flash",
+        ],
     )
+    if "capture-wait" not in event_names:
+        raise AssertionError("success_order_is_quiesce_observer_capture_actor_wait: no capture wait")
     flash_events = [event[1] for event in harness.events if event[0] == "flash"]
     assert_equal("quiesce features", flash_events[0]["features"], "")
     assert_equal("observer features", flash_events[1]["features"], "sync_timing_observer")
@@ -471,8 +887,17 @@ def main() -> int:
         bad_context_fails_before_flash(root)
         generated_files_fail_before_flash(root)
         retained_generated_files_fail_before_flash(root)
+        missing_actor_flash_identity_before_quiesce_fails_before_flash(root)
+        missing_observer_flash_identity_before_observer_flash_fails_before_capture(root)
         observer_flash_failure_prevents_capture(root)
+        observer_vcp_timeout_after_observer_flash_settle_is_not_flash_retry(root)
         actor_flash_failure_terminates_capture(root)
+        retryable_actor_active_flash_failure_recovers_and_waits_for_capture(root)
+        retryable_observer_flash_failure_recovers_before_vcp_check(root)
+        retryable_observer_flash_failure_exhaustion_skips_capture(root)
+        observer_retry_then_nonretryable_failure_reports_recovery_attempt(root)
+        zero_retry_count_retryable_observer_flash_failure_does_not_succeed(root)
+        non_retryable_observer_flash_failure_is_not_retried(root)
         quiesce_failure_prevents_observer_capture_and_generated_artifacts(root)
         success_order_is_quiesce_observer_capture_actor_wait(root)
         quiesce_uses_existing_under_reset_make_path(root)
