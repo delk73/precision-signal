@@ -2,11 +2,12 @@
 set -euo pipefail
 
 usage() {
-  echo "usage: compare_flash_image.sh --stflash <path> [--serial <serial>] --addr <addr> --image <path> --out <path> [--under-reset]" >&2
+  echo "usage: compare_flash_image.sh --stflash <path> [--serial <serial>] [--freq <khz>] --addr <addr> --image <path> --out <path> [--under-reset]" >&2
 }
 
 under_reset=0
 serial=""
+freq="200"
 stflash_args=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -20,6 +21,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --serial)
       serial="$2"
+      shift 2
+      ;;
+    --freq)
+      freq="$2"
       shift 2
       ;;
     --addr)
@@ -58,7 +63,7 @@ size="$(wc -c < "$image")"
 test "$size" -gt 0
 rm -f "$out"
 if [[ "$under_reset" -eq 1 ]]; then
-  "$stflash" "${stflash_args[@]}" --connect-under-reset --freq=200K read "$out" "$addr" "$size"
+  "$stflash" "${stflash_args[@]}" --connect-under-reset "--freq=$freq" read "$out" "$addr" "$size"
 else
   "$stflash" "${stflash_args[@]}" read "$out" "$addr" "$size"
 fi

@@ -21,6 +21,8 @@ FLASH_ADDR := 0x08000000
 STFLASH ?= st-flash
 STFLASH_SERIAL ?=
 STFLASH_SERIAL_ARG = $(if $(strip $(STFLASH_SERIAL)),--serial $(strip $(STFLASH_SERIAL)),)
+STFLASH_FREQ ?= 200
+STFLASH_FREQ_ARG = $(if $(strip $(STFLASH_FREQ)),--freq=$(strip $(STFLASH_FREQ)),)
 FLASH_HEAD := target/flash-head.bin
 FLASH_FULL := target/flash-full.bin
 SERIAL ?= /dev/ttyACM0
@@ -263,7 +265,7 @@ flash: fw-bin stflash-check
 	$(STFLASH) $(STFLASH_SERIAL_ARG) --reset write "$(FW_BIN)" "$(FLASH_ADDR)"
 
 flash-ur: fw-bin stflash-check
-	$(STFLASH) $(STFLASH_SERIAL_ARG) --connect-under-reset --freq=200K --reset write "$(FW_BIN)" "$(FLASH_ADDR)"
+	$(STFLASH) $(STFLASH_SERIAL_ARG) --connect-under-reset $(STFLASH_FREQ_ARG) --reset write "$(FW_BIN)" "$(FLASH_ADDR)"
 
 flash-verify: fw-bin stflash-check
 	rm -f "$(FLASH_HEAD)"
@@ -274,7 +276,7 @@ flash-verify: fw-bin stflash-check
 
 flash-verify-ur: fw-bin stflash-check
 	rm -f "$(FLASH_HEAD)"
-	$(STFLASH) $(STFLASH_SERIAL_ARG) --connect-under-reset --freq=200K read "$(FLASH_HEAD)" "$(FLASH_ADDR)" 64
+	$(STFLASH) $(STFLASH_SERIAL_ARG) --connect-under-reset $(STFLASH_FREQ_ARG) read "$(FLASH_HEAD)" "$(FLASH_ADDR)" 64
 	test -s "$(FLASH_HEAD)"
 	hexdump -C "$(FLASH_HEAD)" | sed -n '1,4p'
 	$(PYTHON) scripts/check_flash_vectors.py "$(FLASH_HEAD)"
@@ -283,7 +285,7 @@ flash-compare: fw-bin stflash-check
 	bash scripts/compare_flash_image.sh --label flash-compare --stflash "$(STFLASH)" $(STFLASH_SERIAL_ARG) --addr "$(FLASH_ADDR)" --image "$(FW_BIN)" --out "$(FLASH_FULL)"
 
 flash-compare-ur: fw-bin stflash-check
-	bash scripts/compare_flash_image.sh --label flash-compare-ur --stflash "$(STFLASH)" $(STFLASH_SERIAL_ARG) --addr "$(FLASH_ADDR)" --image "$(FW_BIN)" --out "$(FLASH_FULL)" --under-reset
+	bash scripts/compare_flash_image.sh --label flash-compare-ur --stflash "$(STFLASH)" $(STFLASH_SERIAL_ARG) --freq "$(STFLASH_FREQ)" --addr "$(FLASH_ADDR)" --image "$(FW_BIN)" --out "$(FLASH_FULL)" --under-reset
 
 hil-dual-observer-run:
 	@test -n "$(RUN)" || { echo "FAIL: RUN is required. Usage: make hil-dual-observer-run RUN=0003"; exit 1; }

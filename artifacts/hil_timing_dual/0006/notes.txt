@@ -48,3 +48,42 @@ The retained run demonstrates the intended two-phase evidence model:
 This is external-observer evidence only. It does not claim actor internal silicon
 latency, software EXTI timing proof, platform proof, RPL0/replay authority,
 release evidence, or replay equivalence.
+
+BBB scratch validation note:
+
+After this retained 0006 artifact was captured, the dual-board observer runner
+was updated to perform a default-on actor-quiesce preflight before observer
+flash and capture startup.
+
+The updated runner was validated on BBB using scratch execution against this
+retained 0006 run_context.json:
+
+make hil-dual-observer-scratch RUN=0006
+
+Observed scratch result:
+
+result=FAIL
+evidence_window_result=PASS
+trigger_count=10007
+ack_count=10008
+unexpected_ack_count=1
+pre_first_trigger_ack_count=1
+in_window_unexpected_ack_count=0
+first_in_window_unexpected_ack_trigger_count=0
+last_in_window_unexpected_ack_trigger_count=0
+post_final_trigger_ack_count=0
+evidence_window_trigger_count=10000
+evidence_window_ack_count=10000
+evidence_window_unexpected_ack_count=0
+evidence_window_max_delta_ticks=6
+evidence_window_max_delta_ns=66
+threshold_ticks=9
+
+Interpretation:
+This scratch validation does not replace or modify the retained 0006 generated
+capture files. It records that the retained 0006 context can be used on BBB with
+the integrated actor-quiesce runner to produce a clean declared evidence window.
+
+Repeated BBB scratch loops later exposed a separate USB/ST-LINK transport
+stability issue during repeated flash/reset cycles. That issue is deferred to
+BBB orchestration hardening and is not part of the retained 0006 evidence claim.

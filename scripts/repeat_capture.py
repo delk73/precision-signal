@@ -10,6 +10,7 @@ DEFAULT_RUNS = 5
 DEFAULT_SERIAL = "/dev/ttyACM0"
 DEFAULT_RESET_MODE = "manual"
 DEFAULT_STFLASH = "st-flash"
+DEFAULT_STFLASH_FREQ = "200"
 DEFAULT_TIMEOUT = 10.0
 DEFAULT_CONTRACT = "csv"
 
@@ -58,6 +59,11 @@ def parse_args() -> argparse.Namespace:
         help="st-flash executable path/name for --reset-mode stlink (default: st-flash).",
     )
     parser.add_argument(
+        "--stflash-freq",
+        default=DEFAULT_STFLASH_FREQ,
+        help="st-flash SWD frequency for --reset-mode stlink (default: 200).",
+    )
+    parser.add_argument(
         "--timeout",
         type=float,
         default=DEFAULT_TIMEOUT,
@@ -98,9 +104,9 @@ def append_manifest(
         )
 
 
-def trigger_stlink_reset(stflash: str) -> tuple[int, str]:
+def trigger_stlink_reset(stflash: str, stflash_freq: str) -> tuple[int, str]:
     proc = subprocess.run(
-        [stflash, "--connect-under-reset", "--freq=200K", "reset"],
+        [stflash, "--connect-under-reset", f"--freq={stflash_freq}", "reset"],
         capture_output=True,
         text=True,
     )
@@ -115,6 +121,7 @@ def build_capture_cmd(
     signal_model: str | None,
     reset_mode: str,
     stflash: str,
+    stflash_freq: str,
     timeout: float,
 ) -> list[str]:
     if contract == "csv":
@@ -129,6 +136,8 @@ def build_capture_cmd(
             reset_mode,
             "--stflash",
             stflash,
+            "--stflash-freq",
+            stflash_freq,
             "--timeout",
             str(timeout),
         ]
@@ -156,6 +165,7 @@ def run_capture(
     signal_model: str | None,
     reset_mode: str,
     stflash: str,
+    stflash_freq: str,
     timeout: float,
 ) -> tuple[int, str]:
     env = os.environ.copy()
@@ -167,6 +177,7 @@ def run_capture(
         signal_model=signal_model,
         reset_mode=reset_mode,
         stflash=stflash,
+        stflash_freq=stflash_freq,
         timeout=timeout,
     )
     proc = subprocess.Popen(
@@ -188,7 +199,7 @@ def run_capture(
             and not auto_reset_fired
             and "Listener active;" in line
         ):
-            rc, out = trigger_stlink_reset(stflash)
+            rc, out = trigger_stlink_reset(stflash, stflash_freq)
             lines.append(out)
             if out:
                 print(out, end="" if out.endswith("\n") else "\n")
@@ -279,6 +290,7 @@ def main() -> int:
             signal_model=args.signal_model,
             reset_mode=args.reset_mode,
             stflash=args.stflash,
+            stflash_freq=args.stflash_freq,
             timeout=args.timeout,
         )
         if rc != 0:
