@@ -1,0 +1,3 @@
+external actor trigger edge -> observer PB8/TIM4_CH3
+external actor ack edge     -> observer PB9/TIM4_CH4
+GND shared
