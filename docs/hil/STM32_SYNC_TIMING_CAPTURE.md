@@ -383,6 +383,30 @@ Raw result reports all observed startup and evidence-window behavior.
 `evidence_window_result` applies only to the declared evidence window. A raw
 `FAIL` with `evidence_window_result=PASS` is valid and intentional.
 
+### Retained ST-LINK tool pin
+
+Retained HIL capture requires the repo-pinned ST-LINK host tool version
+`st-flash` 1.8.0. `make stflash-check` enforces the binary exists, is
+executable, and reports the pinned version before under-reset flash paths can
+run.
+
+`STFLASH_FREQ ?= 200` still controls the SWD frequency spelling emitted by the
+Makefile as `--freq=200`. Retained artifact metadata may record the pinned
+tool requirement only because the Makefile enforces it before capture, for
+example:
+
+```json
+"st_flash": {
+  "required_version": "1.8.0",
+  "version_enforced_by_repo": true,
+  "frequency_arg": "--freq=200"
+}
+```
+
+Do not use ambiguous observed host state, such as
+`observed_st_flash_version`, as the primary retained metadata field for new
+retained HIL captures.
+
 ### ST-LINK attach recovery note
 
 The standard operator path remains:
@@ -393,9 +417,8 @@ STFLASH_SERIAL=<serial> FW_FEATURES="<features>" make flash-ur
 
 The Makefile under-reset flash path uses `STFLASH_FREQ ?= 200`, emitted as
 `--freq=200`. This numeric kHz form is the supported compatibility spelling for
-the observed ST-LINK `st-flash` 1.7.0 dev-host path and the BBB `st-flash`
-1.8.0 bench path; do not use the older `--freq=200K` spelling in under-reset
-flash/read/reset commands.
+the repo-pinned BBB `st-flash` 1.8.0 bench path; do not use the older
+`--freq=200K` spelling in under-reset flash/read/reset commands.
 
 On this bench, an STM32 board may occasionally fail the first `make flash-ur`
 attempt after being disconnected or after entering a bad attach/run state. The

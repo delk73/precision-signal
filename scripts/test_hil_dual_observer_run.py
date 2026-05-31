@@ -598,6 +598,47 @@ def retryable_observer_flash_failure_recovers_before_vcp_check(root: Path) -> No
         )
 
 
+def retryable_observer_make_wrapped_stflash_connect_failure_recovers(root: Path) -> None:
+    context_path = root / "observer_wrapped_stflash_context.json"
+    out_dir = root / "observer_wrapped_stflash_out"
+    write_context(context_path)
+    with Harness() as harness:
+        harness.flash_results_by_features["sync_timing_observer"] = [
+            (
+                2,
+                "Soft reset failed: error write to AIRCR\n"
+                "Can not connect to target. Please use 'connect under reset' and try again\n"
+                "Failed to parse flash type or unrecognized flash type\n"
+                "Failed to connect to target\n",
+            ),
+            (0, "flash ok\n"),
+        ]
+        rc, stdout, _stderr = run_main_capture(
+            [
+                "--context",
+                str(context_path),
+                "--out",
+                str(out_dir),
+                "--scratch",
+                "--overwrite-generated",
+            ]
+        )
+    assert_ok("retryable_observer_make_wrapped_stflash_connect_failure_recovers", rc)
+    if (
+        "WARN: observer flash failed with retryable ST-LINK transport error; "
+        "waiting for observer flash identity recovery"
+    ) not in stdout:
+        raise AssertionError(
+            "retryable_observer_make_wrapped_stflash_connect_failure_recovers: "
+            "missing retry classification"
+        )
+    observer_flashes = [
+        event for event in harness.events
+        if event[0] == "flash" and event[1]["features"] == "sync_timing_observer"
+    ]
+    assert_equal("observer attempts", len(observer_flashes), 2)
+
+
 def retryable_observer_flash_failure_exhaustion_skips_capture(root: Path) -> None:
     context_path = root / "observer_retry_exhaust_context.json"
     out_dir = root / "observer_retry_exhaust_out"
@@ -877,6 +918,35 @@ def scratch_rejects_unexpected_existing_file(root: Path) -> None:
     assert_equal("no flash", [event for event in harness.events if event[0] == "flash"], [])
 
 
+def actor_firmware_keeps_ack_idle_until_timing_ack_is_armed() -> None:
+    source = (runner.REPO_ROOT / "crates/replay-fw-f446/src/fw.rs").read_text(
+        encoding="utf-8"
+    )
+    trigger_boundary_fn = source[source.find("fn init_trigger_boundary") :]
+    if 'w.moder1().output()' not in trigger_boundary_fn:
+        raise AssertionError("actor_firmware_keeps_ack_idle: PA1 is not initialized low")
+
+    tim2_ack_fn = source[source.find("fn init_tim2_sync_hardware_ack") :]
+    ordered_needles = [
+        'wait_for_sync_trigger_input_idle();',
+        'w.sms().reset_mode()',
+        'w.cen().set_bit()',
+        'gpioa.moder().modify(|_, w| w.moder1().alternate());',
+    ]
+    positions = [tim2_ack_fn.find(needle) for needle in ordered_needles]
+    if any(position < 0 for position in positions):
+        raise AssertionError("actor_firmware_keeps_ack_idle: missing ack idle sequence")
+    if positions != sorted(positions):
+        raise AssertionError("actor_firmware_keeps_ack_idle: ack idle sequence reordered")
+
+    trigger_out = source.find("init_sync_trigger_output(&dp);")
+    trigger_boundary = source.find("init_trigger_boundary(&dp);")
+    if trigger_out < 0 or trigger_boundary < 0 or trigger_out > trigger_boundary:
+        raise AssertionError(
+            "actor_firmware_keeps_ack_idle: trigger output is not driven low before boundary arm"
+        )
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory(prefix="dpw_hil_dual_runner_") as tmp:
         root = Path(tmp)
@@ -894,6 +964,7 @@ def main() -> int:
         actor_flash_failure_terminates_capture(root)
         retryable_actor_active_flash_failure_recovers_and_waits_for_capture(root)
         retryable_observer_flash_failure_recovers_before_vcp_check(root)
+        retryable_observer_make_wrapped_stflash_connect_failure_recovers(root)
         retryable_observer_flash_failure_exhaustion_skips_capture(root)
         observer_retry_then_nonretryable_failure_reports_recovery_attempt(root)
         zero_retry_count_retryable_observer_flash_failure_does_not_succeed(root)
@@ -902,6 +973,7 @@ def main() -> int:
         success_order_is_quiesce_observer_capture_actor_wait(root)
         quiesce_uses_existing_under_reset_make_path(root)
         scratch_rejects_unexpected_existing_file(root)
+        actor_firmware_keeps_ack_idle_until_timing_ack_is_armed()
 
     print("PASS: HIL dual observer runner regression suite")
     return 0

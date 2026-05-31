@@ -88,6 +88,23 @@ measured_path=PB9_PA1_minus_PB8_PA6
 """
 
 
+def report_with_diagnostics(wiring_profile: str) -> str:
+    return valid_report(wiring_profile).replace(
+        "measured_path=PB9_PA1_minus_PB8_PA6\n",
+        """diagnostic_startup_trigger_input_level=0
+diagnostic_startup_ack_input_level=1
+diagnostic_capture_clear_attempted=1
+diagnostic_capture_sr_before_clear=16
+diagnostic_capture_sr_after_clear=0
+diagnostic_capture_sr_after_arm=16
+diagnostic_capture_event_pending_after_arm=1
+diagnostic_capture_trigger_pending_after_arm=0
+diagnostic_capture_ack_pending_after_arm=1
+measured_path=PB9_PA1_minus_PB8_PA6
+""",
+    )
+
+
 def valid_dual_board_context(confirmed: bool = True) -> dict[str, object]:
     return {
         "board_alias_confirmation": {
@@ -182,6 +199,29 @@ def main() -> int:
         ):
             if observer_meta[field] != 0:
                 raise AssertionError(f"observer_profile: wrong {field}")
+
+        diagnostics_out = root / "observer_diagnostics"
+        proc = run_capture(
+            "dual_edge_timing_observer_v1",
+            report_with_diagnostics("dual_edge_observer_v1"),
+            diagnostics_out,
+        )
+        assert_ok("observer_diagnostics", proc)
+        diagnostics_meta = read_meta(diagnostics_out)
+        expected_diagnostics = {
+            "diagnostic_startup_trigger_input_level": 0,
+            "diagnostic_startup_ack_input_level": 1,
+            "diagnostic_capture_clear_attempted": 1,
+            "diagnostic_capture_sr_before_clear": 16,
+            "diagnostic_capture_sr_after_clear": 0,
+            "diagnostic_capture_sr_after_arm": 16,
+            "diagnostic_capture_event_pending_after_arm": 1,
+            "diagnostic_capture_trigger_pending_after_arm": 0,
+            "diagnostic_capture_ack_pending_after_arm": 1,
+        }
+        for field, expected in expected_diagnostics.items():
+            if diagnostics_meta[field] != expected:
+                raise AssertionError(f"observer_diagnostics: wrong {field}")
 
         boundary_out = root / "boundary_counts"
         boundary_report = (

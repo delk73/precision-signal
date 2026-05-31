@@ -62,6 +62,8 @@
   readiness checks and retry classification for transient USB/ST-LINK transport
   failures during repeated flash/reset cycles; retained `0007` evidence remains
   deferred until repeated scratch execution is mechanically boring
+- pinned retained HIL ST-LINK host tooling to `st-flash` 1.8.0 and gate
+  under-reset HIL flash paths on the checked version before retained capture
 
 ### Changed
 

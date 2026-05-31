@@ -19,6 +19,7 @@ FW_ELF := target/$(FW_TARGET)/debug/$(FW_PKG)
 FW_BIN := target/$(FW_TARGET)/debug/$(FW_PKG).bin
 FLASH_ADDR := 0x08000000
 STFLASH ?= st-flash
+REQUIRED_STFLASH_VERSION := 1.8.0
 STFLASH_SERIAL ?=
 STFLASH_SERIAL_ARG = $(if $(strip $(STFLASH_SERIAL)),--serial $(strip $(STFLASH_SERIAL)),)
 STFLASH_FREQ ?= 200
@@ -235,9 +236,14 @@ shell-check:
 	test -x "$(SHELL)"
 
 stflash-check:
-	ST="$$(command -v $(STFLASH) || true)"
+	ST="$(STFLASH)"
+	if [[ "$$ST" != */* ]]; then
+	  ST="$$(command -v "$(STFLASH)" || true)"
+	fi
 	test -n "$$ST" || { echo "FAIL: missing ST-LINK flash binary: $(STFLASH). Install stlink tools or pass STFLASH=/path/to/st-flash."; exit 1; }
+	test -e "$$ST" || { echo "FAIL: missing ST-LINK flash binary: $(STFLASH). Install stlink tools or pass STFLASH=/path/to/st-flash."; exit 1; }
 	test -x "$$ST" || { echo "FAIL: ST-LINK flash binary is not executable: $$ST"; exit 1; }
+	$(PYTHON) scripts/check_stflash_version.py --stflash "$$ST" --required-version "$(REQUIRED_STFLASH_VERSION)"
 	echo "STFLASH=$$ST"
 
 bench-check:

@@ -1,0 +1,58 @@
+Run captured with the BBB-hosted Makefile runner:
+
+make hil-dual-observer-run RUN=0007
+
+Classification:
+Retained BBB-hosted dual-board external-observer PASS/PASS artifact.
+
+Raw full-run result:
+
+result=PASS
+trigger_count=10007
+ack_count=10007
+unexpected_ack_count=0
+pre_first_trigger_ack_count=0
+in_window_unexpected_ack_count=0
+first_in_window_unexpected_ack_trigger_count=0
+last_in_window_unexpected_ack_trigger_count=0
+post_final_trigger_ack_count=0
+
+Evidence-window result:
+
+evidence_window_result=PASS
+evidence_window_trigger_count=10000
+evidence_window_ack_count=10000
+evidence_window_unexpected_ack_count=0
+evidence_window_max_delta_ticks=6
+evidence_window_max_delta_ns=66
+threshold_ticks=9
+
+The retained run demonstrates that the BBB-hosted dual-board observer path can
+produce both a clean raw full-run stream and a clean declared evidence window.
+
+Tooling provenance:
+The repository enforces st-flash 1.8.0 through make stflash-check before
+retained HIL flash/capture. This retained run was captured only after that gate
+passed. The under-reset flash path uses STFLASH_FREQ ?= 200, emitted as
+--freq=200.
+
+Controls included:
+- actor-quiesce preflight before observer arming
+- BBB ST-LINK/VCP readiness hardening
+- classified retry for known transient ST-LINK transport/connect failures
+- actor startup ack-idle correction
+
+Interpretation:
+This is retained dual-board external-observer evidence. It shows that the
+observer board recorded 10,007 trigger/ack pairs in the raw full-run stream with
+no unexpected ack events, no pre-first-trigger ack events, no in-window
+unexpected ack events, and no post-final-trigger ack events.
+
+The declared evidence window contains 10,000 clean trigger/ack pairs. The
+maximum paired timing delta inside the evidence window was within threshold:
+
+evidence_window_max_delta_ticks=6 <= threshold_ticks=9
+
+This is external-observer evidence only. It does not claim actor internal
+silicon latency, software EXTI timing proof, platform proof, RPL0/replay
+authority, release evidence, or replay equivalence.
