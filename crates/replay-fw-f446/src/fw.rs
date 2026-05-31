@@ -701,11 +701,19 @@ fn init_sync_timing_capture_gpio(dp: &pac::Peripherals) {
 
     let startup_idr = dp.GPIOB.idr().read();
     TIMING_STARTUP_TRIGGER_INPUT_LEVEL.store(
-        if startup_idr.idr8().bit_is_set() { 1 } else { 0 },
+        if startup_idr.idr8().bit_is_set() {
+            1
+        } else {
+            0
+        },
         Ordering::Release,
     );
     TIMING_STARTUP_ACK_INPUT_LEVEL.store(
-        if startup_idr.idr9().bit_is_set() { 1 } else { 0 },
+        if startup_idr.idr9().bit_is_set() {
+            1
+        } else {
+            0
+        },
         Ordering::Release,
     );
 
@@ -1212,16 +1220,20 @@ fn dump_sync_timing_report() {
             let startup_trigger_input_level =
                 TIMING_STARTUP_TRIGGER_INPUT_LEVEL.load(Ordering::Acquire);
             let startup_ack_input_level = TIMING_STARTUP_ACK_INPUT_LEVEL.load(Ordering::Acquire);
-            let capture_clear_attempted =
-                TIMING_CAPTURE_CLEAR_ATTEMPTED.load(Ordering::Acquire);
-            let capture_sr_before_clear =
-                TIMING_CAPTURE_SR_BEFORE_CLEAR.load(Ordering::Acquire);
+            let capture_clear_attempted = TIMING_CAPTURE_CLEAR_ATTEMPTED.load(Ordering::Acquire);
+            let capture_sr_before_clear = TIMING_CAPTURE_SR_BEFORE_CLEAR.load(Ordering::Acquire);
             let capture_sr_after_clear = TIMING_CAPTURE_SR_AFTER_CLEAR.load(Ordering::Acquire);
             let capture_sr_after_arm = TIMING_CAPTURE_SR_AFTER_ARM.load(Ordering::Acquire);
-            let capture_trigger_pending_after_arm =
-                if (capture_sr_after_arm & TIM_SR_CC3IF) != 0 { 1 } else { 0 };
-            let capture_ack_pending_after_arm =
-                if (capture_sr_after_arm & TIM_SR_CC4IF) != 0 { 1 } else { 0 };
+            let capture_trigger_pending_after_arm = if (capture_sr_after_arm & TIM_SR_CC3IF) != 0 {
+                1
+            } else {
+                0
+            };
+            let capture_ack_pending_after_arm = if (capture_sr_after_arm & TIM_SR_CC4IF) != 0 {
+                1
+            } else {
+                0
+            };
             let capture_event_pending_after_arm =
                 if capture_trigger_pending_after_arm != 0 || capture_ack_pending_after_arm != 0 {
                     1
