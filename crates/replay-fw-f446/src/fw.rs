@@ -217,6 +217,18 @@ static TIMING_LATEST_TRIGGER_VALID: AtomicBool = AtomicBool::new(false);
 static TIMING_LATEST_TRIGGER_TS: AtomicU32 = AtomicU32::new(0);
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 static TIMING_LATEST_TRIGGER_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_STARTUP_TRIGGER_INPUT_LEVEL: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_STARTUP_ACK_INPUT_LEVEL: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_CAPTURE_CLEAR_ATTEMPTED: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_CAPTURE_SR_BEFORE_CLEAR: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_CAPTURE_SR_AFTER_CLEAR: AtomicU32 = AtomicU32::new(0);
+#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+static TIMING_CAPTURE_SR_AFTER_ARM: AtomicU32 = AtomicU32::new(0);
 
 pub fn fw_main() -> ! {
     let dp = loop {
@@ -246,10 +258,10 @@ pub fn fw_main() -> ! {
     init_hse_pll_180mhz_or_fault(&dp);
 
     init_gpioa_for_usart2_tx(&dp);
-    #[cfg(all(feature = "sync_trigger_in", not(feature = "sync_timing_observer")))]
-    init_trigger_boundary(&dp);
     #[cfg(feature = "sync_trigger_out")]
     init_sync_trigger_output(&dp);
+    #[cfg(all(feature = "sync_trigger_in", not(feature = "sync_timing_observer")))]
+    init_trigger_boundary(&dp);
     #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
     init_sync_timing_capture_gpio(&dp);
     init_usart2(&dp);
@@ -614,7 +626,7 @@ fn init_trigger_boundary(dp: &pac::Peripherals) {
         dp.GPIOA.bsrr().write(|w| w.br1().set_bit());
         dp.GPIOA.moder().modify(|_, w| {
             w.moder0().alternate();
-            w.moder1().alternate()
+            w.moder1().output()
         });
         dp.GPIOA.afrl().modify(|_, w| {
             w.afrl0().af1();
@@ -660,6 +672,16 @@ fn init_trigger_boundary(dp: &pac::Peripherals) {
     }
 }
 
+#[cfg(all(feature = "sync_timing_capture", not(feature = "sync_timing_observer")))]
+fn wait_for_sync_trigger_input_idle() {
+    unsafe {
+        let gpioa = &*pac::GPIOA::ptr();
+        while gpioa.idr().read().idr0().bit_is_set() {
+            cortex_m::asm::nop();
+        }
+    }
+}
+
 #[cfg(feature = "sync_trigger_out")]
 fn init_sync_trigger_output(dp: &pac::Peripherals) {
     dp.RCC.ahb1enr().modify(|_, w| w.gpioaen().set_bit());
@@ -676,6 +698,16 @@ fn init_sync_trigger_output(dp: &pac::Peripherals) {
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 fn init_sync_timing_capture_gpio(dp: &pac::Peripherals) {
     dp.RCC.ahb1enr().modify(|_, w| w.gpioben().set_bit());
+
+    let startup_idr = dp.GPIOB.idr().read();
+    TIMING_STARTUP_TRIGGER_INPUT_LEVEL.store(
+        if startup_idr.idr8().bit_is_set() { 1 } else { 0 },
+        Ordering::Release,
+    );
+    TIMING_STARTUP_ACK_INPUT_LEVEL.store(
+        if startup_idr.idr9().bit_is_set() { 1 } else { 0 },
+        Ordering::Release,
+    );
 
     dp.GPIOB.moder().modify(|_, w| {
         w.moder8().alternate();
@@ -811,11 +843,14 @@ fn init_tim2_sync_hardware_ack() {
                 w.cc2p().rising_edge();
                 w.cc2e().enabled()
             });
+            wait_for_sync_trigger_input_idle();
             tim2.smcr().write(|w| {
                 w.ts().ti1fp1();
                 w.sms().reset_mode()
             });
             tim2.egr().write(|w| w.ug().set_bit());
+            tim2.cnt()
+                .write(|w| unsafe { w.cnt().bits(SYNC_TIM2_ACK_PULSE_TICKS + 1) });
             tim2.sr().write(|w| unsafe { w.bits(0) });
             tim2.cr1().write(|w| {
                 w.opm().disabled();
@@ -823,6 +858,10 @@ fn init_tim2_sync_hardware_ack() {
                 w.urs().any_event();
                 w.cen().set_bit()
             });
+            unsafe {
+                let gpioa = &*pac::GPIOA::ptr();
+                gpioa.moder().modify(|_, w| w.moder1().alternate());
+            }
         }
     });
 }
@@ -852,6 +891,10 @@ fn reset_sync_timing_state() {
     TIMING_LATEST_TRIGGER_VALID.store(false, Ordering::Release);
     TIMING_LATEST_TRIGGER_TS.store(0, Ordering::Release);
     TIMING_LATEST_TRIGGER_COUNT.store(0, Ordering::Release);
+    TIMING_CAPTURE_CLEAR_ATTEMPTED.store(0, Ordering::Release);
+    TIMING_CAPTURE_SR_BEFORE_CLEAR.store(0, Ordering::Release);
+    TIMING_CAPTURE_SR_AFTER_CLEAR.store(0, Ordering::Release);
+    TIMING_CAPTURE_SR_AFTER_ARM.store(0, Ordering::Release);
 }
 
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
@@ -880,9 +923,13 @@ fn init_tim4_sync_timing_capture() {
                 w.cc4p().rising_edge();
                 w.cc4e().enabled()
             });
+            let sr_before_clear = tim4.sr().read().bits();
+            TIMING_CAPTURE_CLEAR_ATTEMPTED.store(1, Ordering::Release);
+            TIMING_CAPTURE_SR_BEFORE_CLEAR.store(sr_before_clear, Ordering::Release);
             tim4.sr().write(|w| unsafe {
                 w.bits(!(TIM_SR_CC3IF | TIM_SR_CC4IF | TIM_SR_CC3OF | TIM_SR_CC4OF))
             });
+            TIMING_CAPTURE_SR_AFTER_CLEAR.store(tim4.sr().read().bits(), Ordering::Release);
             tim4.dier().write(|w| {
                 #[cfg(all(
                     feature = "sync_timing_capture",
@@ -894,6 +941,7 @@ fn init_tim4_sync_timing_capture() {
                 w.cc4ie().enabled()
             });
             tim4.cr1().modify(|_, w| w.cen().set_bit());
+            TIMING_CAPTURE_SR_AFTER_ARM.store(tim4.sr().read().bits(), Ordering::Release);
         }
     });
 }
@@ -1161,6 +1209,25 @@ fn dump_sync_timing_report() {
             let evidence_window_max_delta_ns = (u64::from(evidence_window_max_delta_ticks)
                 * 1_000_000_000u64)
                 / u64::from(SYNC_TIMING_TIMER_HZ);
+            let startup_trigger_input_level =
+                TIMING_STARTUP_TRIGGER_INPUT_LEVEL.load(Ordering::Acquire);
+            let startup_ack_input_level = TIMING_STARTUP_ACK_INPUT_LEVEL.load(Ordering::Acquire);
+            let capture_clear_attempted =
+                TIMING_CAPTURE_CLEAR_ATTEMPTED.load(Ordering::Acquire);
+            let capture_sr_before_clear =
+                TIMING_CAPTURE_SR_BEFORE_CLEAR.load(Ordering::Acquire);
+            let capture_sr_after_clear = TIMING_CAPTURE_SR_AFTER_CLEAR.load(Ordering::Acquire);
+            let capture_sr_after_arm = TIMING_CAPTURE_SR_AFTER_ARM.load(Ordering::Acquire);
+            let capture_trigger_pending_after_arm =
+                if (capture_sr_after_arm & TIM_SR_CC3IF) != 0 { 1 } else { 0 };
+            let capture_ack_pending_after_arm =
+                if (capture_sr_after_arm & TIM_SR_CC4IF) != 0 { 1 } else { 0 };
+            let capture_event_pending_after_arm =
+                if capture_trigger_pending_after_arm != 0 || capture_ack_pending_after_arm != 0 {
+                    1
+                } else {
+                    0
+                };
             let result = if missed_ack_count == 0
                 && unexpected_ack_count == 0
                 && capture_error_count == 0
@@ -1266,6 +1333,51 @@ fn dump_sync_timing_report() {
             write_report_str(usart2, "wiring_profile", "single_board_split_capture_v1");
             #[cfg(feature = "sync_timing_observer")]
             write_report_str(usart2, "wiring_profile", "dual_edge_observer_v1");
+            write_report_u32(
+                usart2,
+                "diagnostic_startup_trigger_input_level",
+                startup_trigger_input_level,
+            );
+            write_report_u32(
+                usart2,
+                "diagnostic_startup_ack_input_level",
+                startup_ack_input_level,
+            );
+            write_report_u32(
+                usart2,
+                "diagnostic_capture_clear_attempted",
+                capture_clear_attempted,
+            );
+            write_report_u32(
+                usart2,
+                "diagnostic_capture_sr_before_clear",
+                capture_sr_before_clear,
+            );
+            write_report_u32(
+                usart2,
+                "diagnostic_capture_sr_after_clear",
+                capture_sr_after_clear,
+            );
+            write_report_u32(
+                usart2,
+                "diagnostic_capture_sr_after_arm",
+                capture_sr_after_arm,
+            );
+            write_report_u32(
+                usart2,
+                "diagnostic_capture_event_pending_after_arm",
+                capture_event_pending_after_arm,
+            );
+            write_report_u32(
+                usart2,
+                "diagnostic_capture_trigger_pending_after_arm",
+                capture_trigger_pending_after_arm,
+            );
+            write_report_u32(
+                usart2,
+                "diagnostic_capture_ack_pending_after_arm",
+                capture_ack_pending_after_arm,
+            );
             write_report_str(usart2, "measured_path", "PB9_PA1_minus_PB8_PA6");
             wait_tc(usart2);
         }

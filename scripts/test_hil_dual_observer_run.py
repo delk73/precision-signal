@@ -877,6 +877,35 @@ def scratch_rejects_unexpected_existing_file(root: Path) -> None:
     assert_equal("no flash", [event for event in harness.events if event[0] == "flash"], [])
 
 
+def actor_firmware_keeps_ack_idle_until_timing_ack_is_armed() -> None:
+    source = (runner.REPO_ROOT / "crates/replay-fw-f446/src/fw.rs").read_text(
+        encoding="utf-8"
+    )
+    trigger_boundary_fn = source[source.find("fn init_trigger_boundary") :]
+    if 'w.moder1().output()' not in trigger_boundary_fn:
+        raise AssertionError("actor_firmware_keeps_ack_idle: PA1 is not initialized low")
+
+    tim2_ack_fn = source[source.find("fn init_tim2_sync_hardware_ack") :]
+    ordered_needles = [
+        'wait_for_sync_trigger_input_idle();',
+        'w.sms().reset_mode()',
+        'w.cen().set_bit()',
+        'gpioa.moder().modify(|_, w| w.moder1().alternate());',
+    ]
+    positions = [tim2_ack_fn.find(needle) for needle in ordered_needles]
+    if any(position < 0 for position in positions):
+        raise AssertionError("actor_firmware_keeps_ack_idle: missing ack idle sequence")
+    if positions != sorted(positions):
+        raise AssertionError("actor_firmware_keeps_ack_idle: ack idle sequence reordered")
+
+    trigger_out = source.find("init_sync_trigger_output(&dp);")
+    trigger_boundary = source.find("init_trigger_boundary(&dp);")
+    if trigger_out < 0 or trigger_boundary < 0 or trigger_out > trigger_boundary:
+        raise AssertionError(
+            "actor_firmware_keeps_ack_idle: trigger output is not driven low before boundary arm"
+        )
+
+
 def main() -> int:
     with tempfile.TemporaryDirectory(prefix="dpw_hil_dual_runner_") as tmp:
         root = Path(tmp)
@@ -902,6 +931,7 @@ def main() -> int:
         success_order_is_quiesce_observer_capture_actor_wait(root)
         quiesce_uses_existing_under_reset_make_path(root)
         scratch_rejects_unexpected_existing_file(root)
+        actor_firmware_keeps_ack_idle_until_timing_ack_is_armed()
 
     print("PASS: HIL dual observer runner regression suite")
     return 0

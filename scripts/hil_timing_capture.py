@@ -125,6 +125,17 @@ REQUIRED_FIELDS = (
     "evidence_window_max_delta_ns",
     "evidence_window_result",
 )
+DIAGNOSTIC_FIELDS = (
+    "diagnostic_startup_trigger_input_level",
+    "diagnostic_startup_ack_input_level",
+    "diagnostic_capture_clear_attempted",
+    "diagnostic_capture_sr_before_clear",
+    "diagnostic_capture_sr_after_clear",
+    "diagnostic_capture_sr_after_arm",
+    "diagnostic_capture_event_pending_after_arm",
+    "diagnostic_capture_trigger_pending_after_arm",
+    "diagnostic_capture_ack_pending_after_arm",
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -223,6 +234,7 @@ def parse_report(text: str, profile: dict[str, object]) -> dict[str, str]:
         "evidence_window_capture_error_count",
         "evidence_window_max_delta_ticks",
         "evidence_window_max_delta_ns",
+        *[key for key in DIAGNOSTIC_FIELDS if key in fields],
     ):
         try:
             value = int(fields[key], 10)
@@ -503,6 +515,9 @@ def write_artifact(
         "evidence_window_max_delta_ns": int(fields["evidence_window_max_delta_ns"], 10),
         "evidence_window_result": fields["evidence_window_result"],
     }
+    for key in DIAGNOSTIC_FIELDS:
+        if key in fields:
+            meta[key] = int(fields[key], 10)
     (out_dir / "meta.json").write_text(
         json.dumps(meta, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
