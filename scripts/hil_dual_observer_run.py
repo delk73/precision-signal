@@ -41,6 +41,10 @@ RETRYABLE_STLINK_TRANSPORT_PATTERNS = (
     "write_buffer_to_sram() == -1",
     "stlink_flash_loader_run",
     "stlink_fwrite_flash() == -1",
+    "Soft reset failed",
+    "Can not connect to target",
+    "Failed to connect to target",
+    "Failed to parse flash type",
 )
 
 

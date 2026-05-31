@@ -598,6 +598,47 @@ def retryable_observer_flash_failure_recovers_before_vcp_check(root: Path) -> No
         )
 
 
+def retryable_observer_make_wrapped_stflash_connect_failure_recovers(root: Path) -> None:
+    context_path = root / "observer_wrapped_stflash_context.json"
+    out_dir = root / "observer_wrapped_stflash_out"
+    write_context(context_path)
+    with Harness() as harness:
+        harness.flash_results_by_features["sync_timing_observer"] = [
+            (
+                2,
+                "Soft reset failed: error write to AIRCR\n"
+                "Can not connect to target. Please use 'connect under reset' and try again\n"
+                "Failed to parse flash type or unrecognized flash type\n"
+                "Failed to connect to target\n",
+            ),
+            (0, "flash ok\n"),
+        ]
+        rc, stdout, _stderr = run_main_capture(
+            [
+                "--context",
+                str(context_path),
+                "--out",
+                str(out_dir),
+                "--scratch",
+                "--overwrite-generated",
+            ]
+        )
+    assert_ok("retryable_observer_make_wrapped_stflash_connect_failure_recovers", rc)
+    if (
+        "WARN: observer flash failed with retryable ST-LINK transport error; "
+        "waiting for observer flash identity recovery"
+    ) not in stdout:
+        raise AssertionError(
+            "retryable_observer_make_wrapped_stflash_connect_failure_recovers: "
+            "missing retry classification"
+        )
+    observer_flashes = [
+        event for event in harness.events
+        if event[0] == "flash" and event[1]["features"] == "sync_timing_observer"
+    ]
+    assert_equal("observer attempts", len(observer_flashes), 2)
+
+
 def retryable_observer_flash_failure_exhaustion_skips_capture(root: Path) -> None:
     context_path = root / "observer_retry_exhaust_context.json"
     out_dir = root / "observer_retry_exhaust_out"
@@ -923,6 +964,7 @@ def main() -> int:
         actor_flash_failure_terminates_capture(root)
         retryable_actor_active_flash_failure_recovers_and_waits_for_capture(root)
         retryable_observer_flash_failure_recovers_before_vcp_check(root)
+        retryable_observer_make_wrapped_stflash_connect_failure_recovers(root)
         retryable_observer_flash_failure_exhaustion_skips_capture(root)
         observer_retry_then_nonretryable_failure_reports_recovery_attempt(root)
         zero_retry_count_retryable_observer_flash_failure_does_not_succeed(root)
