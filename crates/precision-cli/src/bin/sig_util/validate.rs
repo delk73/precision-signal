@@ -779,13 +779,11 @@ fn json_escape(input: &str) -> String {
 }
 
 fn compiled_features() -> Vec<&'static str> {
-    let mut features: Vec<&'static str> = Vec::new();
-    features.push("cli");
-    #[cfg(feature = "audit")]
-    {
-        features.push("audit");
-    }
-    features
+    vec![
+        "cli",
+        #[cfg(feature = "audit")]
+        "audit",
+    ]
 }
 
 #[cfg(test)]

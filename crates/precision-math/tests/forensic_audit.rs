@@ -1,4 +1,6 @@
-use precision_math::{math, signal_pipe, DpwGain, OscState, Pulse, Sawtooth, Scalar, HEADROOM_BITS};
+use precision_math::{
+    math, signal_pipe, DpwGain, OscState, Pulse, Sawtooth, Scalar, HEADROOM_BITS,
+};
 use sha2::{Digest, Sha256};
 
 #[test]

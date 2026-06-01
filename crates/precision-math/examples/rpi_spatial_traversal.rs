@@ -9,9 +9,9 @@
  * - Aggressive Gain Curve forces the "Capture Effect" on the closest beacon.
  */
 
-use precision_math::{DpwGain, Oscillator};
 use geom_signal::Scalar;
 use geom_spatial::Vector3;
+use precision_math::{DpwGain, Oscillator};
 use std::time::{Duration, Instant};
 
 #[cfg(target_os = "linux")]

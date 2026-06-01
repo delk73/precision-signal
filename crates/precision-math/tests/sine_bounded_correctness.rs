@@ -1,5 +1,7 @@
 use precision_math::math;
-use precision_math::{DpwGain, OscState, Scalar, SignalShape, Sine, HEADROOM_BITS, SINE_EGRESS_SCALE_Q31};
+use precision_math::{
+    DpwGain, OscState, Scalar, SignalShape, Sine, HEADROOM_BITS, SINE_EGRESS_SCALE_Q31,
+};
 
 const PHASE_SWEEP_STEPS: u32 = 4096;
 const MAX_ABS_RESIDUAL_BOUND: f64 = 1.0e-6;

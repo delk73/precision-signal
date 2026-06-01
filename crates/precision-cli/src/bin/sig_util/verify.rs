@@ -47,7 +47,7 @@ pub(crate) fn run_verify(file_path: PathBuf) -> Result<(), VerifyError> {
     }
 
     let payload = file_size - HEADER_SIZE as u64;
-    if payload % 4 != 0 {
+    if !payload.is_multiple_of(4) {
         return Err(VerifyError::Parse(format!(
             "❌ FAIL: Misaligned Payload ({} bytes)",
             payload

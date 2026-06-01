@@ -1,4 +1,6 @@
-use precision_math::{apply_gain, math, tick_dpw4_raw, DpwGain, OscState, Scalar, SignalFrameHeader};
+use precision_math::{
+    apply_gain, math, tick_dpw4_raw, DpwGain, OscState, Scalar, SignalFrameHeader,
+};
 use std::fs::{self, File};
 use std::io::Write;
 use std::path::Path;

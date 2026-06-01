@@ -329,10 +329,10 @@ fn generate_artifact(dir: &Path, scenario: &VerificationScenario) -> io::Result<
             let sine_s32 = Sine::tick(&mut sweep_sine, current_phase, &gain_i128);
 
             if scenario.channels == CanonChannels::MasterTuple {
-                hasher.update(&saw_s32.to_le_bytes());
-                hasher.update(&pulse_s32.to_le_bytes());
-                hasher.update(&tri_s32.to_le_bytes());
-                hasher.update(&sine_s32.to_le_bytes());
+                hasher.update(saw_s32.to_le_bytes());
+                hasher.update(pulse_s32.to_le_bytes());
+                hasher.update(tri_s32.to_le_bytes());
+                hasher.update(sine_s32.to_le_bytes());
             }
 
             let n = tick as f64;
@@ -427,7 +427,7 @@ fn generate_artifact(dir: &Path, scenario: &VerificationScenario) -> io::Result<
         };
 
         if scenario.channels == CanonChannels::Mono {
-            hasher.update(&sample_i32.to_le_bytes());
+            hasher.update(sample_i32.to_le_bytes());
         }
 
         let ph_01 = (current_phase / math::TWO_PI).to_num::<f64>();

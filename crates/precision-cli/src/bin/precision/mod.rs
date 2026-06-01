@@ -428,7 +428,8 @@ fn run_envelope(args: CommandArgs) -> CliResult {
 
     let loaded = load_authoritative_artifact(&args.target, ArtifactPurpose::Envelope)?;
     let replay_trace = synthesize_semantic_trace(&loaded.trace.signal_inputs);
-    let captured_square = extract_i64_node_values(&loaded.trace.captured_trace, "precision_math.square")?;
+    let captured_square =
+        extract_i64_node_values(&loaded.trace.captured_trace, "precision_math.square")?;
     let replay_square = extract_i64_node_values(&replay_trace, "precision_math.square")?;
     let captured_envelope = build_envelope_trace(&captured_square);
     let replay_envelope = build_envelope_trace(&replay_square);

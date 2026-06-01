@@ -1,6 +1,6 @@
-use precision_math::{DpwGain, Oscillator};
 use geom_signal::Scalar;
 use geom_spatial::Vector3;
+use precision_math::{DpwGain, Oscillator};
 
 #[cfg(target_os = "linux")]
 use rppal::gpio::{Gpio, OutputPin};

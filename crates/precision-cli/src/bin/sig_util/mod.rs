@@ -222,7 +222,10 @@ pub(crate) fn run() -> CliResult {
 
     #[cfg(feature = "audit")]
     if cli.audit {
-        eprintln!("AUDIT: Max |z| bitlen: {}", precision_math::max_abs_z_bits());
+        eprintln!(
+            "AUDIT: Max |z| bitlen: {}",
+            precision_math::max_abs_z_bits()
+        );
         eprintln!(
             "AUDIT: Legacy Shift Overflow Risk: {}",
             precision_math::legacy_shift_overflow_risk()

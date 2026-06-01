@@ -1,4 +1,3 @@
-
 use serde_json::Value;
 use std::fs;
 use std::process::Command;
@@ -1347,7 +1346,10 @@ fn precision_envelope_rejects_malformed_source_nodes_with_exit_2() {
 
     let trace_path = temp_root.join(&artifact_rel).join("trace.json");
     let original = fs::read_to_string(&trace_path).expect("trace.json must exist");
-    let malformed = original.replace("\"precision_math.square\"", "\"precision_math.square.broken\"");
+    let malformed = original.replace(
+        "\"precision_math.square\"",
+        "\"precision_math.square.broken\"",
+    );
     fs::write(&trace_path, malformed).expect("malformed trace must be written");
 
     let envelope = Command::new(env!("CARGO_BIN_EXE_precision"))
