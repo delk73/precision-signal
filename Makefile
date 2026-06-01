@@ -10,8 +10,8 @@ MAKE_NO_PRINT := $(MAKE) --no-print-directory
 MAKE_CMD := $(MAKE)
 RELEASE_ROOT := docs/verification/releases
 RELEASE_DIR := $(RELEASE_ROOT)/$(VERSION)
-DPW4_PKG := dpw4
-CLI_FEATURE := cli
+PRECISION_MATH_PKG := precision-math
+PRECISION_CLI_PKG := precision-cli
 SIG_UTIL_BIN := sig-util
 FW_PKG := replay-fw-f446
 FW_TARGET := thumbv7em-none-eabihf
@@ -204,7 +204,7 @@ release-1.7.0:
 	  --release-root "$(RELEASE_ROOT)" \
 	  --fw-target "$(FW_TARGET)" \
 	  --cargo "$(CARGO)" \
-	  --dpw4-pkg "$(DPW4_PKG)" \
+	  --precision-math-pkg "$(PRECISION_MATH_PKG)" \
 	  --make "$(MAKE_CMD)" \
 	  --functional \
 	  --demo-evidence \
@@ -220,7 +220,7 @@ release-1.8.0:
 	  --reset-mode "$(FW_GATE_RESET_MODE)" \
 	  --fw-target "$(FW_TARGET)" \
 	  --cargo "$(CARGO)" \
-	  --dpw4-pkg "$(DPW4_PKG)" \
+	  --precision-math-pkg "$(PRECISION_MATH_PKG)" \
 	  --make "$(MAKE_CMD)" \
 	  --require-serial \
 	  --thumb-check \
@@ -462,7 +462,7 @@ release-bundle:
 	  --release-root "$(RELEASE_ROOT)" \
 	  --fw-target "$(FW_TARGET)" \
 	  --cargo "$(CARGO)" \
-	  --dpw4-pkg "$(DPW4_PKG)" \
+	  --precision-math-pkg "$(PRECISION_MATH_PKG)" \
 	  --make "$(MAKE_CMD)"
 
 release-summary:
@@ -544,7 +544,7 @@ check-workspace:
 	$(CARGO) check --workspace --locked
 
 $(AUDIT_BIN):
-	$(CARGO) build --locked -p $(DPW4_PKG) --features $(CLI_FEATURE) --bin substrate_probe
+	$(CARGO) build --locked -p $(PRECISION_CLI_PKG) --bin substrate_probe
 
 doc-link-check:
 	$(XTASK_WORKFLOW) doc-link-check
@@ -554,7 +554,7 @@ test:
 	$(MAKE_NO_PRINT) authoritative-replay-cli-tests
 
 authoritative-replay-cli-tests:
-	$(CARGO) test -p $(DPW4_PKG) --features $(CLI_FEATURE) --test precision_authoritative_surface --locked
+	$(CARGO) test -p $(PRECISION_CLI_PKG) --test precision_authoritative_surface --locked
 
 parser-tests:
 	$(XTASK_WORKFLOW) parser-tests
@@ -586,10 +586,10 @@ demo-divergence:
 	echo "baseline_invariant = true"
 
 gate:
-	$(CARGO) run --locked --release -p $(DPW4_PKG) --features $(CLI_FEATURE) --bin $(SIG_UTIL_BIN) -- validate --mode quick
+	$(CARGO) run --locked --release -p $(PRECISION_CLI_PKG) --bin $(SIG_UTIL_BIN) -- validate --mode quick
 
 gate-full:
-	$(CARGO) run --locked --release -p $(DPW4_PKG) --features $(CLI_FEATURE) --bin $(SIG_UTIL_BIN) -- validate --mode full
+	$(CARGO) run --locked --release -p $(PRECISION_CLI_PKG) --bin $(SIG_UTIL_BIN) -- validate --mode full
 
 ci-local:
 	$(XTASK_WORKFLOW) ci-local
@@ -634,7 +634,7 @@ stream-purity:
 	echo "  [OK] exactly 7 LF bytes"
 
 clean:
-	$(CARGO) clean -p $(FW_PKG) -p $(DPW4_PKG)
+	$(CARGO) clean -p $(FW_PKG) -p $(PRECISION_MATH_PKG) -p $(PRECISION_CLI_PKG)
 
 kani-gate:
 	bash scripts/verify_kani.sh

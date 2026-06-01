@@ -10,7 +10,7 @@ Default core crate builds are float-free.
 Floating-point is permitted only in:
 
 - `float-ingest` feature adapters
-- non-core binaries such as the `dpw4` CLI
+- non-core binaries such as the `precision-cli` CLI
 - `#[cfg(test)]` code
 
 Floating-point must not influence:
@@ -29,7 +29,7 @@ Reference checks:
 
 ```bash
 cargo check --workspace --no-default-features
-cargo check -p dpw4 --no-default-features --target thumbv7em-none-eabihf
+cargo check -p precision-math --no-default-features --target thumbv7em-none-eabihf
 ```
 
 These checks must succeed without enabling `float-ingest`.

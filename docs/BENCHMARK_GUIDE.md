@@ -112,8 +112,8 @@ The following measurements characterize historical performance on reference plat
 
 | Harness | Package | Signal Type | Purpose |
 |---------|---------|-------------|---------|
-| `rpi_verify_logic` | `dpw4` | Sawtooth (Polynomial) | Baseline polynomial DPW performance |
-| `rpi_verify_geometric` | `dpw4` | Sine (CORDIC) | 128-bit CORDIC engine cost |
+| `rpi_verify_logic` | `precision-math` | Sawtooth (Polynomial) | Baseline polynomial DPW performance |
+| `rpi_verify_geometric` | `precision-math` | Sine (CORDIC) | 128-bit CORDIC engine cost |
 | `spatial_bench` | `geom-spatial` | Vector3 Distance | Spatial coordinate solving cost |
 
 ---
@@ -195,19 +195,19 @@ These are standalone performance measurement examples, not integrated benchmarks
 ### Polynomial Engine (Sawtooth)
 ```bash
 # Pi 3B (Isolated Core 3)
-sudo taskset -c 3 cargo run -p dpw4 --release --example rpi_verify_logic
+sudo taskset -c 3 cargo run -p precision-math --release --example rpi_verify_logic
 
 # x86_64 (Unlocked)
-cargo run -p dpw4 --release --example rpi_verify_logic
+cargo run -p precision-math --release --example rpi_verify_logic
 ```
 
 ### CORDIC Engine (Sine)
 ```bash
 # Pi 3B (Isolated Core 3)
-sudo taskset -c 3 cargo run -p dpw4 --release --example rpi_verify_geometric
+sudo taskset -c 3 cargo run -p precision-math --release --example rpi_verify_geometric
 
 # x86_64 (Unlocked)
-cargo run -p dpw4 --release --example rpi_verify_geometric
+cargo run -p precision-math --release --example rpi_verify_geometric
 ```
 
 ### Spatial Engine (Vector3 Distance)

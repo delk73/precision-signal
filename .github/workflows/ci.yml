@@ -31,7 +31,7 @@ jobs:
 
       - name: Mechanical no_std Build Oracle
         run: |
-          cargo check -p dpw4 --no-default-features --target thumbv7em-none-eabihf --locked
+          cargo check -p precision-math --no-default-features --target thumbv7em-none-eabihf --locked
 
       - name: Workspace Check
         run: make check-workspace
@@ -59,7 +59,7 @@ jobs:
         run: make test
 
       - name: Test (cli bin)
-        run: cargo test --locked -p dpw4 --features cli --bin precision
+        run: cargo test --locked -p precision-cli --bin precision
 
       - name: Embedded Firmware Build Oracle (F446)
         run: |
@@ -109,7 +109,7 @@ jobs:
         run: make gate
 
       - name: Build Release Binary
-        run: cargo build --release -p dpw4 --features cli --locked
+        run: cargo build --release -p precision-cli --locked
 
       - name: Hash Artifact
         run: |
@@ -122,4 +122,4 @@ jobs:
         run: bash scripts/verify_release_repro.sh
 
       - name: Forensic Audit
-        run: cargo test --locked -p dpw4 --test forensic_audit
+        run: cargo test --locked -p precision-math --test forensic_audit

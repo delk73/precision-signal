@@ -30,7 +30,7 @@ Phase (Scalar = I64F64)
 - `geom-signal`: fixed-point math bedrock, including `Scalar`, algebraic helpers,
   and CORDIC kernels
 - `geom-spatial`: spatial math on `Scalar` for host-side operations
-- `dpw4`: reference oscillator and shape-selection surfaces that feed the
+- `precision-math`: reference oscillator and shape-selection surfaces that feed the
   replay-oriented operator path
 
 All narrowing rules, gain constants, saturation semantics, and egress policy are

@@ -402,7 +402,7 @@ fn is_test_path(path: &str) -> bool {
 }
 
 fn is_core_path(path: &str) -> bool {
-    (path.starts_with("crates/dpw4/src/") && !path.starts_with("crates/dpw4/src/bin/"))
+    (path.starts_with("crates/precision-math/src/"))
         || path.starts_with("crates/replay-core/src/")
         || path.starts_with("crates/replay-embed/src/")
 }

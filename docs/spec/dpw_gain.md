@@ -13,7 +13,7 @@
 Defines the forward and inverse gain fields in `DpwGain`.
 
 ## Structure
-`DpwGain` is defined as a `pub struct` in `crates/dpw4/src/lib.rs` with the following fields:
+`DpwGain` is defined as a `pub struct` in `crates/precision-math/src/lib.rs` with the following fields:
 
 * Forward gain mantissa: `m4_q63`
 * Forward gain exponent: `e4`
@@ -22,7 +22,7 @@ Defines the forward and inverse gain fields in `DpwGain`.
 
 ## Invariants
 
-* **Forward fields** (`m4_q63`, `e4`) are used for normal gain application in `apply_gain` and `tick_dpw4` in `crates/dpw4/src/lib.rs`.
+* **Forward fields** (`m4_q63`, `e4`) are used for normal gain application in `apply_gain` and `tick_dpw4` in `crates/precision-math/src/lib.rs`.
 * **Inverse fields** (`m4_q63_inv`, `e4_inv`) are cached helpers and may be stale. Correctness must not depend on them unless a path explicitly opts in to inverse scaling.
 * **No implied reciprocity**: The code does not guarantee any mathematical relationship between forward and inverse fields unless a caller explicitly enforces one. If a caller chooses to use inverse fields, it must define and validate its own relationship (for example, a fixed-point reciprocal with bounded error).
 * **Forbidden Use**: Inverse fields must not be applied to the LE `i32` sample stream used for SHA-256 evidence unless the path explicitly documents inverse scaling as part of its normative definition.
@@ -50,4 +50,4 @@ Defines the forward and inverse gain fields in `DpwGain`.
 
 ## Source (as of 53d06b9c28087b5a5e536e8f300eeebb573925f1)
 
-Optional line anchors for the above statements can be verified in `crates/dpw4/src/lib.rs` at this commit.
+Optional line anchors for the above statements can be verified in `crates/precision-math/src/lib.rs` at this commit.

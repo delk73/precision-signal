@@ -309,7 +309,7 @@ crates/geom-signal/
     algebraic.rs
     verification.rs
 
-crates/dpw4/
+crates/precision-math/
   src/
     lib.rs
     verification.rs
@@ -328,7 +328,7 @@ crates/geom-signal/
     trig_throughput.rs          # kernel microbenchmarks (existing)
     signal_inner_loop.rs        # inner-loop throughput benchmarks (present)
 
-crates/dpw4/
+crates/precision-math/
   src/
     lib.rs
 ```

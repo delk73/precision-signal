@@ -18,30 +18,30 @@ KANI_LOCK_DIR="$KANI_LOG_DIR/.verify_kani.lockdir"
 # tier2-runnable harnesses are optional exploratory evidence that can be
 # retained separately from release Tier-1 evidence. tier3 harnesses are proof
 # inventory only unless explicitly run with RUN_TIER3=1.
-HARNESS_MANIFEST='tier1|dpw4|proof_compute_x2_safe|lib
-tier1|dpw4|proof_saturate_safe|lib
-tier1|dpw4|proof_phase_u32_no_overflow|lib
-tier1|dpw4|proof_phase_u32_fixed_to_u32_conversion|lib
-tier1|dpw4|proof_sine_scale_no_overflow|lib
-tier1|dpw4|proof_sine_to_i32_in_range|lib
-tier1|dpw4|proof_sine_egress_bounded|lib
-tier1|dpw4|proof_triangle_delta_clamp_identity_when_in_range|lib
-tier1|dpw4|proof_triangle_delta_clamp_saturates_when_out_of_range|lib
-tier1|dpw4|proof_triangle_z_update_is_saturating|lib
-tier1|dpw4|proof_i256_sub_matches_spec|lib
-tier1|dpw4|proof_i256_sar_in_range_matches_spec|lib
-tier1|dpw4|proof_i256_sar_out_of_range_matches_spec|lib
-tier1|dpw4|proof_i256_clamp_matches_spec|lib
-tier1|dpw4|proof_spec_clamp_in_range_contract|lib
-tier1|dpw4|proof_spec_clamp_out_of_range_contract|lib
-tier1|dpw4|proof_spec_sar_sanity|lib
-tier1|dpw4|proof_triangle_freeze_invariant|lib
-tier1|dpw4|proof_triangle_freeze_egress_invariant|lib
+HARNESS_MANIFEST='tier1|precision-math|proof_compute_x2_safe|lib
+tier1|precision-math|proof_saturate_safe|lib
+tier1|precision-math|proof_phase_u32_no_overflow|lib
+tier1|precision-math|proof_phase_u32_fixed_to_u32_conversion|lib
+tier1|precision-math|proof_sine_scale_no_overflow|lib
+tier1|precision-math|proof_sine_to_i32_in_range|lib
+tier1|precision-math|proof_sine_egress_bounded|lib
+tier1|precision-math|proof_triangle_delta_clamp_identity_when_in_range|lib
+tier1|precision-math|proof_triangle_delta_clamp_saturates_when_out_of_range|lib
+tier1|precision-math|proof_triangle_z_update_is_saturating|lib
+tier1|precision-math|proof_i256_sub_matches_spec|lib
+tier1|precision-math|proof_i256_sar_in_range_matches_spec|lib
+tier1|precision-math|proof_i256_sar_out_of_range_matches_spec|lib
+tier1|precision-math|proof_i256_clamp_matches_spec|lib
+tier1|precision-math|proof_spec_clamp_in_range_contract|lib
+tier1|precision-math|proof_spec_clamp_out_of_range_contract|lib
+tier1|precision-math|proof_spec_sar_sanity|lib
+tier1|precision-math|proof_triangle_freeze_invariant|lib
+tier1|precision-math|proof_triangle_freeze_egress_invariant|lib
 tier1|geom-signal|proof_sqrt_no_panic|lib
 tier1|replay-core|proof_v0_wire_size_constants|lib
 tier1|replay-core|proof_encode_header0_wire_layout_and_le|lib
 tier1|replay-core|proof_encode_event_frame0_wire_layout_and_le|lib
-tier3|dpw4|proof_i256_mul_u32_matches_spec|lib
+tier3|precision-math|proof_i256_mul_u32_matches_spec|lib
 tier2-runnable|geom-signal|proof_sin_cos_no_panic|lib
 tier2-runnable|geom-signal|proof_atan2_q1|lib
 tier2-runnable|geom-signal|proof_atan2_q2|lib
@@ -521,7 +521,7 @@ else
     pass_msg "cargo kani plugin available"
 fi
 
-check_package_exists "dpw4"
+check_package_exists "precision-math"
 check_package_exists "geom-signal"
 check_package_exists "replay-core"
 pass_msg "Required workspace packages present"

@@ -17,7 +17,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--release-root", default="docs/verification/releases")
     parser.add_argument("--fw-target", default="thumbv7em-none-eabihf")
     parser.add_argument("--cargo", default="cargo")
-    parser.add_argument("--dpw4-pkg", default="dpw4")
+    parser.add_argument("--precision-math-pkg", default="precision-math")
     parser.add_argument("--make", default="make")
     return parser.parse_args()
 
@@ -94,9 +94,9 @@ def main() -> int:
     release_dir.mkdir(parents=True, exist_ok=True)
 
     run_transcript(
-        label="[release-bundle] 1/6 cargo_check_dpw4_thumb_locked.txt",
-        command=[args.cargo, "check", "--locked", "-p", args.dpw4_pkg, "--target", args.fw_target],
-        output_path=release_dir / "cargo_check_dpw4_thumb_locked.txt",
+        label="[release-bundle] 1/6 cargo_check_precision_math_thumb_locked.txt",
+        command=[args.cargo, "check", "--locked", "-p", args.precision_math_pkg, "--target", args.fw_target],
+        output_path=release_dir / "cargo_check_precision_math_thumb_locked.txt",
     )
     run_transcript(
         label="[release-bundle] 2/6 kani_evidence.txt",

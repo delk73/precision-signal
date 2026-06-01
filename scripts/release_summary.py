@@ -13,7 +13,7 @@ from typing import Any
 
 SUMMARY_FILES = {"summary.json", "summary.md"}
 VALIDATION_OUTPUT_NAMES = {
-    "cargo_check_dpw4_thumb_locked.txt",
+    "cargo_check_precision_math_thumb_locked.txt",
     "kani_evidence.txt",
     "make_demo_evidence_package.txt",
     "make_doc_link_check.txt",

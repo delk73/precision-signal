@@ -16,11 +16,11 @@
 
 ## §1 Phase Domain & Wrap
 
-**NORMATIVE**: Phase type `Scalar` (`I64F64`), unit radians. Range `[0, 2π)` via single-branch wrap (`tick_phase` `crates/dpw4/src/lib.rs:393–403`). Inclusive lower, exclusive upper. All u32 arithmetic: wrapping. Valid shaping input: `[-2^30, 2^30]`.
+**NORMATIVE**: Phase type `Scalar` (`I64F64`), unit radians. Range `[0, 2π)` via single-branch wrap (`tick_phase` `crates/precision-math/src/lib.rs:393–403`). Inclusive lower, exclusive upper. All u32 arithmetic: wrapping. Valid shaping input: `[-2^30, 2^30]`.
 
 **Conversion Semantics**: `(p / TWO_PI * 2^32).to_num::<u32>()` — fixed→u32 conversion per `fixed` 1.30.0 (Tier-1 proven). Required: deterministic, target-invariant for all `p ∈ [0, 2^32)`. `phase == TWO_PI` cannot occur post-wrap; negative phase impossible post-add-on-underflow. Bipolar: `(phase_u32 as i64).wrapping_sub(1 << 31)` → `i64 ∈ [-2^31, 2^31−1]`.
 
-**Refs**: `crates/dpw4/src/lib.rs:393–403,444–449,577–584,620–627`; `crates/dpw4/src/constants.rs:14,18`; `docs/spec/reference_invariants.md §1`; `docs/spec/oscillator_api.md §Phase`.
+**Refs**: `crates/precision-math/src/lib.rs:393–403,444–449,577–584,620–627`; `crates/precision-math/src/constants.rs:14,18`; `docs/spec/reference_invariants.md §1`; `docs/spec/oscillator_api.md §Phase`.
 
 **Divergences**: `docs/spec/pulse_implementation_spec.md §1` reconciled to radians `[0, 2π)` domain with `duty * TWO_PI`.
 
@@ -28,13 +28,13 @@
 `to_num::<u32>()` fixed→u32 conversion and overflow bounds are Tier-1 proven:
 - `proof_phase_u32_no_overflow`
 - `proof_phase_u32_fixed_to_u32_conversion`
-See `crates/dpw4/src/verification.rs`; enforced in `verify_kani.sh`.
+See `crates/precision-math/src/verification.rs`; enforced in `verify_kani.sh`.
 
 ---
 
 ## §2 Gain Model & Headroom
 
-**NORMATIVE**: Gain uses mantissa `m4_q63: u64` (Q63) and exponent `e4: i32`. Two-path: if `|raw| < 2^64` → `prod = raw * m` Q187, shift `= 187 − 16 − exp`; else `prod = (raw >> 64) * m` Q123, shift `= 123 − 16 − exp`. Saturating mul/shift (`crates/dpw4/src/lib.rs:223–264`). Headroom: `res >> HEADROOM_BITS(1)` — truncation. Final: `saturate_i128_to_i32`. `HEADROOM_BITS` compile-time constant; change requires hash regen. Inverse fields not normative.
+**NORMATIVE**: Gain uses mantissa `m4_q63: u64` (Q63) and exponent `e4: i32`. Two-path: if `|raw| < 2^64` → `prod = raw * m` Q187, shift `= 187 − 16 − exp`; else `prod = (raw >> 64) * m` Q123, shift `= 123 − 16 − exp`. Saturating mul/shift (`crates/precision-math/src/lib.rs:223–264`). Headroom: `res >> HEADROOM_BITS(1)` — truncation. Final: `saturate_i128_to_i32`. `HEADROOM_BITS` compile-time constant; change requires hash regen. Inverse fields not normative.
 
 ### Gain Domains (v1.2.1, Normative)
 
@@ -42,14 +42,14 @@ See `crates/dpw4/src/verification.rs`; enforced in `verify_kani.sh`.
 - **Sine Domain** (`shape=4`): egress uses calibrated `SINE_EGRESS_SCALE` (Q31) then `>> HEADROOM_BITS` then `saturate_i128_to_i32`.
 - `DpwGain.{m4_q63, e4}` has no effect on Sine in v1.2.1 by design.
 
-**Refs**: `crates/dpw4/src/lib.rs:285–313`; `crates/dpw4/src/constants.rs:54–66`; `docs/spec/dpw_gain.md §Invariants`; `VERIFICATION_GUIDE.md §5.3`.
+**Refs**: `crates/precision-math/src/lib.rs:285–313`; `crates/precision-math/src/constants.rs:54–66`; `docs/spec/dpw_gain.md §Invariants`; `VERIFICATION_GUIDE.md §5.3`.
 
 **Divergences**: [docs/spec/reference_invariants.md](spec/reference_invariants.md) §POST: "Fixed −3 dBFS default"; code sets −3 dBFS only for `generate` subcommand; forensic artifacts use per-scenario exponents.
 
 **Gain Invariance**: Quick-mode mantissa invariance is mechanically enforced in the validate artifact path.
-`sig-util validate --mode quick` dispatches `run_validate -> run_determinism_check -> generate_forensic_artifacts -> generate_artifact` (`crates/dpw4/src/bin/sig_util/validate.rs:39,481,495`; `crates/dpw4/src/bin/sig_util/artifacts.rs:183,238`).
-In that path, `quick_validate_gain_for_scenario` constructs gain with `DpwGain::new(GAIN_M4_Q63_QUICK, scenario.gain_exponent + 15, 0, 0)` (`crates/dpw4/src/bin/sig_util/artifacts.rs:13,179-180`), and `generate_artifact` consumes that helper (`crates/dpw4/src/bin/sig_util/artifacts.rs:285`), so arg1 mantissa is fixed singleton `{GAIN_M4_Q63_QUICK}` while only arg2 exponent varies by scenario.
-Unit test `quick_validate_gain_mantissa_is_singleton` locks this invariant by reusing the same helper (`crates/dpw4/src/bin/sig_util/mod.rs:316,318,321`).
+`sig-util validate --mode quick` dispatches `run_validate -> run_determinism_check -> generate_forensic_artifacts -> generate_artifact` (`crates/precision-cli/src/bin/sig_util/validate.rs:39,481,495`; `crates/precision-cli/src/bin/sig_util/artifacts.rs:183,238`).
+In that path, `quick_validate_gain_for_scenario` constructs gain with `DpwGain::new(GAIN_M4_Q63_QUICK, scenario.gain_exponent + 15, 0, 0)` (`crates/precision-cli/src/bin/sig_util/artifacts.rs:13,179-180`), and `generate_artifact` consumes that helper (`crates/precision-cli/src/bin/sig_util/artifacts.rs:285`), so arg1 mantissa is fixed singleton `{GAIN_M4_Q63_QUICK}` while only arg2 exponent varies by scenario.
+Unit test `quick_validate_gain_mantissa_is_singleton` locks this invariant by reusing the same helper (`crates/precision-cli/src/bin/sig_util/mod.rs:316,318,321`).
 Non-validate paths remain unconstrained (for example the caller-derived mantissa in the `generate` command path).
 
 ---
@@ -58,9 +58,9 @@ Non-validate paths remain unconstrained (for example the caller-derived mantissa
 
 **NORMATIVE**: Output `i32` S32LE. All shapes via `saturate_i128_to_i32`. Saturation `[i32::MIN, i32::MAX]`, both reachable. Rounding: truncation for right-shifts; Sine fixed-point quantizer uses signed integer-part extraction. SHA-256 over `sample.to_le_bytes()` only. Sine path uses calibrated `SINE_EGRESS_SCALE` (Q31): `(s * SINE_EGRESS_SCALE).to_num::<i32>() as i128 >> HEADROOM_BITS → saturate_i128_to_i32`; does not use `apply_gain`.
 
-**Refs**: `crates/dpw4/src/lib.rs:473–474`; `crates/dpw4/src/lib.rs:212–220`; `crates/dpw4/src/bin/precision.rs:1352–1355,1457`; `VERIFICATION_GUIDE.md §5.1`.
+**Refs**: `crates/precision-math/src/lib.rs:473–474`; `crates/precision-math/src/lib.rs:212–220`; `crates/precision-cli/src/bin/precision.rs:1352–1355,1457`; `VERIFICATION_GUIDE.md §5.1`.
 
-**Divergences**: `docs/spec/dpw_gain.md §Descriptive` says "Triangle bypass apply_gain"; code: Triangle routes through `apply_gain` (`crates/dpw4/src/lib.rs:699`); only Sine bypasses.
+**Divergences**: `docs/spec/dpw_gain.md §Descriptive` says "Triangle bypass apply_gain"; code: Triangle routes through `apply_gain` (`crates/precision-math/src/lib.rs:699`); only Sine bypasses.
 
 ---
 
@@ -68,7 +68,7 @@ Non-validate paths remain unconstrained (for example the caller-derived mantissa
 
 **NORMATIVE**: `x2_Q124 = ((s_q31 >> 1) as i128)^2 << 64`; `>> 1` normative, immutable. `x4_Q124 = (x2 >> 62)^2`. Differentiator: `wrapping_sub` on `i128` × 3. State `Dpw4State{z1,z2,z3: i128}` zero-init `#[repr(C)]`. Output: `i128` Q124 → `apply_gain` → `i32`.
 
-**Refs**: `crates/dpw4/src/lib.rs:139–189,344–353`; `docs/spec/reference_invariants.md §1`; `VERIFICATION_GUIDE.md §5`. **No divergences.**
+**Refs**: `crates/precision-math/src/lib.rs:139–189,344–353`; `docs/spec/reference_invariants.md §1`; `VERIFICATION_GUIDE.md §5`. **No divergences.**
 
 ---
 
@@ -76,7 +76,7 @@ Non-validate paths remain unconstrained (for example the caller-derived mantissa
 
 **NORMATIVE**: `Pulse = (SawA − SawB) >> 1` in Q124; `wrapping_sub`, shift truncates. Independent `Dpw4State` per saw. Duty offset: `phase − duty * TWO_PI`, wrapped. Square = `tick_pulse(duty=0.5)`. Single `apply_gain` on mixed output.
 
-**Refs**: `crates/dpw4/src/lib.rs:573–601`; `docs/spec/pulse_implementation_spec.md §1–4`; `docs/spec/reference_invariants.md §4`.
+**Refs**: `crates/precision-math/src/lib.rs:573–601`; `docs/spec/pulse_implementation_spec.md §1–4`; `docs/spec/reference_invariants.md §4`.
 
 **Divergences**: `docs/spec/pulse_implementation_spec.md §5` reconciled: `reset()` clears internal DPW/Triangle state only; phase sync is caller-responsibility.
 
@@ -134,7 +134,7 @@ When freeze condition holds, for this tick:
 
 **Kani Proof**: `proof_triangle_freeze_invariant` (Tier-1) — post-guard arithmetic identity; assumes guard has set `dphi=0`; proves arithmetic consequences only; does not prove guard firing condition.
 
-**Refs**: `tick_triangle_dpw4` in `crates/dpw4/src/lib.rs`; `I256` in `crates/dpw4/src/i256.rs`; `crates/dpw4/src/constants.rs` (`DPW_TRUNCATION_BITS`); Kani harnesses in `crates/dpw4/src/verification.rs` and `crates/dpw4/src/i256.rs`.
+**Refs**: `tick_triangle_dpw4` in `crates/precision-math/src/lib.rs`; `I256` in `crates/precision-math/src/i256.rs`; `crates/precision-math/src/constants.rs` (`DPW_TRUNCATION_BITS`); Kani harnesses in `crates/precision-math/src/verification.rs` and `crates/precision-math/src/i256.rs`.
 
 **I256 Kani Verification Status**:
 
@@ -163,13 +163,13 @@ No uncontrolled i128 wrap; entire pipeline executes in I256 (mod 2^256), delta c
 **NORMATIVE**: Shape=4 via `math::sin_cos_fast(phase)` (`geom-signal`). Input: `Scalar` radians `[0, 2π)`. Output `s: Scalar` (`I64F64`) `[-1.0, 1.0]`. Cosine discarded.
 
 **Sine Quantization Closure**:
-- `s` type: **`Scalar` (`I64F64`)** — grounded at `crates/dpw4/src/lib.rs:465`.
+- `s` type: **`Scalar` (`I64F64`)** — grounded at `crates/precision-math/src/lib.rs:465`.
 - Scaling multiply `s * SINE_EGRESS_SCALE`: **fixed-point** (Scalar×Scalar, I64F64 arithmetic), not float.
 - `to_num::<i32>()` rounding: **signed conversion** as specified by `fixed` 1.30.0; mechanically verified as equivalent to bit-level integer-part extraction.
 - Observable outcome: headroom `>> HEADROOM_BITS` applied; final saturated via `saturate_i128_to_i32`. At `s = 1.0`, Sine max output is bounded by `SINE_EGRESS_SCALE_Q31 >> HEADROOM_BITS`.
 - No `apply_gain`; `DpwGain.{m4_q63, e4}` are ignored for Sine.
 
-**Refs**: `crates/dpw4/src/lib.rs:464–475,549–555`; `VERIFICATION_GUIDE.md §5.4`.
+**Refs**: `crates/precision-math/src/lib.rs:464–475,549–555`; `VERIFICATION_GUIDE.md §5.4`.
 
 **Divergences**: See §7 Gain Semantics subsection below. Behavior unchanged; gain fields remain ineffectual for Sine; now explicitly normative.
 
@@ -214,7 +214,7 @@ Overflow absence is mechanically verified by Tier-1 harness `proof_sine_scale_no
 
 ## §8 Determinism Boundaries
 
-**NORMATIVE**: Toolchain `rustc 1.91.1` exact. 64-bit targets only. All wire serialization: explicit LE. `crates/dpw4/src/lib.rs` `#![no_std]`; `std` only under `verification-runtime`. `#![forbid(unsafe_code)]`. Rounding: truncation for right-shifts; fixed→int conversions are specified per-site; no ties-to-even. All structs `#[repr(C)]`; no unsafe transmute in normative path. Feature flags `audit` and `cli` must not change `i32` sample values.
+**NORMATIVE**: Toolchain `rustc 1.91.1` exact. 64-bit targets only. All wire serialization: explicit LE. `crates/precision-math/src/lib.rs` `#![no_std]`; `std` only under `verification-runtime`. `#![forbid(unsafe_code)]`. Rounding: truncation for right-shifts; fixed→int conversions are specified per-site; no ties-to-even. All structs `#[repr(C)]`; no unsafe transmute in normative path. Feature flags `audit` and `cli` must not change `i32` sample values.
 
 **Normative Dependencies**:
 - `rustc`: **1.91.1** — `rust-toolchain.toml`.
@@ -223,7 +223,7 @@ Overflow absence is mechanically verified by Tier-1 harness `proof_sine_scale_no
 
 **Build Determinism Contract**: Release builds are pinned with `codegen-units=1`, `lto="thin"` (frozen), `panic=abort`, `incremental=false`, `debug=0`, `overflow-checks=false`, `strip="symbols"`. These fields are frozen workspace-wide in `[profile.release]`; no per-crate overrides. Bit-for-bit identity is enforced on same-machine, same-toolchain builds via dual-build hash comparison (`verify_release_repro.sh`). Cross-platform or cross-linker bit identity is **not** claimed.
 
-**Refs**: `crates/dpw4/src/lib.rs:1–2`; `crates/dpw4/src/bin/precision.rs:1,167`; `crates/dpw4/src/constants.rs:66`; `crates/dpw4/src/verification.rs:210–267`; `VERIFICATION_GUIDE.md §2`.
+**Refs**: `crates/precision-math/src/lib.rs:1–2`; `crates/precision-cli/src/bin/precision.rs:1,167`; `crates/precision-math/src/constants.rs:66`; `crates/precision-math/src/verification.rs:210–267`; `VERIFICATION_GUIDE.md §2`.
 
 **Divergences**: `VERIFICATION_GUIDE.md §7.1` + `docs/spec/header_layout_addendum.md §Field Map` show `pad[36]`; code has `HEADER_PAD_SIZE = 32` (`pad[32]`) + `reserved[4]` separate; guide omits `reserved` field entirely.
 
@@ -264,18 +264,18 @@ No external git-source pin is required.
 | Site | Operation | Mode | Grounded? |
 |---|---|---|---|
 | `phase_u32` = `(p/TWO_PI*2^32).to_num::<u32>()` | Fixed→u32 | Fixed→u32 conversion (Tier-1 proven) | Kani-proven: `proof_phase_u32_fixed_to_u32_conversion` |
-| `s_q31 >> 1` | Arith right-shift | Truncate | `crates/dpw4/src/lib.rs:142` |
-| `x2 >> 62` | Arith right-shift | Truncate | `crates/dpw4/src/lib.rs:161` |
-| Pulse `raw_diff >> 1` | Arith right-shift | Truncate | `crates/dpw4/src/lib.rs:597` |
-| Triangle `raw >> 32` | Arith right-shift | Truncate | `crates/dpw4/src/lib.rs:673` |
-| `saturating_shift_i128` right | Arith right-shift | Truncate | `crates/dpw4/src/lib.rs:246` |
-| `saturating_shift_i128` left-overflow | `checked_shl` | Saturate → i128::MIN/MAX | `crates/dpw4/src/lib.rs:251–260` |
-| `saturating_mul_i128` overflow | `checked_mul` | Saturate → i128::MIN/MAX | `crates/dpw4/src/lib.rs:224–233` |
-| `res_i128 >> HEADROOM_BITS` | Arith right-shift | Truncate | `crates/dpw4/src/lib.rs:312` |
-| `saturate_i128_to_i32` | `clamp` | Saturate | `crates/dpw4/src/lib.rs:218–220` |
+| `s_q31 >> 1` | Arith right-shift | Truncate | `crates/precision-math/src/lib.rs:142` |
+| `x2 >> 62` | Arith right-shift | Truncate | `crates/precision-math/src/lib.rs:161` |
+| Pulse `raw_diff >> 1` | Arith right-shift | Truncate | `crates/precision-math/src/lib.rs:597` |
+| Triangle `raw >> 32` | Arith right-shift | Truncate | `crates/precision-math/src/lib.rs:673` |
+| `saturating_shift_i128` right | Arith right-shift | Truncate | `crates/precision-math/src/lib.rs:246` |
+| `saturating_shift_i128` left-overflow | `checked_shl` | Saturate → i128::MIN/MAX | `crates/precision-math/src/lib.rs:251–260` |
+| `saturating_mul_i128` overflow | `checked_mul` | Saturate → i128::MIN/MAX | `crates/precision-math/src/lib.rs:224–233` |
+| `res_i128 >> HEADROOM_BITS` | Arith right-shift | Truncate | `crates/precision-math/src/lib.rs:312` |
+| `saturate_i128_to_i32` | `clamp` | Saturate | `crates/precision-math/src/lib.rs:218–220` |
 | Sine `s * SINE_EGRESS_SCALE` | Scalar fixed multiply | Panic-free under \|s\|≤1 | Egress arith given `sin_cos_fast` contract \|s\|≤1 |
 | Sine `(…).to_num::<i32>()` | Fixed→i32 | Signed conversion | Egress arith given `sin_cos_fast` contract \|s\|≤1 |
-| Sine `pre_headroom >> HEADROOM_BITS` | Arith right-shift | Truncate | `crates/dpw4/src/lib.rs:474` |
+| Sine `pre_headroom >> HEADROOM_BITS` | Arith right-shift | Truncate | `crates/precision-math/src/lib.rs:474` |
 
 ---
 

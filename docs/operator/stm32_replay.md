@@ -39,9 +39,9 @@ Preconditions:
 3. Run `make flash-compare-ur` and wait for it to succeed.
 4. Legacy/debug only: run `python3 scripts/csv_capture.py --serial /dev/ttyACM0 --out observed.csv --reset-mode manual`, then perform the required manual reset promptly so capture begins before the timeout window expires.
 5. Confirm capture emits a `STATE,...` line, writes `observed.csv`, and `observed.csv` begins with `index,interval_us` and contains rows. If reset is delayed too long, capture may time out before any `STATE,...` line appears.
-6. Run `cargo run -q -p dpw4 --features cli --bin precision -- record observed.csv --mode runtime_mode`.
+6. Run `cargo run -q -p precision-cli --bin precision -- record observed.csv --mode runtime_mode`.
 7. Confirm `precision record` reports `RESULT: PASS`, `EQUIVALENCE: exact`, and `FIRST_DIVERGENCE: none`, then record the printed `ARTIFACT: artifacts/<record_run_id>`.
-8. Run `cargo run -q -p dpw4 --features cli --bin precision -- replay artifacts/<record_run_id> --mode runtime_mode`.
+8. Run `cargo run -q -p precision-cli --bin precision -- replay artifacts/<record_run_id> --mode runtime_mode`.
 9. Confirm `precision replay` reports `RESULT: PASS`, `EQUIVALENCE: exact`, and `FIRST_DIVERGENCE: none`.
 
 ## Failure Signatures

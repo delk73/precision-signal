@@ -18,7 +18,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--reset-mode", choices=("stlink", "manual"), default="stlink")
     parser.add_argument("--fw-target", default="thumbv7em-none-eabihf")
     parser.add_argument("--cargo", default="cargo")
-    parser.add_argument("--dpw4-pkg", default="dpw4")
+    parser.add_argument("--precision-math-pkg", default="precision-math")
     parser.add_argument("--make", default="make")
     parser.add_argument("--require-serial", action="store_true")
     parser.add_argument("--thumb-check", action="store_true")
@@ -92,8 +92,8 @@ def main() -> int:
         steps.append(
             (
                 "Thumb Locked Check",
-                [args.cargo, "check", "--locked", "-p", args.dpw4_pkg, "--target", args.fw_target],
-                release_dir / "cargo_check_dpw4_thumb_locked.txt",
+                [args.cargo, "check", "--locked", "-p", args.precision_math_pkg, "--target", args.fw_target],
+                release_dir / "cargo_check_precision_math_thumb_locked.txt",
                 None,
             )
         )

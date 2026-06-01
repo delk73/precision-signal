@@ -8,7 +8,7 @@
 
 ## P5A — Compile-Surface Boundary
 - Commands in CI:
-  - `cargo check -p dpw4 --no-default-features --target thumbv7em-none-eabihf --locked`
+  - `cargo check -p precision-math --no-default-features --target thumbv7em-none-eabihf --locked`
   - `cargo check --workspace --no-default-features --locked`
 
 ## P5B — AST Hygiene
@@ -21,7 +21,7 @@
 
 ## Evidence Commands
 ```bash
-cargo check -p dpw4 --no-default-features --target thumbv7em-none-eabihf --locked
+cargo check -p precision-math --no-default-features --target thumbv7em-none-eabihf --locked
 cargo check --workspace --no-default-features --locked
 cargo run --locked -p audit-float-boundary -- --mode phase5b
 ```

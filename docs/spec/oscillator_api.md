@@ -10,16 +10,16 @@
 - This document defines the public oscillator contract; unchanged content remains applicable to release `1.7.0`.
 
 ## Scope
-This document specifies the public oscillator surface and shape dispatch contract as implemented in `crates/dpw4/src/lib.rs`. Items listed below are `pub` and part of the reference contract for external callers across the v1.x line.
+This document specifies the public oscillator surface and shape dispatch contract as implemented in `crates/precision-math/src/lib.rs`. Items listed below are `pub` and part of the reference contract for external callers across the v1.x line.
 
 ## API Surface
 The following items are part of the reference API surface:
 
-* `OscState` in `crates/dpw4/src/lib.rs`
-* `Oscillator` in `crates/dpw4/src/lib.rs`
-* `tick_shape` in `crates/dpw4/src/lib.rs`
-* `SignalShape` in `crates/dpw4/src/lib.rs`
-* `signal_pipe` in `crates/dpw4/src/lib.rs`
+* `OscState` in `crates/precision-math/src/lib.rs`
+* `Oscillator` in `crates/precision-math/src/lib.rs`
+* `tick_shape` in `crates/precision-math/src/lib.rs`
+* `SignalShape` in `crates/precision-math/src/lib.rs`
+* `signal_pipe` in `crates/precision-math/src/lib.rs`
 
 ## Shape ID Table (Normative)
 The `tick_shape` shape IDs are **dispatch-stable** and must not change.
@@ -45,4 +45,4 @@ IDs outside `0..=4` return `0` (DC-zero sample, treated as silence).
 
 ## Source (as of 53d06b9c28087b5a5e536e8f300eeebb573925f1)
 
-Optional line anchors for the above statements can be verified in `crates/dpw4/src/lib.rs` at this commit.
+Optional line anchors for the above statements can be verified in `crates/precision-math/src/lib.rs` at this commit.

@@ -91,7 +91,7 @@ def main() -> int:
 
     with tempfile.TemporaryDirectory(prefix="dpw_doc_links_") as tmp:
         root = Path(tmp)
-        write(root / "README.md", "See crates/dpw4/src/ for implementation details.\n")
+        write(root / "README.md", "See crates/precision-math/src/ for implementation details.\n")
         write(root / "docs" / "guide.md", "# Guide\n")
         proc = run_check(root)
         assert_ok("non_doc_paths_ignored", proc)

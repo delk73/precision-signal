@@ -17,7 +17,7 @@ RPL0_MANUAL_RESET_MAX_VERSION = (1, 8, 0)
 
 NON_FIRMWARE_REQUIRED_FILES = (
     "index.md",
-    "cargo_check_dpw4_thumb_locked.txt",
+    "cargo_check_precision_math_thumb_locked.txt",
     "kani_evidence.txt",
     "make_demo_evidence_package.txt",
     "make_doc_link_check.txt",

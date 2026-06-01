@@ -57,9 +57,9 @@ PASS (normative drift passes; pump vulnerability characterized; arithmetic safet
 
 ### x86_64
 ```bash
-cargo test -p dpw4 --release --test triangle_normative_drift -- --ignored --nocapture
-cargo test -p dpw4 --release --test triangle_phase_pump -- --ignored --nocapture
-cargo test -p dpw4 --release --lib test_normative_no_clamp_no_saturate -- --ignored --nocapture
+cargo test -p precision-math --release --test triangle_normative_drift -- --ignored --nocapture
+cargo test -p precision-math --release --test triangle_phase_pump -- --ignored --nocapture
+cargo test -p precision-math --release --lib test_normative_no_clamp_no_saturate -- --ignored --nocapture
 ```
 
 ### Raspberry Pi (ARMv8)
