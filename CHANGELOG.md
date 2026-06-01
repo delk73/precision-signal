@@ -7,6 +7,8 @@
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-05-31
+
 ### Added
 
 - added STM32 sync trigger I/O features for HIL bring-up: `sync_trigger_out`
@@ -60,10 +62,18 @@
   BBB orchestration hardening
 - hardened BBB dual-board observer repeat execution with bounded ST-LINK/VCP
   readiness checks and retry classification for transient USB/ST-LINK transport
-  failures during repeated flash/reset cycles; retained `0007` evidence remains
-  deferred until repeated scratch execution is mechanically boring
+  failures during repeated flash/reset cycles
 - pinned retained HIL ST-LINK host tooling to `st-flash` 1.8.0 and gate
   under-reset HIL flash paths on the checked version before retained capture
+- retained `artifacts/hil_timing_dual/0007` as the first BBB-hosted
+  dual-board external-observer PASS/PASS artifact after repo-enforced
+  `st-flash` 1.8.0, actor-quiesce preflight, BBB repeat-run readiness
+  hardening, classified ST-LINK transport retry, and actor startup
+  ack-idle correction. The retained result records `result=PASS`,
+  `evidence_window_result=PASS`, `unexpected_ack_count=0`,
+  `pre_first_trigger_ack_count=0`,
+  `evidence_window_unexpected_ack_count=0`,
+  `evidence_window_max_delta_ticks=6`, and `threshold_ticks=9`.
 
 ### Changed
 
