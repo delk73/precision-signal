@@ -1,0 +1,52 @@
+# Release Bundle Summary (1.9.1)
+
+## Bundle Paths
+- bundle: docs/verification/releases/1.9.1
+- summary_json: docs/verification/releases/1.9.1/summary.json
+- summary_md: docs/verification/releases/1.9.1/summary.md
+
+## Key Metadata
+- schema: precision.release_summary.v1
+- git_commit: 190e93060e2283ef96edaf8d2a3f6223c294ab5b
+- git_branch: replay/precision-crate-boundary
+- artifact_count: 6
+- validation_output_count: 8
+- retained_file_count: 15
+
+## Artifacts
+- fw_capture.bin sha256=f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765 size_bytes=160243
+- fw_repeat/run_01.bin sha256=f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765 size_bytes=160243
+- fw_repeat/run_02.bin sha256=f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765 size_bytes=160243
+- fw_repeat/run_03.bin sha256=f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765 size_bytes=160243
+- fw_repeat/run_04.bin sha256=f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765 size_bytes=160243
+- fw_repeat/run_05.bin sha256=f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765 size_bytes=160243
+
+## Validation Outputs
+- cargo_check_precision_math_thumb_locked.txt sha256=736e2582f563605dd272e5fb977840b0c0767377d27b6940c440caf75eec7157 size_bytes=72
+- firmware_release_evidence.md sha256=58b76442cb6e4142a59626bb0b062d8c9dda1dd5fac79987987dc6fc3a39e24b size_bytes=1122
+- fw_capture_hash_check.txt sha256=598c9347ce052b23b3ef3452919dd5eb23280a18c51d836679ae27f466927b29 size_bytes=84
+- fw_repeat_hash_check.txt sha256=bb684d8c5faa523faa37a745ef0c7e56cc15e4925f5f53e37db03349c9ab1f31 size_bytes=495
+- kani_evidence.txt sha256=f28d7baa42785dac32d0b1c7f0c8c8ec85466bb87f7fadc97adcaec9066f1f24 size_bytes=7311
+- make_gate.txt sha256=6db82cae74462f501b1ed892dfe755c1318cacb39c71fa27b6ddef88a84bfebd size_bytes=1921
+- make_release_bundle_check.txt sha256=d8a5730baeb34114e8bd90214ec2dc0b5a43e3c6af9180af77df720646d4699c size_bytes=74
+- release_reproducibility.txt sha256=d4b504f8d3530f87cea0562cfa28a83de4ff46a0aa36132eb01176daa187ab59 size_bytes=3957
+
+## Metadata Outputs
+- fw_repeat/replay_manifest_v1.txt sha256=dd1194bb2d8459717c4a9be9a4e3fc9f60fe7f16c3a33c81f998f53dc5839f15 size_bytes=889
+
+## Hashes
+- cargo_check_precision_math_thumb_locked.txt 736e2582f563605dd272e5fb977840b0c0767377d27b6940c440caf75eec7157
+- firmware_release_evidence.md 58b76442cb6e4142a59626bb0b062d8c9dda1dd5fac79987987dc6fc3a39e24b
+- fw_capture.bin f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765
+- fw_capture_hash_check.txt 598c9347ce052b23b3ef3452919dd5eb23280a18c51d836679ae27f466927b29
+- fw_repeat/replay_manifest_v1.txt dd1194bb2d8459717c4a9be9a4e3fc9f60fe7f16c3a33c81f998f53dc5839f15
+- fw_repeat/run_01.bin f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765
+- fw_repeat/run_02.bin f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765
+- fw_repeat/run_03.bin f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765
+- fw_repeat/run_04.bin f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765
+- fw_repeat/run_05.bin f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765
+- fw_repeat_hash_check.txt bb684d8c5faa523faa37a745ef0c7e56cc15e4925f5f53e37db03349c9ab1f31
+- kani_evidence.txt f28d7baa42785dac32d0b1c7f0c8c8ec85466bb87f7fadc97adcaec9066f1f24
+- make_gate.txt 6db82cae74462f501b1ed892dfe755c1318cacb39c71fa27b6ddef88a84bfebd
+- make_release_bundle_check.txt d8a5730baeb34114e8bd90214ec2dc0b5a43e3c6af9180af77df720646d4699c
+- release_reproducibility.txt d4b504f8d3530f87cea0562cfa28a83de4ff46a0aa36132eb01176daa187ab59

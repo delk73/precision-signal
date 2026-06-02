@@ -78,10 +78,10 @@ help:
 	echo "  make gate"
 	echo "Generic bundle release path:"
 	echo "  make bench-check"
-	echo "  make release-proof VERSION=1.9.0"
-	echo "  make release VERSION=1.9.0"
-	echo "  make release-bundle VERSION=1.9.0"
-	echo "  make release-bundle-check VERSION=1.9.0"
+	echo "  make release-proof VERSION=1.9.1"
+	echo "  make release VERSION=1.9.1"
+	echo "  make release-bundle VERSION=1.9.1"
+	echo "  make release-bundle-check VERSION=1.9.1"
 	echo "  make doc-link-check"
 	echo "  make check-workspace"
 	echo "  make test"
@@ -96,10 +96,10 @@ help-all:
 	echo "  make gate"
 	echo "Generic bundle release:"
 	echo "  make bench-check"
-	echo "  make release-proof VERSION=1.9.0"
-	echo "  make release VERSION=1.9.0"
-	echo "  make release-bundle VERSION=1.9.0"
-	echo "  make release-bundle-check VERSION=1.9.0"
+	echo "  make release-proof VERSION=1.9.1"
+	echo "  make release VERSION=1.9.1"
+	echo "  make release-bundle VERSION=1.9.1"
+	echo "  make release-bundle-check VERSION=1.9.1"
 	echo "  make doc-link-check"
 	echo "  make check-workspace"
 	echo "  make test"
@@ -171,8 +171,9 @@ demo-evidence-package:
 
 release: release-bundle
 	@test -n "$(VERSION)" || { echo "FAIL: VERSION is required. Usage: make release VERSION=<version>"; exit 1; }
-	$(MAKE_NO_PRINT) release-bundle-check VERSION="$(VERSION)" > "$(RELEASE_DIR)/make_release_bundle_check.next"
-	mv "$(RELEASE_DIR)/make_release_bundle_check.next" "$(RELEASE_DIR)/make_release_bundle_check.txt"
+	tmp="$$(mktemp)"
+	$(MAKE_NO_PRINT) release-bundle-check VERSION="$(VERSION)" > "$$tmp"
+	mv "$$tmp" "$(RELEASE_DIR)/make_release_bundle_check.txt"
 	$(MAKE_NO_PRINT) release-summary VERSION="$(VERSION)"
 
 release-proof:
@@ -194,8 +195,9 @@ release-proof:
 	  $(MAKE_NO_PRINT) fw-release-archive-current VERSION="$(VERSION)" SERIAL="$(SERIAL)"
 	fi
 	$(MAKE_NO_PRINT) release-bundle VERSION="$(VERSION)"
-	$(MAKE_NO_PRINT) release-bundle-check VERSION="$(VERSION)" > "$(RELEASE_DIR)/make_release_bundle_check.next"
-	mv "$(RELEASE_DIR)/make_release_bundle_check.next" "$(RELEASE_DIR)/make_release_bundle_check.txt"
+	tmp="$$(mktemp)"
+	$(MAKE_NO_PRINT) release-bundle-check VERSION="$(VERSION)" > "$$tmp"
+	mv "$$tmp" "$(RELEASE_DIR)/make_release_bundle_check.txt"
 	$(MAKE_NO_PRINT) release-summary VERSION="$(VERSION)"
 
 release-1.7.0:
@@ -205,7 +207,7 @@ release-1.7.0:
 	  --fw-target "$(FW_TARGET)" \
 	  --cargo "$(CARGO)" \
 	  --precision-math-pkg "$(PRECISION_MATH_PKG)" \
-	  --make "$(MAKE_CMD)" \
+	  --make "$(MAKE_CMD)"
 	  --functional \
 	  --demo-evidence \
 	  --doc-link \
@@ -425,6 +427,7 @@ fw-gate:
 	  --replay-baseline "$(REPLAY_BASELINE)" \
 	  --repeat-dir "$(REPLAY_REPEAT_DIR)" \
 	  --stflash "$(STFLASH)" \
+	  --stflash-freq "$(STFLASH_FREQ)" \
 	  --make "$(MAKE_CMD)"
 
 firmware-release-summary:
@@ -463,7 +466,7 @@ release-bundle:
 	  --fw-target "$(FW_TARGET)" \
 	  --cargo "$(CARGO)" \
 	  --precision-math-pkg "$(PRECISION_MATH_PKG)" \
-	  --make "$(MAKE_CMD)"
+	  --make "$(MAKE_CMD)" \
 
 release-summary:
 	@test -n "$(VERSION)" || { echo "FAIL: VERSION is required. Usage: make release-summary VERSION=<version>"; exit 1; }
