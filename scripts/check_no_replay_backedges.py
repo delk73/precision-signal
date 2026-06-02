@@ -4,7 +4,7 @@ import subprocess
 import sys
 from collections import deque
 
-SOURCES = {"dpw4", "geom-signal", "geom-spatial"}
+SOURCES = {"precision-math", "geom-signal", "geom-spatial"}
 TARGETS = {"replay-core", "replay-embed", "replay-host", "replay-cli"}
 
 

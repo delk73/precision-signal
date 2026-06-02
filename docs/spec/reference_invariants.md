@@ -8,7 +8,7 @@
 - Release versions identify the shipped software release.
 - This document defines mathematical and operational invariants; unchanged content remains applicable to release `1.5.0`.
 
-This document defines the authoritative mathematical and operational invariants for `dpw4`. This is a **Canonical Reference Baseline**.
+This document defines the authoritative mathematical and operational invariants for `precision-math`. This is a **Canonical Reference Baseline**.
 
 ## Governance & Interpretation
 

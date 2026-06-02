@@ -1,0 +1,256 @@
+{
+  "artifacts": [
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_capture.bin",
+      "kind": "artifact",
+      "path": "fw_capture.bin",
+      "sha256": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+      "size_bytes": 160243
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_repeat/run_01.bin",
+      "kind": "artifact",
+      "path": "fw_repeat/run_01.bin",
+      "sha256": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+      "size_bytes": 160243
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_repeat/run_02.bin",
+      "kind": "artifact",
+      "path": "fw_repeat/run_02.bin",
+      "sha256": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+      "size_bytes": 160243
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_repeat/run_03.bin",
+      "kind": "artifact",
+      "path": "fw_repeat/run_03.bin",
+      "sha256": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+      "size_bytes": 160243
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_repeat/run_04.bin",
+      "kind": "artifact",
+      "path": "fw_repeat/run_04.bin",
+      "sha256": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+      "size_bytes": 160243
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_repeat/run_05.bin",
+      "kind": "artifact",
+      "path": "fw_repeat/run_05.bin",
+      "sha256": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+      "size_bytes": 160243
+    }
+  ],
+  "bundle": {
+    "path": "docs/verification/releases/1.9.1",
+    "summary_json": "docs/verification/releases/1.9.1/summary.json",
+    "summary_md": "docs/verification/releases/1.9.1/summary.md"
+  },
+  "files": [
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/cargo_check_precision_math_thumb_locked.txt",
+      "kind": "validation",
+      "path": "cargo_check_precision_math_thumb_locked.txt",
+      "sha256": "ee1d3fffa2022e962e63e0dbe4d35c9c198450a20c29fc09030f635dbb38bfcd",
+      "size_bytes": 72
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/firmware_release_evidence.md",
+      "kind": "validation",
+      "path": "firmware_release_evidence.md",
+      "sha256": "58b76442cb6e4142a59626bb0b062d8c9dda1dd5fac79987987dc6fc3a39e24b",
+      "size_bytes": 1122
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_capture.bin",
+      "kind": "artifact",
+      "path": "fw_capture.bin",
+      "sha256": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+      "size_bytes": 160243
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_capture_hash_check.txt",
+      "kind": "validation",
+      "path": "fw_capture_hash_check.txt",
+      "sha256": "598c9347ce052b23b3ef3452919dd5eb23280a18c51d836679ae27f466927b29",
+      "size_bytes": 84
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_repeat/replay_manifest_v1.txt",
+      "kind": "metadata",
+      "path": "fw_repeat/replay_manifest_v1.txt",
+      "sha256": "dd1194bb2d8459717c4a9be9a4e3fc9f60fe7f16c3a33c81f998f53dc5839f15",
+      "size_bytes": 889
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_repeat/run_01.bin",
+      "kind": "artifact",
+      "path": "fw_repeat/run_01.bin",
+      "sha256": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+      "size_bytes": 160243
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_repeat/run_02.bin",
+      "kind": "artifact",
+      "path": "fw_repeat/run_02.bin",
+      "sha256": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+      "size_bytes": 160243
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_repeat/run_03.bin",
+      "kind": "artifact",
+      "path": "fw_repeat/run_03.bin",
+      "sha256": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+      "size_bytes": 160243
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_repeat/run_04.bin",
+      "kind": "artifact",
+      "path": "fw_repeat/run_04.bin",
+      "sha256": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+      "size_bytes": 160243
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_repeat/run_05.bin",
+      "kind": "artifact",
+      "path": "fw_repeat/run_05.bin",
+      "sha256": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+      "size_bytes": 160243
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_repeat_hash_check.txt",
+      "kind": "validation",
+      "path": "fw_repeat_hash_check.txt",
+      "sha256": "bb684d8c5faa523faa37a745ef0c7e56cc15e4925f5f53e37db03349c9ab1f31",
+      "size_bytes": 495
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/kani_evidence.txt",
+      "kind": "validation",
+      "path": "kani_evidence.txt",
+      "sha256": "97e75fe679a6dcf0655439480eda71606de83ff1c171d9c79ef294e9881f9f7c",
+      "size_bytes": 7312
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/make_gate.txt",
+      "kind": "validation",
+      "path": "make_gate.txt",
+      "sha256": "d2c921489d45ce18f991aaf390676a0e923cfc229af57fa43e4678dc1190ebe5",
+      "size_bytes": 1921
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/make_release_bundle_check.txt",
+      "kind": "validation",
+      "path": "make_release_bundle_check.txt",
+      "sha256": "d8a5730baeb34114e8bd90214ec2dc0b5a43e3c6af9180af77df720646d4699c",
+      "size_bytes": 74
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/release_reproducibility.txt",
+      "kind": "validation",
+      "path": "release_reproducibility.txt",
+      "sha256": "6e57aa05ea237989d39c08f0cb40b6b26f7d4c5cf955641816fb8f7ebd92dd9c",
+      "size_bytes": 3957
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/release_supersession_note.md",
+      "kind": "support",
+      "path": "release_supersession_note.md",
+      "sha256": "85ff848d69857f1c400922eeb8062a033d856bf0a92b11420d7a09503a7a9e83",
+      "size_bytes": 961
+    }
+  ],
+  "hashes": {
+    "cargo_check_precision_math_thumb_locked.txt": "ee1d3fffa2022e962e63e0dbe4d35c9c198450a20c29fc09030f635dbb38bfcd",
+    "firmware_release_evidence.md": "58b76442cb6e4142a59626bb0b062d8c9dda1dd5fac79987987dc6fc3a39e24b",
+    "fw_capture.bin": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+    "fw_capture_hash_check.txt": "598c9347ce052b23b3ef3452919dd5eb23280a18c51d836679ae27f466927b29",
+    "fw_repeat/replay_manifest_v1.txt": "dd1194bb2d8459717c4a9be9a4e3fc9f60fe7f16c3a33c81f998f53dc5839f15",
+    "fw_repeat/run_01.bin": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+    "fw_repeat/run_02.bin": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+    "fw_repeat/run_03.bin": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+    "fw_repeat/run_04.bin": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+    "fw_repeat/run_05.bin": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+    "fw_repeat_hash_check.txt": "bb684d8c5faa523faa37a745ef0c7e56cc15e4925f5f53e37db03349c9ab1f31",
+    "kani_evidence.txt": "97e75fe679a6dcf0655439480eda71606de83ff1c171d9c79ef294e9881f9f7c",
+    "make_gate.txt": "d2c921489d45ce18f991aaf390676a0e923cfc229af57fa43e4678dc1190ebe5",
+    "make_release_bundle_check.txt": "d8a5730baeb34114e8bd90214ec2dc0b5a43e3c6af9180af77df720646d4699c",
+    "release_reproducibility.txt": "6e57aa05ea237989d39c08f0cb40b6b26f7d4c5cf955641816fb8f7ebd92dd9c",
+    "release_supersession_note.md": "85ff848d69857f1c400922eeb8062a033d856bf0a92b11420d7a09503a7a9e83"
+  },
+  "metadata": {
+    "git_branch": "replay/precision-crate-boundary",
+    "git_commit": "0efa7840442fc5e5c154f8b58583622ecc67c762"
+  },
+  "metadata_outputs": [
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_repeat/replay_manifest_v1.txt",
+      "kind": "metadata",
+      "path": "fw_repeat/replay_manifest_v1.txt",
+      "sha256": "dd1194bb2d8459717c4a9be9a4e3fc9f60fe7f16c3a33c81f998f53dc5839f15",
+      "size_bytes": 889
+    }
+  ],
+  "schema": "precision.release_summary.v1",
+  "validation_outputs": [
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/cargo_check_precision_math_thumb_locked.txt",
+      "kind": "validation",
+      "path": "cargo_check_precision_math_thumb_locked.txt",
+      "sha256": "ee1d3fffa2022e962e63e0dbe4d35c9c198450a20c29fc09030f635dbb38bfcd",
+      "size_bytes": 72
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/firmware_release_evidence.md",
+      "kind": "validation",
+      "path": "firmware_release_evidence.md",
+      "sha256": "58b76442cb6e4142a59626bb0b062d8c9dda1dd5fac79987987dc6fc3a39e24b",
+      "size_bytes": 1122
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_capture_hash_check.txt",
+      "kind": "validation",
+      "path": "fw_capture_hash_check.txt",
+      "sha256": "598c9347ce052b23b3ef3452919dd5eb23280a18c51d836679ae27f466927b29",
+      "size_bytes": 84
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/fw_repeat_hash_check.txt",
+      "kind": "validation",
+      "path": "fw_repeat_hash_check.txt",
+      "sha256": "bb684d8c5faa523faa37a745ef0c7e56cc15e4925f5f53e37db03349c9ab1f31",
+      "size_bytes": 495
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/kani_evidence.txt",
+      "kind": "validation",
+      "path": "kani_evidence.txt",
+      "sha256": "97e75fe679a6dcf0655439480eda71606de83ff1c171d9c79ef294e9881f9f7c",
+      "size_bytes": 7312
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/make_gate.txt",
+      "kind": "validation",
+      "path": "make_gate.txt",
+      "sha256": "d2c921489d45ce18f991aaf390676a0e923cfc229af57fa43e4678dc1190ebe5",
+      "size_bytes": 1921
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/make_release_bundle_check.txt",
+      "kind": "validation",
+      "path": "make_release_bundle_check.txt",
+      "sha256": "d8a5730baeb34114e8bd90214ec2dc0b5a43e3c6af9180af77df720646d4699c",
+      "size_bytes": 74
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/release_reproducibility.txt",
+      "kind": "validation",
+      "path": "release_reproducibility.txt",
+      "sha256": "6e57aa05ea237989d39c08f0cb40b6b26f7d4c5cf955641816fb8f7ebd92dd9c",
+      "size_bytes": 3957
+    }
+  ],
+  "version": "1.9.1"
+}

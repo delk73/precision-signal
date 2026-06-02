@@ -14,7 +14,7 @@ This file is descriptive only and does not define release classification.
 
 - `crates/geom-signal`
 - `crates/geom-spatial`
-- `crates/dpw4/src`
+- `crates/precision-math/src`
 
 These surfaces hold deterministic fixed-point math and reference DSP logic.
 `geom-signal` underpins the canonical gate. `geom-spatial` is support logic
@@ -22,7 +22,7 @@ outside that gate.
 
 ### Hardware Harness
 
-- `crates/dpw4/examples/rpi_verify_logic.rs`
+- `crates/precision-math/examples/rpi_verify_logic.rs`
 
 This surface is Raspberry Pi specific and is used for physical-time observation,
 not core arithmetic definition.
@@ -59,7 +59,7 @@ hardware-backed retained release record remains explicit under
 ## Reference Build Details
 
 - toolchain is pinned by `rust-toolchain.toml` (`rustc 1.91.1`)
-- release CLI build: `cargo build --release -p dpw4 --features cli`
+- release CLI build: `cargo build --release -p precision-cli`
 - supported reference targets: `x86_64` and `aarch64` little-endian
 - egress format is `S32LE`
 

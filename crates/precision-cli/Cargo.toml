@@ -1,0 +1,39 @@
+[package]
+name = "precision-cli"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+description = "Public Precision Replay CLI and validation entry points"
+build = "build.rs"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+libm = "0.2"
+precision-math = { workspace = true, features = ["runtime-hash", "verification-runtime"] }
+sha2 = "0.10.9"
+hex = "0.4"
+getrandom = "0.3"
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+[features]
+default = []
+audit = ["precision-math/audit"]
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[[bin]]
+name = "precision"
+path = "src/bin/precision.rs"
+
+[[bin]]
+name = "sig-util"
+path = "src/bin/sig_util.rs"
+
+[[bin]]
+name = "substrate_probe"
+path = "src/bin/substrate_probe.rs"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }

@@ -18,7 +18,7 @@ release admissibility and it does not replace the canonical release path
 ## Reference Build Commands
 
 ```bash
-cargo build --release -p dpw4 --features cli
+cargo build --release -p precision-cli
 ```
 
 The command above is the canonical reference build for the released replay
@@ -35,7 +35,7 @@ make gate
 Normative underlying command:
 
 ```bash
-cargo run --release -p dpw4 --features cli --bin sig-util -- validate --mode quick
+cargo run --release -p precision-cli --bin sig-util -- validate --mode quick
 ```
 
 Supporting release-binary identity check:

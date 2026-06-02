@@ -18,11 +18,11 @@ Use the active authority path first:
 
 ## Active Retained Release Record
 
-Active retained release record: `1.8.0`
+Active retained release record: `1.9.1`
 
-- [Release 1.8.0](1.8.0/): firmware-including release — RPL0 restore, precision.meta.v2, dpw4 streaming hash
-- [Release 1.8.0 index.md](1.8.0/index.md): primary human-readable release
-  summary and retained file inventory
+- [Release 1.9.1](1.9.1/): firmware-including release evidence for the precision crate-boundary split
+- [Release 1.9.1 summary.md](1.9.1/summary.md): generated retained file inventory and hashes
+- [Release 1.9.1 supersession note](1.9.1/release_supersession_note.md): explains why `v1.9.0` is historical and superseded
 
 ## Retained-Release Mechanics
 
@@ -39,8 +39,8 @@ docs/verification/releases/<version>/
 For the active retained release record, inspect:
 
 ```text
-docs/verification/releases/1.8.0/
-docs/verification/releases/1.8.0/index.md
+docs/verification/releases/1.9.1/
+docs/verification/releases/1.9.1/summary.md
 ```
 
 Use the retained bundle, not transient workspace artifacts, when evaluating a
@@ -51,9 +51,9 @@ release claim.
 Current release tooling exposes two retained-release preparation routes:
 
 - `make release-1.8.0`: compatibility retained-record orchestration for the
-  active `1.8.0` firmware-including record.
+  historical `1.8.0` firmware-including record.
 - `make release-proof VERSION=<ver>`: generic release-proof orchestration for
-  new release execution.
+  new release execution, including the active `1.9.1` retained release record.
 
 After a retained bundle exists, check it with:
 
@@ -69,9 +69,9 @@ evidence-producing release route.
 Kani evidence is retained release/proof-boundary evidence. It is not a board
 bring-up step.
 
-The active `1.8.0` retained-record route requires
+The historical `1.8.0` retained-record route requires
 `docs/verification/releases/1.8.0/kani_evidence.txt` to exist before
-`make release-1.8.0` runs. Other release-bundle tooling may produce
+`make release-1.8.0` runs. Current generic release-bundle tooling may produce
 `kani_evidence.txt` directly as part of bundle generation. Follow the current
 tooling behavior for the route being used; do not assume every downstream
 release command reruns Kani.
@@ -88,10 +88,10 @@ them.
 ## Firmware-Including Release Evidence
 
 Firmware-including release claims require retained firmware evidence for the
-active STM32 RPL0 capture path. For `1.8.0`, that evidence is under:
+active STM32 RPL0 capture path. For `1.9.1`, that evidence is under:
 
 ```text
-docs/verification/releases/1.8.0/
+docs/verification/releases/1.9.1/
 ```
 
 The firmware evidence set includes the archived capture artifact, capture hash

@@ -14,7 +14,7 @@ fixed = { workspace = true, features = ["num-traits"] }
 [dev-dependencies]
 proptest = "1.4"
 criterion = "0.5"
-dpw4 = { workspace = true }
+precision-math = { workspace = true }
 
 # Allow Kani configuration flags
 [lints.rust]

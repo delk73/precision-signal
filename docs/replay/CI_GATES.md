@@ -22,7 +22,7 @@ Firmware binary emission is verified locally via Makefile targets (`make fw-bin`
 
 - `Dependency DAG Oracle (no replay backedges)`
   - `python3 scripts/check_no_replay_backedges.py`
-  - Blocks direct/transitive dependency paths from `{dpw4, geom-signal, geom-spatial}` to `{replay-core, replay-embed, replay-host, replay-cli}`.
+  - Blocks direct/transitive dependency paths from `{precision-math, geom-signal, geom-spatial}` to `{replay-core, replay-embed, replay-host, replay-cli}`.
 
 - `Replay no_std Oracle (thumbv7em-none-eabihf)`
   - `cargo check -p replay-core --no-default-features --target thumbv7em-none-eabihf --locked`

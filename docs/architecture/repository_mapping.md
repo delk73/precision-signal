@@ -92,7 +92,7 @@ The deterministic step loop is `replay_hashes0`: it starts from `SutState0::defa
 
 ## D. Operator Surface: `precision` CLI
 
-Primary implementation: [`crates/dpw4/src/bin/precision/mod.rs`](../../crates/dpw4/src/bin/precision/mod.rs). Shared result block implementation: [`crates/dpw4/src/bin/common/mod.rs`](../../crates/dpw4/src/bin/common/mod.rs).
+Primary implementation: [`crates/precision-cli/src/bin/precision/mod.rs`](../../crates/precision-cli/src/bin/precision/mod.rs). Shared result block implementation: [`crates/precision-cli/src/bin/common/mod.rs`](../../crates/precision-cli/src/bin/common/mod.rs).
 
 The command enum exposes four authoritative subcommands:
 
@@ -131,7 +131,8 @@ The deterministic signal path is anchored by three workspace crates:
 
 | Crate | Implementation | Role |
 | --- | --- | --- |
-| `dpw4` | [`crates/dpw4/src/lib.rs`](../../crates/dpw4/src/lib.rs) | Core DPW4 oscillator and reference signal processing kernel. It defines `Dpw4State`, `IntegrationState`, `DpwGain`, `Oscillator`, `tick_dpw4`, `tick_shape`, checksum utilities, and the `precision` CLI entry point gated by the `cli` feature in [`crates/dpw4/Cargo.toml`](../../crates/dpw4/Cargo.toml). |
+| `precision-math` | [`crates/precision-math/src/lib.rs`](../../crates/precision-math/src/lib.rs) | Core DPW4 oscillator and reference signal processing kernel. It defines `Dpw4State`, `IntegrationState`, `DpwGain`, `Oscillator`, `tick_dpw4`, `tick_shape`, and checksum utilities. |
+| `precision-cli` | [`crates/precision-cli/src/bin/precision/mod.rs`](../../crates/precision-cli/src/bin/precision/mod.rs) | Public `precision` CLI and helper binaries. |
 | `geom-signal` | [`crates/geom-signal/src/lib.rs`](../../crates/geom-signal/src/lib.rs), [`crates/geom-signal/src/math.rs`](../../crates/geom-signal/src/math.rs) | Fixed-point signal math. It exports `Scalar = fixed::types::I64F64`, deterministic `sin_cos`, `sin_cos_fast`, `sqrt`, and algebraic atan helpers. |
 | `geom-spatial` | [`crates/geom-spatial/src/lib.rs`](../../crates/geom-spatial/src/lib.rs) | Fixed-point spatial vector math over `geom_signal::Scalar`, including `Vector3`, checked/saturating magnitude, and distance calculations. |
 

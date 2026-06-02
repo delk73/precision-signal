@@ -7,7 +7,7 @@ import argparse
 from pathlib import Path
 
 TRANSCRIPTS = (
-    "cargo_check_dpw4_thumb_locked.txt",
+    "cargo_check_precision_math_thumb_locked.txt",
     "kani_evidence.txt",
     "make_gate.txt",
     "release_reproducibility.txt",

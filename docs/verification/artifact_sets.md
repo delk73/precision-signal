@@ -28,7 +28,7 @@ Normative identity is defined over raw `S32LE` sample bytes serialized with
 
 ## Formal Verification
 
-Kani proofs cover selected fixed-point kernel boundaries in `dpw4` and
+Kani proofs cover selected fixed-point kernel boundaries in `precision-math` and
 `geom-signal`, including polynomial safety, saturation, `sqrt`, `sin`, `cos`,
 and tiered `atan2` shards.
 

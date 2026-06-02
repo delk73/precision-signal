@@ -14,7 +14,7 @@
 This addendum clarifies the canonical layout and alignment rules for `SignalFrameHeader`.
 
 ## Normative Layout
-`SignalFrameHeader` is defined as `#[repr(C, align(64))]` in `crates/dpw4/src/lib.rs`.
+`SignalFrameHeader` is defined as `#[repr(C, align(64))]` in `crates/precision-math/src/lib.rs`.
 
 * Alignment to 64 bytes is **normative**.
 * The struct is required to occupy **exactly 64 bytes**.
@@ -35,10 +35,10 @@ This addendum clarifies the canonical layout and alignment rules for `SignalFram
 | 60 | 4 | `checksum: u32` | `HEADER_CHECKSUM_OFFSET = 60`, `HEADER_CHECKSUM_SIZE = 4` |
 | **Total** | **64** | | `HEADER_SIZE = 64` |
 
-All constants are defined in `crates/dpw4/src/constants.rs`.
+All constants are defined in `crates/precision-math/src/constants.rs`.
 
 ## Field Map
-Defined fields in `crates/dpw4/src/lib.rs`:
+Defined fields in `crates/precision-math/src/lib.rs`:
 
 * `magic: [u8; 4]`
 * `version: u32`

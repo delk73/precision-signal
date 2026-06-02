@@ -1,8 +1,8 @@
 use criterion::{
     black_box, criterion_group, criterion_main, BatchSize, BenchmarkId, Criterion, Throughput,
 };
-use dpw4::{tick_dpw4, tick_shape, Dpw4State, DpwGain, OscState};
 use geom_signal::{math, Scalar};
+use precision_math::{tick_dpw4, tick_shape, Dpw4State, DpwGain, OscState};
 use std::time::Duration;
 
 // NOTE: Phase representation differs by kernel:

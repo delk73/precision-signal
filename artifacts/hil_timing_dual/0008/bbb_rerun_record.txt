@@ -1,0 +1,11 @@
+date_utc=2026-06-02T15:36:34Z
+host=BeagleBone
+branch=replay/precision-crate-boundary
+head=8a6599f851e982a5078a175292837cb52f7d9d3f
+source_context=artifacts/hil_timing_dual/0007/run_context.json
+scratch_artifact=/tmp/hil_timing_dual_0007_scratch_20260602T153147Z
+result=PASS
+evidence_window_result=PASS
+command=python3 scripts/hil_dual_observer_run.py --context artifacts/hil_timing_dual/0007/run_context.json --scratch --timeout 120 --out /tmp/hil_timing_dual_0007_scratch_20260602T153147Z
+
+note=Initial retained-context scratch rerun attempts failed with observer report timeout. After power cycling the boards, rerunning the existing retained 0007 context as scratch succeeded and produced this retained 0008 evidence package.

@@ -14,7 +14,7 @@ Packaged replay proof/support routing lives in
 [docs/demos/demo_evidence_packaging.md](../demos/demo_evidence_packaging.md).
 
 Workspace framing:
-- `geom-signal`, `geom-spatial`, and `dpw4` provide the core math, spatial, and
+- `geom-signal`, `geom-spatial`, and `precision-math` provides the core math, spatial, and
   validation/build surfaces.
 - Replay-related implementation and operator documentation lives under
   [docs/replay/](../replay/).

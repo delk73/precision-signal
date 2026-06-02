@@ -227,7 +227,7 @@ Evidence:
 - `crates/geom-signal/src/math.rs`: `sin_cos_kernel()` (lines 71–103), `sqrt()` (lines 107–122)
 - `crates/geom-signal/src/algebraic.rs`: `atan_shafer()` (lines 89+), `atan2_shafer()` (lines 137+)
 
-### Layer 2: Reference Oscillator (`dpw4`)
+### Layer 2: Reference Oscillator (`precision-math`)
 
 A 4th-order DPW oscillator producing deterministic waveforms (sawtooth,
 pulse, triangle, sine) with SHA-256-verified outputs. Its
@@ -281,14 +281,14 @@ practical minimum for a clean reference signal.
 
 One naming note: in the audio DSP literature, DPW canonically generates only
 sawtooth. This implementation extends the same polynomial core to pulse,
-triangle, and CORDIC-backed sine. The crate is named `dpw4` for the polynomial
+triangle, and CORDIC-backed sine. The math crate is named `precision-math`; DPW4 remains the polynomial
 core order; the waveform shapes built on top are not all strictly "DPW" in the
 academic sense.
 
 Evidence:
-- `crates/dpw4/src/lib.rs`: `Dpw4State` (line 90), `compute_x2_q124()` (line 141), `tick_dpw4_raw()` (line 172), `apply_gain()` (line 287)
-- `crates/dpw4/src/i256.rs`: `I256` struct and operations (lines 2–78)
-- `crates/dpw4/src/constants.rs`: `HEADROOM_BITS` (line 71), `DISCONTINUITY_THRESHOLD` (line 38)
+- `crates/precision-math/src/lib.rs`: `Dpw4State` (line 90), `compute_x2_q124()` (line 141), `tick_dpw4_raw()` (line 172), `apply_gain()` (line 287)
+- `crates/precision-math/src/i256.rs`: `I256` struct and operations (lines 2–78)
+- `crates/precision-math/src/constants.rs`: `HEADROOM_BITS` (line 71), `DISCONTINUITY_THRESHOLD` (line 38)
 
 ### Layer 3: Capture Firmware (`replay-fw-f446`, `replay-embed`)
 
@@ -788,24 +788,24 @@ narrower Tier-1 release-critical subset defined by `verify_kani.sh`.
 | Crate | Harness | Property |
 |-------|---------|----------|
 | `geom-signal` | `proof_sqrt_no_panic` | Newton-Raphson safety (64 iterations) |
-| `dpw4` | `proof_compute_x2_safe` | x² overflow safety |
-| `dpw4` | `proof_saturate_safe` | i32 saturation correctness |
-| `dpw4` | `proof_phase_u32_no_overflow` | Phase conversion safety |
-| `dpw4` | `proof_phase_u32_fixed_to_u32_conversion` | Fixed-to-u32 phase conversion safety |
-| `dpw4` | `proof_sine_scale_no_overflow` | Sine scaling overflow safety |
-| `dpw4` | `proof_sine_to_i32_in_range` | Sine output stays within i32 range |
-| `dpw4` | `proof_sine_egress_bounded` | Sine egress boundedness |
-| `dpw4` | `proof_triangle_delta_clamp_identity_when_in_range` | Triangle clamp identity in range |
-| `dpw4` | `proof_triangle_delta_clamp_saturates_when_out_of_range` | Triangle clamp saturation out of range |
-| `dpw4` | `proof_triangle_z_update_is_saturating` | Triangle state update saturation |
-| `dpw4` | `proof_spec_clamp_in_range_contract` | I256→I128 clamp (in-range) |
-| `dpw4` | `proof_spec_clamp_out_of_range_contract` | I256→I128 clamp (out-of-range) |
-| `dpw4` | `proof_spec_sar_sanity` | I256 arithmetic right-shift |
-| `dpw4` | `proof_i256_sub_matches_spec` | I256 subtraction byte-level identity |
-| `dpw4` | `proof_i256_sar_in_range_matches_spec` | I256 SAR (shift < 256) |
-| `dpw4` | `proof_i256_sar_out_of_range_matches_spec` | I256 SAR (shift ≥ 256) sign extension |
-| `dpw4` | `proof_i256_clamp_matches_spec` | Full clamping identity |
-| `dpw4` | `proof_triangle_freeze_invariant` | Triangle freeze guard invariant |
+| `precision-math` | `proof_compute_x2_safe` | x² overflow safety |
+| `precision-math` | `proof_saturate_safe` | i32 saturation correctness |
+| `precision-math` | `proof_phase_u32_no_overflow` | Phase conversion safety |
+| `precision-math` | `proof_phase_u32_fixed_to_u32_conversion` | Fixed-to-u32 phase conversion safety |
+| `precision-math` | `proof_sine_scale_no_overflow` | Sine scaling overflow safety |
+| `precision-math` | `proof_sine_to_i32_in_range` | Sine output stays within i32 range |
+| `precision-math` | `proof_sine_egress_bounded` | Sine egress boundedness |
+| `precision-math` | `proof_triangle_delta_clamp_identity_when_in_range` | Triangle clamp identity in range |
+| `precision-math` | `proof_triangle_delta_clamp_saturates_when_out_of_range` | Triangle clamp saturation out of range |
+| `precision-math` | `proof_triangle_z_update_is_saturating` | Triangle state update saturation |
+| `precision-math` | `proof_spec_clamp_in_range_contract` | I256→I128 clamp (in-range) |
+| `precision-math` | `proof_spec_clamp_out_of_range_contract` | I256→I128 clamp (out-of-range) |
+| `precision-math` | `proof_spec_sar_sanity` | I256 arithmetic right-shift |
+| `precision-math` | `proof_i256_sub_matches_spec` | I256 subtraction byte-level identity |
+| `precision-math` | `proof_i256_sar_in_range_matches_spec` | I256 SAR (shift < 256) |
+| `precision-math` | `proof_i256_sar_out_of_range_matches_spec` | I256 SAR (shift ≥ 256) sign extension |
+| `precision-math` | `proof_i256_clamp_matches_spec` | Full clamping identity |
+| `precision-math` | `proof_triangle_freeze_invariant` | Triangle freeze guard invariant |
 | `replay-core` | `proof_v0_wire_size_constants` | v0 wire size constants |
 | `replay-core` | `proof_encode_header0_wire_layout_and_le` | v0 header wire layout + LE encoding |
 | `replay-core` | `proof_encode_event_frame0_wire_layout_and_le` | v0 frame wire layout + LE encoding |
@@ -821,15 +821,15 @@ narrower Tier-1 release-critical subset defined by `verify_kani.sh`.
 
 | Crate | Harness | Property |
 |-------|---------|----------|
-| `dpw4` | `proof_i256_mul_u32_matches_spec` | I256 multiply-by-u32 oracle identity; proof-decomposition work, not release-gating |
+| `precision-math` | `proof_i256_mul_u32_matches_spec` | I256 multiply-by-u32 oracle identity; proof-decomposition work, not release-gating |
 
 Kani configuration: selected geom-signal harnesses use unwind depth 65 and
 solver `cadical`. `SLOW_SECS` is a reporting threshold, not a hard timeout.
 
 Evidence:
 - `crates/geom-signal/src/verification.rs`: signal harnesses (lines 13–107)
-- `crates/dpw4/src/verification.rs`: DPW4 harnesses (lines 218–500)
-- `crates/dpw4/src/i256.rs`: I256 harnesses (lines 263–468)
+- `crates/precision-math/src/verification.rs`: DPW4 harnesses (lines 218–500)
+- `crates/precision-math/src/i256.rs`: I256 harnesses (lines 263–468)
 - `verify_kani.sh`: runner script with tier dispatch and parallelization
 - `verify_kani_tier2.sh`: tier-2 wrapper
 
@@ -849,12 +849,12 @@ version bumps.
 | `long_run_0_1hz` | 0.1 Hz sawtooth, 1,000,000 samples @ 48 kHz | `3f2a364c...` |
 
 Additionally, golden byte-array hashes are stored for sawtooth and pulse
-waveforms in `crates/dpw4/src/goldens.rs` and enforced in forensic audit tests.
+waveforms in `crates/precision-math/src/goldens.rs` and enforced in forensic audit tests.
 
 Evidence:
-- `crates/dpw4/src/bin/sig_util/artifacts.rs`: `NORMATIVE_DET_HASHES` (line 17)
-- `crates/dpw4/src/goldens.rs`: `SAW_GOLDEN_HASH` (line 13), `PULSE_GOLDEN_HASH` (line 19)
-- `crates/dpw4/tests/forensic_audit.rs`: golden lock tests (`test_golden_lock` line 5)
+- `crates/precision-cli/src/bin/sig_util/artifacts.rs`: `NORMATIVE_DET_HASHES` (line 17)
+- `crates/precision-math/src/goldens.rs`: `SAW_GOLDEN_HASH` (line 13), `PULSE_GOLDEN_HASH` (line 19)
+- `crates/precision-math/tests/forensic_audit.rs`: golden lock tests (`test_golden_lock` line 5)
 
 ### 9.3 Deterministic Build Enforcement
 
@@ -891,8 +891,8 @@ verification pipeline:
 Exit codes: 0 (all pass), 1 (error), 2 (integrity failure).
 
 Evidence:
-- `crates/dpw4/src/bin/sig_util/validate.rs`: validation pipeline (`run_validate()` line 39)
-- `crates/dpw4/src/checksum.rs`: Fletcher-32 implementation (`fletcher32_checked()` line 33)
+- `crates/precision-cli/src/bin/sig_util/validate.rs`: validation pipeline (`run_validate()` line 39)
+- `crates/precision-math/src/checksum.rs`: Fletcher-32 implementation (`fletcher32_checked()` line 33)
 
 ---
 
@@ -959,10 +959,10 @@ promoted by [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md).
 | Region attribution | Stable | `scripts/artifact_diff.py` |
 | Shape classification | Stable | `scripts/artifact_diff.py` |
 | Evolution classification | Stable | `scripts/artifact_diff.py` |
-| Deterministic reference oscillator (DPW4) | Stable | `crates/dpw4/src/lib.rs` |
+| Deterministic reference oscillator (DPW4) | Stable | `crates/precision-math/src/lib.rs` |
 | Fixed-point math core | Stable | `crates/geom-signal/src/` |
-| Kani harness inventory (34+ in source) | Implemented; normative evidence is limited to the runner manifest and logs | `crates/*/src/verification.rs`, `crates/dpw4/src/i256.rs`, `verify_kani.sh` |
-| Hash-locked reference outputs (6 scenarios) | Stable | `crates/dpw4/src/bin/precision.rs` |
+| Kani harness inventory (34+ in source) | Implemented; normative evidence is limited to the runner manifest and logs | `crates/*/src/verification.rs`, `crates/precision-math/src/i256.rs`, `verify_kani.sh` |
+| Hash-locked reference outputs (6 scenarios) | Stable | `crates/precision-cli/src/bin/precision.rs` |
 | Deterministic build verification | Stable | `verify_release_repro.sh` |
 | Multi-tier validation gate | Stable | `sig-util validate` CLI |
 | Bare-metal capture firmware (STM32F446RE) | Implemented; release-surface classification for `replay-fw-f446` is routed to [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md). Retained release evidence for this path is documented under [docs/verification/releases/](../verification/releases/). | `crates/replay-fw-f446/` |
@@ -981,7 +981,8 @@ does not classify release maturity. For current release-surface questions, use
 |-------|------|
 | `geom-signal` | Fixed-point math core |
 | `geom-spatial` | 3D spatial math support crate |
-| `dpw4` | Reference oscillator and validation CLI |
+| `precision-math` | Reference oscillator and deterministic math library |
+| `precision-cli` | Public precision and sig-util CLI entry points |
 | `replay-core` | Replay core scaffolding and artifact definitions used by the experimental Rust replay path |
 | `replay-host` | Experimental Rust replay host; current support is RPL0 format version 0 replay plus RPL0 format version 1 container parsing with legacy-frame replay semantics |
 | `replay-fw-f446` | Replay capture firmware for the active RPL0 format version 1 operator path |
@@ -1162,22 +1163,22 @@ that produced valid artifacts.
 | 21 | Shape classification has 3 classes: transient, persistent_offset, rate_divergence | `scripts/artifact_diff.py` `classify_sample_diffs()` line 69; [DIVERGENCE_SEMANTICS.md](../replay/DIVERGENCE_SEMANTICS.md) | supported |
 | 22 | Evolution classification has 4 classes: region_transition, self_healing, monotonic_growth, bounded_persistent | `scripts/artifact_diff.py` `classify_evolution()` line 150; [DIVERGENCE_SEMANTICS.md](../replay/DIVERGENCE_SEMANTICS.md) | supported |
 | 23 | Unsupported field differences cause FAIL exit (no silent fallback) | `scripts/artifact_diff.py` `fail()` line 36; `scripts/test_artifact_diff.py` line 47+ | supported |
-| 24 | Repository contains 34+ Kani harnesses in source across `geom-signal`, `dpw4`, and `replay-core` | `crates/geom-signal/src/verification.rs`; `crates/dpw4/src/verification.rs`; `crates/dpw4/src/i256.rs`; `crates/replay-core/src/artifact.rs` (mod verification) | supported |
+| 24 | Repository contains 34+ Kani harnesses in source across `geom-signal`, `precision-math`, and `replay-core` | `crates/geom-signal/src/verification.rs`; `crates/precision-math/src/verification.rs`; `crates/precision-math/src/i256.rs`; `crates/replay-core/src/artifact.rs` (mod verification) | supported |
 | 25 | Normative Kani runner executes a narrower manifest-defined subset; Tier-1 excludes exploratory trig proofs such as `proof_atan_shafer_safety` and `proof_sin_cos_no_panic`; Tier-2 adds runnable trig proofs when `RUN_TIER2=1`; `proof_i256_mul_u32_matches_spec` remains Tier-3 proof inventory via `RUN_TIER3=1` and is not release-gating | `verify_kani.sh` HARNESS_MANIFEST; `verify_kani_tier2.sh` | supported |
-| 26 | Six normative scenarios have frozen SHA-256 hashes | `crates/dpw4/src/bin/sig_util/artifacts.rs` line 17 | supported |
+| 26 | Six normative scenarios have frozen SHA-256 hashes | `crates/precision-cli/src/bin/sig_util/artifacts.rs` line 17 | supported |
 | 27 | Hash regeneration requires semantic version bump | [VERIFICATION_GUIDE.md](../VERIFICATION_GUIDE.md) governance policy | supported |
 | 28 | Deterministic build verified by dual-build SHA-256 comparison | `verify_release_repro.sh` | supported |
 | 29 | Toolchain pinned to rustc 1.91.1 | `rust-toolchain.toml` | supported |
-| 30 | sig-util validate runs multi-tier verification pipeline | `crates/dpw4/src/bin/sig_util/validate.rs` `run_validate()` | supported |
-| 31 | Fletcher-32 checksum used for DP32 header integrity | `crates/dpw4/src/checksum.rs` `fletcher32_checked()` line 33 | supported |
+| 30 | sig-util validate runs multi-tier verification pipeline | `crates/precision-cli/src/bin/sig_util/validate.rs` `run_validate()` | supported |
+| 31 | Fletcher-32 checksum used for DP32 header integrity | `crates/precision-math/src/checksum.rs` `fletcher32_checked()` line 33 | supported |
 | 32 | v1 header includes schema_hash validated as SHA-256 of schema block | `scripts/inspect_artifact.py` v1 parsing at lines 170–210 | supported |
 | 33 | Artifact identity hash covers canonical region only (excludes trailing bytes) | `scripts/artifact_tool.py` `cmd_hash()` line 102 | supported |
 | 34 | Scalar type is I64F64 (128-bit fixed-point) | `crates/geom-signal/src/lib.rs` line 13 | supported |
 | 35 | CORDIC uses 64 iterations with 32-entry atan lookup table | `crates/geom-signal/src/math.rs` `sin_cos_kernel()` line 71+ | supported |
-| 36 | DPW4 uses 3rd-order differentiator (z1, z2, z3) on x² polynomial | `crates/dpw4/src/lib.rs` `Dpw4State` line 90, `tick_dpw4_raw()` line 172 | supported |
-| 37 | Gain model uses two-path precision strategy based on |raw| threshold 2^64 | `crates/dpw4/src/lib.rs` `apply_gain()` line 287 | supported |
-| 38 | Triangle integration uses I256 (256-bit signed integer) with modular arithmetic | `crates/dpw4/src/i256.rs` lines 2–78; `crates/dpw4/src/lib.rs` `tick_triangle_dpw4()` line 626 | supported |
-| 39 | Freeze guard halts triangle integration when dphi > 0x4000_0000 | `crates/dpw4/src/lib.rs` within `tick_triangle_dpw4()` ~line 660+ | supported |
+| 36 | DPW4 uses 3rd-order differentiator (z1, z2, z3) on x² polynomial | `crates/precision-math/src/lib.rs` `Dpw4State` line 90, `tick_dpw4_raw()` line 172 | supported |
+| 37 | Gain model uses two-path precision strategy based on |raw| threshold 2^64 | `crates/precision-math/src/lib.rs` `apply_gain()` line 287 | supported |
+| 38 | Triangle integration uses I256 (256-bit signed integer) with modular arithmetic | `crates/precision-math/src/i256.rs` lines 2–78; `crates/precision-math/src/lib.rs` `tick_triangle_dpw4()` line 626 | supported |
+| 39 | Freeze guard halts triangle integration when dphi > 0x4000_0000 | `crates/precision-math/src/lib.rs` within `tick_triangle_dpw4()` ~line 660+ | supported |
 | 40 | Demo perturbation modes inject controlled divergence at frame 4096 | `crates/replay-fw-f446/src/fw.rs` feature flags `demo-divergence`, `demo-persistent-divergence` | supported |
 | 41 | Host capture script scans for RPL0 magic over serial | `scripts/read_artifact.py` line 83+ (scan at lines 91–101) | supported |
 | 42 | Adversarial parser tests cover bad magic, invalid version, hash mismatch, truncation | `scripts/test_artifact_parser_adversarial.py` `main()` line 85+ | supported |
@@ -1190,6 +1191,6 @@ that produced valid artifacts.
 | 49 | Transient window K = 8 frames | `scripts/artifact_diff.py` `TRANSIENT_WINDOW_FRAMES` line 13; [DIVERGENCE_SEMANTICS.md](../replay/DIVERGENCE_SEMANTICS.md) | supported |
 | 50 | Region precedence order is fixed: header_schema, timer_delta, irq_state, sample_payload | `scripts/artifact_diff.py` `PRIMARY_REGION_PRECEDENCE` lines 18–22; [DIVERGENCE_SEMANTICS.md](../replay/DIVERGENCE_SEMANTICS.md) | supported |
 | 51 | Fixture generators produce test pairs for all classification classes | `scripts/generate_demo_v3_fixtures.py`, `generate_demo_v4_fixtures.py`, `generate_demo_v5_fixtures.py` | supported |
-| 52 | Output headroom is 1-bit right-shift before saturation | `crates/dpw4/src/constants.rs` `HEADROOM_BITS` line 71; `crates/dpw4/src/lib.rs` `apply_gain()` line 287 | supported |
-| 53 | All egress samples route through saturate_i128_to_i32 | `crates/dpw4/src/lib.rs` `apply_gain()` line 287+; [MATH_CONTRACT.md](../MATH_CONTRACT.md) §3 | supported |
-| 54 | Hashing uses raw little-endian sample bytes only (no struct padding) | `crates/dpw4/tests/forensic_audit.rs` `test_golden_lock` line 5; [MATH_CONTRACT.md](../MATH_CONTRACT.md) §3 | supported |
+| 52 | Output headroom is 1-bit right-shift before saturation | `crates/precision-math/src/constants.rs` `HEADROOM_BITS` line 71; `crates/precision-math/src/lib.rs` `apply_gain()` line 287 | supported |
+| 53 | All egress samples route through saturate_i128_to_i32 | `crates/precision-math/src/lib.rs` `apply_gain()` line 287+; [MATH_CONTRACT.md](../MATH_CONTRACT.md) §3 | supported |
+| 54 | Hashing uses raw little-endian sample bytes only (no struct padding) | `crates/precision-math/tests/forensic_audit.rs` `test_golden_lock` line 5; [MATH_CONTRACT.md](../MATH_CONTRACT.md) §3 | supported |

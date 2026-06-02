@@ -27,13 +27,13 @@ rm -rf target_a target_b
 echo "[1/2] First build → target_a/"
 SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH_VALUE}" \
 CARGO_TARGET_DIR=target_a \
-cargo build --release -p dpw4 --features cli --locked
+cargo build --release -p precision-cli --locked
 
 echo ""
 echo "[2/2] Second build → target_b/"
 SOURCE_DATE_EPOCH="${SOURCE_DATE_EPOCH_VALUE}" \
 CARGO_TARGET_DIR=target_b \
-cargo build --release -p dpw4 --features cli --locked
+cargo build --release -p precision-cli --locked
 
 echo ""
 echo "=== Hashing artifacts ==="

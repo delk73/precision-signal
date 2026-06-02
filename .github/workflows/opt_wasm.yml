@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  dpw4-wasm-nostd:
+  precision-math-wasm-nostd:
     runs-on: ubuntu-24.04
     timeout-minutes: 15
 
@@ -30,4 +30,4 @@ jobs:
       - name: Mechanical no_std Build Oracle (WASM)
         run: |
           # The ultimate truth of no_std compatibility is whether it compiles for a true #![no_std] target.
-          cargo check -p dpw4 --no-default-features --target wasm32-unknown-unknown
+          cargo check -p precision-math --no-default-features --target wasm32-unknown-unknown

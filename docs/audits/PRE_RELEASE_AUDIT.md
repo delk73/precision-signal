@@ -9,7 +9,7 @@ Scope statement: this document is canonical for **Phase 5** only. Other phases a
 PASS requires both:
 
 ```bash
-cargo check -p dpw4 --no-default-features --target thumbv7em-none-eabihf --locked
+cargo check -p precision-math --no-default-features --target thumbv7em-none-eabihf --locked
 cargo check --workspace --no-default-features --locked
 ```
 
@@ -44,6 +44,6 @@ Policy A (structural): parent-module gating is not sufficient. Hits must be in a
 Classification:
 
 * Hits outside allowlist → **WARN** and open tracking issue.
-* OPTIONAL escalation rule (enable now): if hit is in `crates/dpw4/src/**` excluding `src/bin/**` and not `cfg(test)` or `float-ingest` → classify as **CORE-LEAK** (treat as STOP for release).
+* OPTIONAL escalation rule (enable now): if hit is in `crates/precision-math/src/**` excluding `src/bin/**` and not `cfg(test)` or `float-ingest` → classify as **CORE-LEAK** (treat as STOP for release).
 
 Record output as evidence.

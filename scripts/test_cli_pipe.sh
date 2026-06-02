@@ -1,11 +1,11 @@
 #!/bin/bash
 set -e
 
-# Build the binary with the 'cli' feature enabled
-cargo build --features cli --bin precision
+# Build the CLI utility binary
+cargo build -p precision-cli --bin sig-util
 
 # Run for 1 second
-./target/debug/precision generate --shape saw --freq 440 --rate 48000 --seconds 1 > output.raw
+./target/debug/sig-util generate --shape saw --freq 440 --rate 48000 --seconds 1 > output.raw
 
 # Verify file size
 # Header (64) + 48000 samples * 4 bytes/sample = 64 + 192000 = 192064
