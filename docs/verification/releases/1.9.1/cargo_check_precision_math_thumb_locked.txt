@@ -1,1 +1,2 @@
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.05s
+    Checking precision-math v1.9.1 (/home/dce/src/precision-signal/crates/precision-math)
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.09s

@@ -21,186 +21,187 @@ Tier-3: non-gating skipped path
 Harnesses: 19
 Kani jobs: 4
 Kani Rust Verifier 0.67.0 (cargo plugin)
+   Compiling precision-math v1.9.1 (/home/dce/src/precision-signal/crates/precision-math)
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
-         
+
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 1.83s
 Thread 1: Checking harness verification::proof_triangle_z_update_is_saturating...
 Thread 3: Checking harness i256::kani_proofs::proof_spec_clamp_in_range_contract...
 Thread 2: Checking harness i256::kani_proofs::proof_spec_sar_sanity...
-Thread 1: 
+Thread 1:
 VERIFICATION RESULT:
  ** 0 of 5 failed (1 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.14497088s
+Verification Time: 0.14924964s
 
 Thread 1: Checking harness verification::proof_triangle_delta_clamp_saturates_when_out_of_range...
-Thread 1: 
+Thread 1:
 VERIFICATION RESULT:
  ** 0 of 4 failed
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.030914312s
+Verification Time: 0.030868653s
 
 Thread 1: Checking harness verification::proof_triangle_delta_clamp_identity_when_in_range...
-Thread 1: 
+Thread 1:
 VERIFICATION RESULT:
  ** 0 of 3 failed
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.028905094s
+Verification Time: 0.028513908s
 
 Thread 0: Checking harness i256::kani_proofs::proof_i256_clamp_matches_spec...
-Thread 3: 
+Thread 3:
 VERIFICATION RESULT:
  ** 0 of 53 failed (2 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.7130511s
+Verification Time: 0.6942197s
 
 Thread 3: Checking harness verification::proof_triangle_freeze_egress_invariant...
-Thread 3: 
+Thread 3:
 VERIFICATION RESULT:
  ** 0 of 69 failed (6 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.27943757s
+Verification Time: 0.22422643s
 
-Thread 0: 
+Thread 3: Checking harness verification::proof_triangle_freeze_invariant...
+Thread 0:
 VERIFICATION RESULT:
  ** 0 of 70 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.5065571s
+Verification Time: 0.51701033s
 
-Thread 3: Checking harness verification::proof_triangle_freeze_invariant...
-Thread 3: 
+Thread 3:
 VERIFICATION RESULT:
  ** 0 of 16 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.05287004s
+Verification Time: 0.051398464s
 
 Thread 1: Checking harness verification::proof_sine_egress_bounded...
-Thread 0: Checking harness i256::kani_proofs::proof_i256_sar_out_of_range_matches_spec...
 Thread 3: Checking harness i256::kani_proofs::proof_i256_sar_in_range_matches_spec...
-Thread 1: 
+Thread 0: Checking harness i256::kani_proofs::proof_i256_sar_out_of_range_matches_spec...
+Thread 1:
 VERIFICATION RESULT:
  ** 0 of 122 failed (26 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.93667316s
+Verification Time: 0.9424193s
 
 Thread 1: Checking harness verification::proof_sine_to_i32_in_range...
-Thread 1: 
+Thread 1:
 VERIFICATION RESULT:
  ** 0 of 86 failed (26 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.9569227s
+Verification Time: 0.96354645s
 
 Thread 1: Checking harness verification::proof_sine_scale_no_overflow...
-Thread 1: 
+Thread 1:
 VERIFICATION RESULT:
  ** 0 of 67 failed (23 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.31406692s
+Verification Time: 0.3165414s
 
-Thread 0: 
+Thread 0:
 VERIFICATION RESULT:
  ** 0 of 140 failed (18 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 4.6513715s
+Verification Time: 4.6925306s
 
 Thread 1: Checking harness verification::proof_phase_u32_fixed_to_u32_conversion...
 Thread 0: Checking harness verification::proof_phase_u32_no_overflow...
-Thread 1: 
+Thread 1:
 VERIFICATION RESULT:
  ** 0 of 126 failed (31 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 5.3076663s
+Verification Time: 5.45931s
 
 Thread 1: Checking harness i256::kani_proofs::proof_spec_clamp_out_of_range_contract...
-Thread 1: 
+Thread 1:
 VERIFICATION RESULT:
  ** 0 of 51 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.5547054s
+Verification Time: 0.5057286s
 
-Thread 0: 
-VERIFICATION RESULT:
- ** 0 of 125 failed (31 unreachable)
-
-VERIFICATION:- SUCCESSFUL
-Verification Time: 5.5920534s
-
-Thread 0: Checking harness verification::proof_saturate_safe...
-Thread 0: 
-VERIFICATION RESULT:
- ** 0 of 40 failed
-
-VERIFICATION:- SUCCESSFUL
-Verification Time: 0.031717513s
-
-Thread 0: Checking harness verification::proof_compute_x2_safe...
 Thread 1: Checking harness i256::kani_proofs::proof_i256_sub_matches_spec...
-Thread 0: 
-VERIFICATION RESULT:
- ** 0 of 3 failed
-
-VERIFICATION:- SUCCESSFUL
-Verification Time: 0.2811187s
-
-Thread 2: 
+Thread 2:
 VERIFICATION RESULT:
  ** 0 of 98 failed (1 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 16.829262s
+Verification Time: 16.790857s
 
-Thread 1: 
+Thread 2: Checking harness verification::proof_saturate_safe...
+Thread 2:
+VERIFICATION RESULT:
+ ** 0 of 40 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.031384133s
+
+Thread 2: Checking harness verification::proof_compute_x2_safe...
+Thread 2:
+VERIFICATION RESULT:
+ ** 0 of 3 failed
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 0.27466404s
+
+Thread 1:
 VERIFICATION RESULT:
  ** 0 of 100 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 3.5068197s
+Verification Time: 3.4641757s
 
-Thread 3: 
+Thread 0:
+VERIFICATION RESULT:
+ ** 0 of 125 failed (31 unreachable)
+
+VERIFICATION:- SUCCESSFUL
+Verification Time: 9.503299s
+
+Thread 3:
 VERIFICATION RESULT:
  ** 0 of 140 failed (5 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 42.113068s
+Verification Time: 42.487194s
 
 Manual Harness Summary:
 Complete - 19 successfully verified harnesses, 0 failures, 19 total.
-[PASSED] precision-math tier1 batch (48s)
+[PASSED] precision-math tier1 batch (50s)
 
 === Tier-1 package batch: geom-signal ===
 Harnesses: 1
 Kani jobs: 4
 Kani Rust Verifier 0.67.0 (cargo plugin)
-    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.03s
+    Finished `dev` profile [unoptimized + debuginfo] target(s) in 0.04s
 Thread 1: Checking harness verification::tests::proof_sqrt_no_panic...
-Thread 1: 
+Thread 1:
 VERIFICATION RESULT:
  ** 0 of 53 failed (8 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 77.8499s
+Verification Time: 78.46462s
 
 Manual Harness Summary:
 Complete - 1 successfully verified harnesses, 0 failures, 1 total.
-[PASSED] geom-signal tier1 batch (78s)
+[PASSED] geom-signal tier1 batch (79s)
 
 === Tier-1 package batch: replay-core ===
 Harnesses: 3
@@ -210,33 +211,33 @@ Kani Rust Verifier 0.67.0 (cargo plugin)
 warning: Found the following unsupported constructs:
              - caller_location (1)
              - foreign function (1)
-         
+
          Verification will fail if one or more of these constructs is reachable.
          See https://model-checking.github.io/kani/rust-feature-support.html for more details.
 
 Thread 3: Checking harness artifact::verification::proof_v0_wire_size_constants_use_artifact0_size...
-Thread 1: Checking harness artifact::verification::proof_encode_header0_wire_layout_and_le...
-Thread 2: Checking harness artifact::verification::proof_encode_event_frame0_wire_layout_and_le...
-Thread 3: 
+Thread 0: Checking harness artifact::verification::proof_encode_event_frame0_wire_layout_and_le...
+Thread 2: Checking harness artifact::verification::proof_encode_header0_wire_layout_and_le...
+Thread 3:
 VERIFICATION RESULT:
  ** 0 of 134 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 0.39780134s
+Verification Time: 0.39087942s
 
-Thread 2: 
+Thread 0:
 VERIFICATION RESULT:
  ** 0 of 208 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 1.154664s
+Verification Time: 1.1545304s
 
-Thread 1: 
+Thread 2:
 VERIFICATION RESULT:
  ** 0 of 208 failed (4 unreachable)
 
 VERIFICATION:- SUCCESSFUL
-Verification Time: 1.2843106s
+Verification Time: 1.3800651s
 
 Manual Harness Summary:
 Complete - 3 successfully verified harnesses, 0 failures, 3 total.
@@ -249,4 +250,4 @@ Complete - 3 successfully verified harnesses, 0 failures, 3 total.
 [WARN] Skipping Tier-3 harness proof_i256_mul_u32_matches_spec (set RUN_TIER3=1 to run serially; non-gating)
 
 === Summary ===
-[PASSED] Kani verification complete (129s total)
+[PASSED] Kani verification complete (132s total)
