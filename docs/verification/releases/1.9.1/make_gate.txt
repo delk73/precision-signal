@@ -1,6 +1,6 @@
 cargo run --locked --release -p precision-cli --bin sig-util -- validate --mode quick
    Compiling precision-cli v1.9.1 (/home/dce/src/precision-signal/crates/precision-cli)
-    Finished `release` profile [optimized] target(s) in 3.89s
+    Finished `release` profile [optimized] target(s) in 3.91s
      Running `target/release/sig-util validate --mode quick`
 PASS version_consistency: workspace=1.9.1 lock=1.9.1
 PASS toolchain_pin: channel=1.91.1
