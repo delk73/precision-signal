@@ -71,7 +71,7 @@ comma := ,
 FW_FEATURES_EFFECTIVE = $(if $(strip $(FW_FEATURES)),$(strip $(FW_FEATURES)),$(strip $(REPLAY_FW_FEATURES)))
 FW_FEATURES_ARG = $(if $(strip $(FW_FEATURES_EFFECTIVE)),--features $(subst $(space),$(comma),$(strip $(FW_FEATURES_EFFECTIVE))),)
 
-.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check bench-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur hil-dual-observer-run hil-dual-observer-scratch demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-summary firmware-release-check fw-release-archive-current fw-release-archive release release-proof release-summary release-1.7.0 release-1.8.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
+.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check bench-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur hil-dual-observer-run hil-dual-observer-scratch demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-summary firmware-release-check fw-release-archive-current fw-release-archive release release-proof release-summary release-tag release-1.7.0 release-1.8.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
 
 help:
 	echo "Active operator / validation path:"
@@ -82,6 +82,7 @@ help:
 	echo "  make release VERSION=1.9.1"
 	echo "  make release-bundle VERSION=1.9.1"
 	echo "  make release-bundle-check VERSION=1.9.1"
+	echo "  make release-tag VERSION=1.9.1"
 	echo "  make doc-link-check"
 	echo "  make check-workspace"
 	echo "  make test"
@@ -100,6 +101,7 @@ help-all:
 	echo "  make release VERSION=1.9.1"
 	echo "  make release-bundle VERSION=1.9.1"
 	echo "  make release-bundle-check VERSION=1.9.1"
+	echo "  make release-tag VERSION=1.9.1"
 	echo "  make doc-link-check"
 	echo "  make check-workspace"
 	echo "  make test"
@@ -199,6 +201,40 @@ release-proof:
 	$(MAKE_NO_PRINT) release-bundle-check VERSION="$(VERSION)" > "$$tmp"
 	mv "$$tmp" "$(RELEASE_DIR)/make_release_bundle_check.txt"
 	$(MAKE_NO_PRINT) release-summary VERSION="$(VERSION)"
+
+release-tag:
+	@test -n "$(VERSION)" || { echo "FAIL: VERSION is required. Usage: make release-tag VERSION=<version>"; exit 1; }
+	tag="v$(VERSION)"
+	branch="$$(git branch --show-current)"
+	test "$$branch" = "main" || { echo "FAIL: release-tag must run on main; current branch is $$branch"; exit 1; }
+	git rev-parse --verify origin/main >/dev/null
+	head="$$(git rev-parse HEAD)"
+	origin_head="$$(git rev-parse origin/main)"
+	test "$$head" = "$$origin_head" || { echo "FAIL: HEAD ($$head) does not match origin/main ($$origin_head)"; exit 1; }
+	git diff --quiet || { echo "FAIL: working tree has unstaged changes"; exit 1; }
+	git diff --cached --quiet || { echo "FAIL: index has staged changes"; exit 1; }
+	test -z "$$(git ls-files --others --exclude-standard)" || { echo "FAIL: worktree has untracked files"; git ls-files --others --exclude-standard; exit 1; }
+	test -f "$(RELEASE_DIR)/summary.md" || { echo "FAIL: missing retained release summary: $(RELEASE_DIR)/summary.md"; exit 1; }
+	test -f "$(RELEASE_DIR)/summary.json" || { echo "FAIL: missing retained release summary: $(RELEASE_DIR)/summary.json"; exit 1; }
+	test -n "$$(git ls-files "$(RELEASE_DIR)")" || { echo "FAIL: retained release files are not tracked: $(RELEASE_DIR)"; exit 1; }
+	grep -q "git_commit" "$(RELEASE_DIR)/summary.md" || { echo "FAIL: summary.md missing git_commit metadata"; exit 1; }
+	grep -q '"git_commit"' "$(RELEASE_DIR)/summary.json" || { echo "FAIL: summary.json missing git_commit metadata"; exit 1; }
+	summary_commit="$$(grep -m1 -o '[0-9a-f]\{40\}' "$(RELEASE_DIR)/summary.md" || true)"
+	if [ -n "$$summary_commit" ] && [ "$$summary_commit" != "$$head" ]; then
+	  echo "WARNING: retained summary git_commit ($$summary_commit) differs from HEAD ($$head); continuing because tag provenance may point at the evidence-generation commit."
+	fi
+	$(MAKE_NO_PRINT) release-bundle-check VERSION="$(VERSION)"
+	if git rev-parse -q --verify "refs/tags/$$tag" >/dev/null; then
+	  echo "FAIL: local tag already exists: $$tag"
+	  exit 1
+	fi
+	if git ls-remote --exit-code --tags origin "refs/tags/$$tag" >/dev/null 2>&1; then
+	  echo "FAIL: remote tag already exists: $$tag"
+	  exit 1
+	fi
+	git tag -a "$$tag" -m "$$tag"
+	echo "Created local tag $$tag. Inspect it, then push manually with:"
+	echo "  git push origin $$tag"
 
 release-1.7.0:
 	$(PYTHON) scripts/release_gate.py \
