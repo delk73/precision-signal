@@ -1,6 +1,6 @@
 # Retained Release Evidence
 
-This directory is the GitHub Pages route for retained release-evidence bundles
+This directory is the retained release-evidence route for release bundles
 and historical verification references.
 
 Use the active authority path first:
@@ -63,6 +63,29 @@ make release-bundle-check VERSION=<version>
 
 The bundle check validates retained-bundle coherence. It does not replace the
 evidence-producing release route.
+
+## Release Tagging Route
+
+After release evidence is retained, checked, merged to `main`, and ready to
+publish, create a local annotated tag with:
+
+```text
+make release-tag VERSION=<version>
+```
+
+`release-tag` is a guarded local tag-creation target. It requires a clean
+`main` worktree at `origin/main`, tracked retained release files, retained
+summary metadata with `git_commit`, passing `release-bundle-check`, and no
+existing local or remote `v<version>` tag. If retained summary provenance points
+at an evidence-generation commit instead of `HEAD`, the target prints a warning
+but does not fail solely on that mismatch.
+
+The target does not push tags and does not create a GitHub release. After
+inspecting the local tag, push it manually with:
+
+```text
+git push origin v<version>
+```
 
 ## Retained Kani Evidence
 
