@@ -18,7 +18,7 @@ For release and verification routing, use:
   [docs/verification/releases/<version>/](verification/releases/)
 - canonical operator path: `make gate`
 - retained release records: [docs/verification/releases/](verification/releases/)
-- active workspace/package version: `1.8.0`
+- active workspace/package version: `1.9.0`
 - active retained release record: `1.8.0`
 - latest retained release record currently present in-tree:
   [docs/verification/releases/1.8.0/](verification/releases/1.8.0/)
