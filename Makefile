@@ -207,7 +207,7 @@ release-1.7.0:
 	  --fw-target "$(FW_TARGET)" \
 	  --cargo "$(CARGO)" \
 	  --precision-math-pkg "$(PRECISION_MATH_PKG)" \
-	  --make "$(MAKE_CMD)"
+	  --make "$(MAKE_CMD)" \
 	  --functional \
 	  --demo-evidence \
 	  --doc-link \
@@ -466,7 +466,7 @@ release-bundle:
 	  --fw-target "$(FW_TARGET)" \
 	  --cargo "$(CARGO)" \
 	  --precision-math-pkg "$(PRECISION_MATH_PKG)" \
-	  --make "$(MAKE_CMD)" \
+	  --make "$(MAKE_CMD)"
 
 release-summary:
 	@test -n "$(VERSION)" || { echo "FAIL: VERSION is required. Usage: make release-summary VERSION=<version>"; exit 1; }
