@@ -122,17 +122,18 @@ Promotion does not mean:
 
 The current replay/evidence path is useful but still has a self-diff limitation: parts of the replay comparison surface can compare artifacts or traces produced through closely related repository paths rather than through a fully independent replay witness.
 
-Precision Signal 2.0 should reduce that limitation by documenting and, where feasible, promoting an independent replay check for the current STM32F446 UART capture path.
+Precision Signal 2.0 begins reducing that limitation by introducing an independent RPL0 witness for the current STM32F446 UART capture path. The witness parses retained RPL0 v1 artifacts through a standalone implementation path and emits a deterministic witness digest/report separate from the main replay/comparison engine.
 
-The 2.0 remedy should be bounded:
+The 2.0 remedy remains bounded:
 
 * preserve the current `precision` CLI as the canonical operator surface
 * preserve RPL0 as the retained execution-evidence artifact
 * avoid broadening into sensor validation or general embedded correctness
 * distinguish byte/artifact identity checks from semantic replay checks
-* retain evidence showing what was captured, what was replayed, and what comparison rule was applied
+* distinguish witness support evidence from release authority
+* retain evidence showing what was captured, what was replayed or witnessed, and what comparison or witness rule was applied
 
-The goal is not to claim universal independent equivalence. The goal is to make the replay comparison less self-referential and easier for a reviewer to trust.
+The goal is not to claim universal independent equivalence. The goal is to make the replay comparison less self-referential and easier for a reviewer to trust. The independent RPL0 witness is a support check unless a later release-evidence PR explicitly retains and promotes witness output as release authority.
 
 ## Core Work Areas
 
@@ -213,7 +214,7 @@ Precision Signal 2.0 release criteria:
 * retained evidence contract documented
 * release verification artifacts retained
 * release/tagging process guarded and documented
-* independent replay check for the STM32F446 UART capture path documented and retained, or explicitly deferred with rationale
+* independent replay check for the STM32F446 UART capture path documented, with witness output retained or explicitly deferred from release authority with rationale
 
 ## Deferred to 2.1
 
