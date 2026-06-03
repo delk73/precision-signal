@@ -9,7 +9,7 @@ is a real phase accumulator output. No host-side transformation step is involved
 
 Release classification is owned by `docs/RELEASE_SURFACE.md`. The active capture
 contract is `docs/replay/FW_F446_CAPTURE_v1.md`. Retained release evidence for
-release `1.2.2` lives under `docs/verification/releases/1.2.2/`.
+the active release lives under `docs/verification/releases/1.9.1/`.
 
 For the timing characterization firmware (TIM2 input-capture, 138 intervals,
 CSV output), see `crates/replay-fw-f446-timing`.

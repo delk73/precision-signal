@@ -11,7 +11,7 @@
 - git_branch: release/1.9.1
 - artifact_count: 6
 - validation_output_count: 8
-- retained_file_count: 16
+- retained_file_count: 17
 
 ## Artifacts
 - fw_capture.bin sha256=f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765 size_bytes=160243
@@ -33,6 +33,7 @@
 
 ## Metadata Outputs
 - fw_repeat/replay_manifest_v1.txt sha256=dd1194bb2d8459717c4a9be9a4e3fc9f60fe7f16c3a33c81f998f53dc5839f15 size_bytes=889
+- index.md sha256=33bee423ce5d728a522bbe59d7193ca690a8f8f1341573efdb85ff687fd3f3f3 size_bytes=2303
 
 ## Hashes
 - cargo_check_precision_math_thumb_locked.txt 74432e9bf0c5021b208bf626890b5060b1459278d9cf82ea864d498e1fbc129b
@@ -46,6 +47,7 @@
 - fw_repeat/run_04.bin f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765
 - fw_repeat/run_05.bin f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765
 - fw_repeat_hash_check.txt bb684d8c5faa523faa37a745ef0c7e56cc15e4925f5f53e37db03349c9ab1f31
+- index.md 33bee423ce5d728a522bbe59d7193ca690a8f8f1341573efdb85ff687fd3f3f3
 - kani_evidence.txt cbf940d4648e41605df0736bf968462ce1631603c6eb70839cf625acc0642c46
 - make_gate.txt 5dd09ad1ee7618091701b1363846663d3da3f1da5829d4902b9d84e092443d94
 - make_release_bundle_check.txt d8a5730baeb34114e8bd90214ec2dc0b5a43e3c6af9180af77df720646d4699c
