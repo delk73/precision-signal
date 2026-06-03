@@ -162,10 +162,18 @@ persistent divergence injection.
 
 ## Verification Expectations
 
-Active operator path:
+Active release-gating firmware validation path:
+
+```bash
+make bench-check
+make fw-gate
+```
+
+Support/direct diagnostic capture tooling:
 
 ```bash
 make rpl0-replay-check
+make rpl0-replay-repeat-check
 make rpl0-replay-repeat-auto REPLAY_REPEAT_RUNS=3
 ```
 
