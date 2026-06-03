@@ -118,6 +118,22 @@ Promotion does not mean:
 * claiming general embedded correctness
 * splitting replay into a separate repository or package surface during 2.0
 
+## Replay Gap to Remedy
+
+The current replay/evidence path is useful but still has a self-diff limitation: parts of the replay comparison surface can compare artifacts or traces produced through closely related repository paths rather than through a fully independent replay witness.
+
+Precision Signal 2.0 should reduce that limitation by documenting and, where feasible, promoting an independent replay check for the current STM32F446 UART capture path.
+
+The 2.0 remedy should be bounded:
+
+* preserve the current `precision` CLI as the canonical operator surface
+* preserve RPL0 as the retained execution-evidence artifact
+* avoid broadening into sensor validation or general embedded correctness
+* distinguish byte/artifact identity checks from semantic replay checks
+* retain evidence showing what was captured, what was replayed, and what comparison rule was applied
+
+The goal is not to claim universal independent equivalence. The goal is to make the replay comparison less self-referential and easier for a reviewer to trust.
+
 ## Core Work Areas
 
 1. CLI-centered replay workflow
@@ -126,6 +142,7 @@ Promotion does not mean:
 4. Retained evidence contract
 5. Release hygiene and verification
 6. Documentation claim boundaries
+7. Self-diff reduction / independent replay check
 
 ## Hardware Profile Model
 
@@ -196,6 +213,7 @@ Precision Signal 2.0 release criteria:
 * retained evidence contract documented
 * release verification artifacts retained
 * release/tagging process guarded and documented
+* independent replay check for the STM32F446 UART capture path documented and retained, or explicitly deferred with rationale
 
 ## Deferred to 2.1
 
