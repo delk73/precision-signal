@@ -1,8 +1,8 @@
 # precision-signal
 
-Precision Signal is a deterministic execution validation system centered on
-replay, operated through the `precision` CLI against an attached STM32 target
-over UART.
+Precision Signal is a deterministic execution validation system for replayable
+execution evidence captured from an attached STM32 target over UART and
+validated through the `precision` CLI.
 
 ## Current Surface
 
@@ -48,7 +48,7 @@ make gate
 Core contracts and references:
 
 - [docs/replay/FW_F446_CAPTURE_v1.md](docs/replay/FW_F446_CAPTURE_v1.md) —
-  active firmware telemetry contract
+  active firmware capture contract
 - [docs/spec/rpl0_format_contract.md](docs/spec/rpl0_format_contract.md) —
   RPL0 serialization format
 - [docs/MATH_CONTRACT.md](docs/MATH_CONTRACT.md) —
