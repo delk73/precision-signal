@@ -26,6 +26,15 @@ Hardware-backed validation is release authority only through the documented
 Other hardware, HIL, and observer artifacts are supplemental unless explicitly
 named as release authority.
 
+## Local Setup
+
+```bash
+rustup toolchain install 1.91.1
+git clone https://github.com/delk73/precision-signal
+cd precision-signal
+make gate
+```
+
 ## Reference Map
 
 1. [docs/VERIFICATION_GUIDE.md](docs/VERIFICATION_GUIDE.md) — local validation,
@@ -50,15 +59,6 @@ Core contracts and references:
   bench power, timing, and stability observations
 - [docs/architecture/repository_mapping.md](docs/architecture/repository_mapping.md) —
   repository structure and implementation map
-
-## Local Verification
-
-```bash
-rustup toolchain install 1.91.1
-git clone https://github.com/delk73/precision-signal
-cd precision-signal
-make gate
-```
 
 ## License
 
