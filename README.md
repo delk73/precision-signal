@@ -4,9 +4,28 @@ Precision Signal is a deterministic execution validation system centered on
 replay, operated through the `precision` CLI against an attached STM32 target
 over UART.
 
-## Documentation
+## Current Surface
 
-Start here. The primary operator path is:
+| Surface | Status | Entry point |
+| --- | --- | --- |
+| Software validation | Active | `make gate` |
+| Authoritative CLI tests | Active | `make authoritative-replay-cli-tests` |
+| Retained release evidence | Active `1.9.1` | [docs/verification/releases/1.9.1/index.md](docs/verification/releases/1.9.1/index.md) |
+| Hardware-backed validation | Active STM32 path | `make bench-check`, `make fw-gate` |
+
+## Evaluate 1.9.1
+
+```bash
+make gate
+make authoritative-replay-cli-tests
+make release-bundle-check VERSION=1.9.1
+```
+
+Hardware-backed validation requires the documented STM32F446/ST-LINK/UART
+bench setup and the active firmware capture contract. Hardware/HIL/observer
+artifacts are supplemental unless explicitly named as release authority.
+
+## Reference Map
 
 1. [docs/VERIFICATION_GUIDE.md](docs/VERIFICATION_GUIDE.md) — local validation,
    STM32 bench preflight, firmware gate, proof boundary, and release evidence
@@ -30,23 +49,6 @@ Core contracts and references:
   bench power, timing, and stability observations
 - [docs/architecture/repository_mapping.md](docs/architecture/repository_mapping.md) —
   repository structure and implementation map
-
-## Reviewer Fast Path
-
-Software-only validation:
-
-```bash
-make gate
-make authoritative-replay-cli-tests
-make release-bundle-check VERSION=1.9.1
-```
-
-Retained release evidence starts at
-[docs/verification/releases/1.9.1/index.md](docs/verification/releases/1.9.1/index.md).
-
-Hardware-backed validation requires the documented STM32F446/ST-LINK/UART bench
-setup and the active firmware capture contract. Hardware/HIL/observer artifacts
-are supplemental unless explicitly named as release authority.
 
 ## Local Verification
 
