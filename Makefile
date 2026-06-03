@@ -76,8 +76,10 @@ FW_FEATURES_ARG = $(if $(strip $(FW_FEATURES_EFFECTIVE)),--features $(subst $(sp
 help:
 	echo "Active operator / validation path:"
 	echo "  make gate"
-	echo "Generic bundle release path:"
+	echo "Active hardware-backed validation:"
 	echo "  make bench-check"
+	echo "  make fw-gate"
+	echo "Generic retained bundle release path:"
 	echo "  make release-proof VERSION=1.9.1"
 	echo "  make release VERSION=1.9.1"
 	echo "  make release-bundle VERSION=1.9.1"
@@ -86,8 +88,9 @@ help:
 	echo "  make doc-link-check"
 	echo "  make check-workspace"
 	echo "  make test"
+	echo "Supplemental observer instrumentation:"
 	echo "  make hil-dual-observer-run RUN=<id>"
-	echo "    Run retained dual-board observer capture using artifacts/hil_timing_dual/<id>/run_context.json."
+	echo "    Run retained dual-board observer instrumentation using artifacts/hil_timing_dual/<id>/run_context.json."
 	echo "  make hil-dual-observer-scratch RUN=<id>"
 	echo "    Run the same confirmed alias context into /tmp/dual_observer_probe for scratch validation."
 	echo "  make help-all"
@@ -95,8 +98,10 @@ help:
 help-all:
 	echo "Active operator / validation:"
 	echo "  make gate"
-	echo "Generic bundle release:"
+	echo "Active hardware-backed validation:"
 	echo "  make bench-check"
+	echo "  make fw-gate"
+	echo "Generic retained bundle release:"
 	echo "  make release-proof VERSION=1.9.1"
 	echo "  make release VERSION=1.9.1"
 	echo "  make release-bundle VERSION=1.9.1"
@@ -137,7 +142,7 @@ help-demos:
 	echo "  not top-level Make operator targets."
 
 help-firmware:
-	echo "Experimental / hardware workflows:"
+	echo "Hardware workflows:"
 	echo "  Firmware build / flash:"
 	echo "    make fw"
 	echo "    make fw-bin"
@@ -147,11 +152,14 @@ help-firmware:
 	echo "    make flash-ur"
 	echo "    make flash-verify-ur"
 	echo "    make flash-compare-ur"
-	echo "  Active STM32 capture checks:"
+	echo "  Active hardware-backed validation:"
 	echo "    make bench-check"
 	echo "    make fw-gate"
 	echo "    make firmware-release-check"
 	echo "    make fw-release-archive VERSION=<version>"
+	echo "  Supplemental observer instrumentation:"
+	echo "    make hil-dual-observer-run RUN=<id>"
+	echo "    make hil-dual-observer-scratch RUN=<id>"
 	echo "  Legacy / support timing capture:"
 	echo "    make fw-capture-check"
 	echo "    make fw-repeat-check"
@@ -424,7 +432,7 @@ fw-repeat-check:
 	  --timeout "$(FW_CAPTURE_TIMEOUT)" \
 	  --artifacts-dir "$(FW_REPEAT_DIR)"
 
-# Active RPL0 operator path (replay-fw-f446).
+# Direct RPL0 diagnostic capture path (replay-fw-f446).
 # capture waits for replay header after board boots post-flash.
 rpl0-replay-check:
 	export PYTHONPATH="$(CURDIR)$${PYTHONPATH:+:$${PYTHONPATH}}"

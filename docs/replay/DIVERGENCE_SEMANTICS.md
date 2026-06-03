@@ -1,7 +1,8 @@
 # Divergence Semantics
 
-**Document revision:** 1.4.0  
-**Applies to:** release 1.4.0
+Status: support/reference divergence semantics, stable since release 1.4.0.
+
+**Document revision:** 1.4.0
 
 ## Versioning Terminology
 
@@ -9,14 +10,15 @@
 - Release versions identify the shipped software release.
 - RPL/header versions remain part of the portable replay format contract and do not version this explanation document.
 
-This document defines the normative explanation contract emitted by
+This document describes the support/reference explanation contract emitted by
 `scripts/artifact_diff.py`.
 
 It freezes the deterministic divergence semantics used by the replay demo
 ladder. It does not change the portable replay format, fixture generation, capture logic,
 or comparison algorithms.
 
-This contract belongs to the released execution-analysis surface only. Other
+This support/reference contract does not override the active release-surface
+classification in [docs/RELEASE_SURFACE.md](../RELEASE_SURFACE.md). Other
 [docs/wip/](../wip/) material remains outside the current release surface unless
 explicitly promoted.
 
