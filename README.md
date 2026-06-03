@@ -21,9 +21,10 @@ make authoritative-replay-cli-tests
 make release-bundle-check VERSION=1.9.1
 ```
 
-Hardware-backed validation requires the documented STM32F446/ST-LINK/UART
-bench setup and the active firmware capture contract. Hardware/HIL/observer
-artifacts are supplemental unless explicitly named as release authority.
+Hardware-backed validation requires the documented
+[STM32F446/ST-LINK/UART firmware capture contract](docs/replay/FW_F446_CAPTURE_v1.md).
+Hardware/HIL/observer artifacts are supplemental unless explicitly named as
+release authority.
 
 ## Reference Map
 
