@@ -31,6 +31,23 @@ Core contracts and references:
 - [docs/architecture/repository_mapping.md](docs/architecture/repository_mapping.md) —
   repository structure and implementation map
 
+## Reviewer Fast Path
+
+Software-only validation:
+
+```bash
+make gate
+make authoritative-replay-cli-tests
+make release-bundle-check VERSION=1.9.1
+```
+
+Retained release evidence starts at
+[docs/verification/releases/1.9.1/index.md](docs/verification/releases/1.9.1/index.md).
+
+Hardware-backed validation requires the documented STM32F446/ST-LINK/UART bench
+setup and the active firmware capture contract. Hardware/HIL/observer artifacts
+are supplemental unless explicitly named as release authority.
+
 ## Local Verification
 
 ```bash

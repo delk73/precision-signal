@@ -7,6 +7,14 @@
 
 ## [Unreleased]
 
+## [1.9.1] - 2026-06-02
+
+### Maintenance
+
+- marked `1.9.1` as the active retained release record for external review.
+  The public `1.9.0` release is historical and superseded; the retained
+  `1.9.1` bundle is indexed under `docs/verification/releases/1.9.1/`.
+
 ## [1.9.0] - 2026-05-31
 
 ### Added
