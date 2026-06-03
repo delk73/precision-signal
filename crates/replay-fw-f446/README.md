@@ -30,6 +30,16 @@ CSV output), see `crates/replay-fw-f446-timing`.
 
 ## Host capture
 
+Active release-gating firmware validation runs through:
+
+```bash
+make bench-check
+make fw-gate
+```
+
+`make rpl0-replay-check` is support/direct diagnostic capture tooling, not the
+active release-gating path:
+
 ```bash
 make rpl0-replay-check
 ```
