@@ -51,6 +51,8 @@ Core contracts and references:
   active firmware telemetry contract
 - [docs/spec/rpl0_format_contract.md](docs/spec/rpl0_format_contract.md) —
   RPL0 serialization format
+- [docs/MATH_CONTRACT.md](docs/MATH_CONTRACT.md) —
+  fixed-point math and proof-boundary contract
 - [docs/replay/DIVERGENCE_SEMANTICS.md](docs/replay/DIVERGENCE_SEMANTICS.md) —
   replay divergence model
 - [docs/verification/releases/index.md](docs/verification/releases/index.md) —
