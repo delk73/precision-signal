@@ -6,12 +6,12 @@ over UART.
 
 ## Current Surface
 
-| Surface | Status | Entry point |
+| Surface | Scope | Entry point |
 | --- | --- | --- |
-| Software validation | Active | `make gate` |
-| Authoritative CLI tests | Active | `make authoritative-replay-cli-tests` |
-| Retained release evidence | Active `1.9.1` | [docs/verification/releases/1.9.1/index.md](docs/verification/releases/1.9.1/index.md) |
-| Hardware-backed validation | Active STM32 path | `make bench-check`, `make fw-gate` |
+| Software validation | Host / software-only | `make gate` |
+| Authoritative CLI tests | Host / software-only | `make authoritative-replay-cli-tests` |
+| Retained release evidence | `1.9.1` | [docs/verification/releases/1.9.1/index.md](docs/verification/releases/1.9.1/index.md) |
+| Hardware-backed validation | STM32F446 / ST-LINK / UART | `make bench-check`, `make fw-gate` |
 
 ## Evaluate 1.9.1
 
