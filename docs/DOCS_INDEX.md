@@ -71,5 +71,6 @@ paths.
 - Governance: [governance/DESIGN_AXIOMS.md](governance/DESIGN_AXIOMS.md),
   [governance/DEBT.md](governance/DEBT.md),
   [CONTRIBUTING.md](CONTRIBUTING.md)
+- Roadmap: [roadmap/precision-signal-2.0.md](roadmap/precision-signal-2.0.md)
 - Performance: [architecture/performance/PERFORMANCE_INDEX.md](architecture/performance/PERFORMANCE_INDEX.md),
   [BENCHMARK_GUIDE.md](BENCHMARK_GUIDE.md)
