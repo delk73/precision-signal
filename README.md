@@ -61,6 +61,9 @@ Core contracts and references:
   bench power, timing, and stability observations
 - [docs/architecture/repository_mapping.md](docs/architecture/repository_mapping.md) —
   repository structure and implementation map
+- [docs/replay/RPL0_WITNESS_v1.md](docs/replay/RPL0_WITNESS_v1.md) —
+  independent support witness for parsing and deterministically folding retained
+  RPL0 artifacts; support evidence only, not release authority
 
 ## License
 
