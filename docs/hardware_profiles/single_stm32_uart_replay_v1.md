@@ -63,7 +63,7 @@ outside this profile unless promoted by a later contract or release record.
 
 ## Generated / Retained Artifacts
 
-Current retained firmware evidence examples include:
+Current retained firmware evidence for this profile includes:
 
 - [docs/verification/releases/1.9.1/fw_capture.bin](../verification/releases/1.9.1/fw_capture.bin)
 - [docs/verification/releases/1.9.1/firmware_release_evidence.md](../verification/releases/1.9.1/firmware_release_evidence.md)
