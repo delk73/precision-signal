@@ -11,46 +11,24 @@ Precision Signal 2.0 keeps that direction narrow. It focuses on making the repla
 The core mental model for the current `1.9.1` foundation:
 
 ```mermaid
-%%{init: {"theme": "dark", "themeVariables": {
-  "background": "#1a1a1a",
-  "primaryColor": "#2d2d2d",
-  "primaryTextColor": "#d4d4d4",
-  "primaryBorderColor": "#555555",
-  "lineColor": "#888888",
-  "secondaryColor": "#252525",
-  "tertiaryColor": "#202020",
-  "clusterBkg": "#212121",
-  "clusterBorder": "#444444",
-  "titleColor": "#cccccc",
-  "edgeLabelBackground": "#1a1a1a",
-  "fontFamily": "monospace"
-}}}%%
+%%{init: {"theme": "dark", "themeVariables": {"background": "#1a1a1a", "primaryColor": "#2d2d2d", "primaryTextColor": "#d4d4d4", "primaryBorderColor": "#555555", "lineColor": "#888888", "secondaryColor": "#252525", "tertiaryColor": "#202020", "clusterBkg": "#212121", "clusterBorder": "#444444", "titleColor": "#cccccc", "edgeLabelBackground": "#1a1a1a", "fontFamily": "monospace"}}}%%
 flowchart LR
-    Target["STM32F446 target
-replay-fw-f446"]
-    UART["UART capture
-USART2 serial"]
-    Artifact["RPL0 artifact
-execution evidence"]
-    Replay["Replay / comparison
-deterministic semantics"]
-    CLI["precision CLI
-operator surface"]
-    Release["Retained release evidence
-docs/verification/releases/1.9.1"]
+    Target["STM32F446 target<br/>replay-fw-f446"]
+    UART["UART capture<br/>USART2 serial"]
+    Artifact["RPL0 artifact<br/>execution evidence"]
+    Replay["Replay / comparison<br/>deterministic semantics"]
+    CLI["precision CLI<br/>operator surface"]
+    Release["Retained release evidence<br/>docs/verification/releases/1.9.1"]
 
     Target --> UART --> Artifact --> Replay --> CLI --> Release
 
-    Math["Deterministic math boundary
-MATH_CONTRACT / Kani"]
+    Math["Deterministic math boundary<br/>MATH_CONTRACT / Kani"]
     Math --> Replay
 
-    Reset["ST-LINK reset / flashing
-setup authority, not replay"]
+    Reset["ST-LINK reset / flashing<br/>setup authority, not replay"]
     Reset --> Target
 
-    Support["Support / experimental
-observer, timing, BBB, demos, diagnostics"]
+    Support["Support / experimental<br/>observer, timing, BBB, demos, diagnostics"]
     Support -. "not release authority" .-> Release
 ```
 
@@ -215,6 +193,27 @@ Precision Signal 2.0 release criteria:
 * release verification artifacts retained
 * release/tagging process guarded and documented
 * independent replay check for the STM32F446 UART capture path documented, with witness output retained or explicitly deferred from release authority with rationale
+
+## Current Criteria Status
+
+The current retained foundation for 2.0 is `1.9.1`. Precision Signal 2.0 does not yet have a separate retained `2.0` release bundle.
+
+The current documentation and evidence chain satisfies or partially satisfies the 2.0 release criteria as follows:
+
+| Criterion | Current status |
+| --- | --- |
+| roadmap and claim boundaries documented | satisfied by this roadmap |
+| canonical CLI replay path documented | satisfied by README, release surface, replay index, and CLI contract |
+| hardware profile model documented | satisfied by the hardware profile model in this roadmap and the active `single_stm32_uart_replay_v1` profile |
+| replay/flashing/reset/evidence separation documented | satisfied by roadmap, release surface, firmware capture contract, and hardware profile |
+| retained evidence contract documented | satisfied by `docs/verification/releases/index.md` and retained `1.9.1` evidence |
+| release verification artifacts retained | satisfied for the current `1.9.1` foundation |
+| release/tagging process guarded and documented | satisfied by retained release mechanics and guarded release tag flow |
+| independent replay check documented | satisfied as retained support evidence by the RPL0 witness report for `fw_capture.bin` |
+
+The independent RPL0 witness report is retained support evidence. It reduces replay self-reference at the artifact parse/fold layer, but it is not semantic replay authority and is not promoted to release authority by this roadmap.
+
+A future `2.0` release bundle, if created, should either retain corresponding witness output or explicitly defer witness authority promotion with rationale.
 
 ## Deferred to 2.1
 
