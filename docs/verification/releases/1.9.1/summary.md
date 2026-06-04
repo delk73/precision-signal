@@ -7,11 +7,11 @@
 
 ## Key Metadata
 - schema: precision.release_summary.v1
-- git_commit: 316acfb3ed03c0d60c722f37a86eeca5cb7d3669
-- git_branch: release/1.9.1
+- git_commit: 2f8727d3cf05177e7e011e9c22ff9f306e3af2d0
+- git_branch: evidence/retain-rpl0-witness-1.9.1
 - artifact_count: 6
 - validation_output_count: 8
-- retained_file_count: 17
+- retained_file_count: 18
 
 ## Artifacts
 - fw_capture.bin sha256=f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765 size_bytes=160243
@@ -33,7 +33,7 @@
 
 ## Metadata Outputs
 - fw_repeat/replay_manifest_v1.txt sha256=dd1194bb2d8459717c4a9be9a4e3fc9f60fe7f16c3a33c81f998f53dc5839f15 size_bytes=889
-- index.md sha256=33bee423ce5d728a522bbe59d7193ca690a8f8f1341573efdb85ff687fd3f3f3 size_bytes=2303
+- index.md sha256=9f5ca033802f8a17120571decc535f6eb84b9928690952a4b2ece4f879826d57 size_bytes=2474
 
 ## Hashes
 - cargo_check_precision_math_thumb_locked.txt 74432e9bf0c5021b208bf626890b5060b1459278d9cf82ea864d498e1fbc129b
@@ -47,9 +47,10 @@
 - fw_repeat/run_04.bin f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765
 - fw_repeat/run_05.bin f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765
 - fw_repeat_hash_check.txt bb684d8c5faa523faa37a745ef0c7e56cc15e4925f5f53e37db03349c9ab1f31
-- index.md 33bee423ce5d728a522bbe59d7193ca690a8f8f1341573efdb85ff687fd3f3f3
+- index.md 9f5ca033802f8a17120571decc535f6eb84b9928690952a4b2ece4f879826d57
 - kani_evidence.txt cbf940d4648e41605df0736bf968462ce1631603c6eb70839cf625acc0642c46
 - make_gate.txt 5dd09ad1ee7618091701b1363846663d3da3f1da5829d4902b9d84e092443d94
 - make_release_bundle_check.txt d8a5730baeb34114e8bd90214ec2dc0b5a43e3c6af9180af77df720646d4699c
 - release_reproducibility.txt d2b0a1379f5bde0b9f85c2806f371655b5ec942b484bc6cab230e554a59e7fa9
 - release_supersession_note.md 8b6b446dc7356f49852332317e7c47be25bf274976c2aa41f91c1a1d2d8e9042
+- rpl0_witness_fw_capture.txt bb580d4f960d435c16ce6afc76653c57f9689c431940f59f05872c3bb75c57e3

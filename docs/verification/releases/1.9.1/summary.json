@@ -130,8 +130,8 @@
       "bundle_path": "docs/verification/releases/1.9.1/index.md",
       "kind": "metadata",
       "path": "index.md",
-      "sha256": "33bee423ce5d728a522bbe59d7193ca690a8f8f1341573efdb85ff687fd3f3f3",
-      "size_bytes": 2303
+      "sha256": "9f5ca033802f8a17120571decc535f6eb84b9928690952a4b2ece4f879826d57",
+      "size_bytes": 2474
     },
     {
       "bundle_path": "docs/verification/releases/1.9.1/kani_evidence.txt",
@@ -167,6 +167,13 @@
       "path": "release_supersession_note.md",
       "sha256": "8b6b446dc7356f49852332317e7c47be25bf274976c2aa41f91c1a1d2d8e9042",
       "size_bytes": 943
+    },
+    {
+      "bundle_path": "docs/verification/releases/1.9.1/rpl0_witness_fw_capture.txt",
+      "kind": "support",
+      "path": "rpl0_witness_fw_capture.txt",
+      "sha256": "bb580d4f960d435c16ce6afc76653c57f9689c431940f59f05872c3bb75c57e3",
+      "size_bytes": 319
     }
   ],
   "hashes": {
@@ -181,16 +188,17 @@
     "fw_repeat/run_04.bin": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
     "fw_repeat/run_05.bin": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
     "fw_repeat_hash_check.txt": "bb684d8c5faa523faa37a745ef0c7e56cc15e4925f5f53e37db03349c9ab1f31",
-    "index.md": "33bee423ce5d728a522bbe59d7193ca690a8f8f1341573efdb85ff687fd3f3f3",
+    "index.md": "9f5ca033802f8a17120571decc535f6eb84b9928690952a4b2ece4f879826d57",
     "kani_evidence.txt": "cbf940d4648e41605df0736bf968462ce1631603c6eb70839cf625acc0642c46",
     "make_gate.txt": "5dd09ad1ee7618091701b1363846663d3da3f1da5829d4902b9d84e092443d94",
     "make_release_bundle_check.txt": "d8a5730baeb34114e8bd90214ec2dc0b5a43e3c6af9180af77df720646d4699c",
     "release_reproducibility.txt": "d2b0a1379f5bde0b9f85c2806f371655b5ec942b484bc6cab230e554a59e7fa9",
-    "release_supersession_note.md": "8b6b446dc7356f49852332317e7c47be25bf274976c2aa41f91c1a1d2d8e9042"
+    "release_supersession_note.md": "8b6b446dc7356f49852332317e7c47be25bf274976c2aa41f91c1a1d2d8e9042",
+    "rpl0_witness_fw_capture.txt": "bb580d4f960d435c16ce6afc76653c57f9689c431940f59f05872c3bb75c57e3"
   },
   "metadata": {
-    "git_branch": "release/1.9.1",
-    "git_commit": "316acfb3ed03c0d60c722f37a86eeca5cb7d3669"
+    "git_branch": "evidence/retain-rpl0-witness-1.9.1",
+    "git_commit": "2f8727d3cf05177e7e011e9c22ff9f306e3af2d0"
   },
   "metadata_outputs": [
     {
@@ -204,8 +212,8 @@
       "bundle_path": "docs/verification/releases/1.9.1/index.md",
       "kind": "metadata",
       "path": "index.md",
-      "sha256": "33bee423ce5d728a522bbe59d7193ca690a8f8f1341573efdb85ff687fd3f3f3",
-      "size_bytes": 2303
+      "sha256": "9f5ca033802f8a17120571decc535f6eb84b9928690952a4b2ece4f879826d57",
+      "size_bytes": 2474
     }
   ],
   "schema": "precision.release_summary.v1",
