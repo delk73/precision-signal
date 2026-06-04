@@ -27,6 +27,7 @@ setup and the active RPL0 firmware capture contract.
 - [kani_evidence.txt](kani_evidence.txt): retained Kani proof-boundary evidence.
 - [make_release_bundle_check.txt](make_release_bundle_check.txt): retained
   release bundle check output.
+- [rpl0_witness_fw_capture.txt](rpl0_witness_fw_capture.txt): retained independent RPL0 witness report for `fw_capture.bin`; support evidence only, not release authority.
 
 ## Supported Claims
 
