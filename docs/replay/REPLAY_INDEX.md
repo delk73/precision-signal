@@ -56,6 +56,8 @@ not current authoritative replay inputs.
 - [docs/replay/FW_F446_CAPTURE_v1.md](FW_F446_CAPTURE_v1.md): active STM32
   RPL0 execution capture contract
   (`crates/replay-fw-f446`)
+- [docs/hardware_profiles/single_stm32_uart_replay_v1.md](../hardware_profiles/single_stm32_uart_replay_v1.md):
+  named hardware profile for the active STM32F446/ST-LINK/UART replay path
 - [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md): timing
   characterization/support contract for STM32 self-stimulus interval CSV
   capture (`crates/replay-fw-f446-timing`)
