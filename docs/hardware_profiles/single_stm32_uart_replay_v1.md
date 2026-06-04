@@ -1,114 +1,94 @@
 # single_stm32_uart_replay_v1
 
-## Status
-
-This is the named hardware profile for the current active STM32F446 UART replay
-path.
-
-It is a documentation profile for the current replay/evidence path. It is not a
-new release artifact and not a new hardware capability.
-
 ## Purpose
 
-This profile collects the board, firmware, transport, reset/flashing, artifact,
-and evidence assumptions for the current single-board STM32F446 UART
-replay/capture path.
+This profile names the current single-board STM32F446 UART replay/evidence path.
 
-## Board Role
+It binds the active firmware capture path to a concrete hardware and operator
+context:
 
-Board: STM32F446 target, specifically the current replay-fw-f446 path.
+- target board: STM32F446
+- firmware: `replay-fw-f446`
+- transport: USART2/UART serial capture
+- setup path: ST-LINK reset/flashing
+- retained artifact: RPL0/v1 firmware capture
+- retained evidence: `docs/verification/releases/1.9.1/`
 
-Role: actor target that emits RPL0 execution evidence over UART.
+The profile exists so reviewers can identify the hardware assumptions for the
+active replay/evidence path without reconstructing them from the README, release
+surface, firmware contract, and retained evidence bundle.
 
-This profile does not generalize the current release path to all STM32-class
-targets.
+## Active Path
 
-## Firmware Role
+```text
+ST-LINK reset/flashing
+  -> STM32F446 running replay-fw-f446
+  -> USART2/UART capture
+  -> RPL0/v1 artifact
+  -> retained 1.9.1 evidence
+```
 
-Firmware: replay-fw-f446.
+## Board and Firmware
 
-Role: produces the current RPL0 firmware capture artifact over USART2/UART.
+The actor target is the STM32F446 path implemented by `replay-fw-f446`.
 
-The active firmware capture contract is
-[docs/replay/FW_F446_CAPTURE_v1.md](../replay/FW_F446_CAPTURE_v1.md).
+The firmware emits RPL0 execution evidence over USART2/UART according to the
+active [STM32F446 Firmware Capture Contract](../replay/FW_F446_CAPTURE_v1.md).
 
-## Transport / Interface
+## Transport and Artifact
 
-Transport: USART2 / UART serial capture.
+The transport is USART2/UART serial capture.
 
-Artifact: RPL0/v1 firmware capture.
+The retained firmware capture artifact is
+[fw_capture.bin](../verification/releases/1.9.1/fw_capture.bin), an RPL0/v1
+binary execution-evidence artifact emitted by `replay-fw-f446` over USART2/UART.
 
-The portable RPL0/v1 file layout and parser contract are defined by
-[docs/spec/rpl0_format_contract.md](../spec/rpl0_format_contract.md).
+For the retained `1.9.1` capture, the artifact contains a 152-byte RPL0/v1
+header, a 91-byte schema block, and 10,000 fixed-size 16-byte `EventFrame0`
+records. Each frame records `frame_idx`, `irq_id`, `flags`, `rsv`,
+`timer_delta`, and `input_sample`.
 
-## Reset and Flashing Assumptions
+The artifact is replay evidence, not a firmware image and not a sensor
+measurement. The RPL0/v1 layout is defined by the
+[RPL0 Format Contract](../spec/rpl0_format_contract.md).
 
-ST-LINK reset / flashing is the current release-gating reset/flashing path.
+## Reset and Flashing
+
+ST-LINK reset/flashing is the setup path for the current release-gating firmware
+capture flow.
 
 Reset/flashing establishes setup context. It is not replay evidence by itself.
 
-BBB reset orchestration remains support/experimental unless explicitly promoted
-by a later release or roadmap.
+## Retained Evidence
 
-Manual reset is legacy/manual/support, not current release-gating authority.
-
-## Wiring Assumptions
-
-The profile assumes the documented STM32F446/ST-LINK/UART bench setup used by
-the active firmware capture contract and retained 1.9.1 evidence.
-
-The active firmware capture contract documents USART2/UART capture but does not
-define pin-level wiring in this profile. Pin-level wiring details are therefore
-outside this profile unless promoted by a later contract or release record.
-
-## Generated / Retained Artifacts
-
-Current retained firmware evidence for this profile includes:
-
-- [docs/verification/releases/1.9.1/fw_capture.bin](../verification/releases/1.9.1/fw_capture.bin)
-- [docs/verification/releases/1.9.1/firmware_release_evidence.md](../verification/releases/1.9.1/firmware_release_evidence.md)
-- [docs/verification/releases/1.9.1/fw_capture_hash_check.txt](../verification/releases/1.9.1/fw_capture_hash_check.txt)
-- [docs/verification/releases/1.9.1/rpl0_witness_fw_capture.txt](../verification/releases/1.9.1/rpl0_witness_fw_capture.txt)
-
-`rpl0_witness_fw_capture.txt` is retained support evidence, not release
-authority.
+- [fw_capture.bin](../verification/releases/1.9.1/fw_capture.bin)
+- [firmware_release_evidence.md](../verification/releases/1.9.1/firmware_release_evidence.md)
+- [fw_capture_hash_check.txt](../verification/releases/1.9.1/fw_capture_hash_check.txt)
+- [rpl0_witness_fw_capture.txt](../verification/releases/1.9.1/rpl0_witness_fw_capture.txt)
 
 ## Evidence Claim
 
-This profile supports review of the current STM32F446 UART replay/evidence path:
-firmware capture produces retained RPL0/v1 execution evidence over UART; the
-retained artifact is checked through the current release evidence chain; the
-retained RPL0 witness report independently parses and folds the retained
-firmware capture as support evidence.
+The STM32F446 target running replay-fw-f446 emits retained RPL0/v1 execution
+evidence over UART, and that retained artifact is checked through the 1.9.1
+evidence chain.
 
-The profile does not claim general embedded-system correctness.
+The retained RPL0 witness report strengthens review by independently parsing and
+deterministically folding `fw_capture.bin` through a standalone support path. It
+is support evidence, not semantic replay authority.
 
-## Explicit Non-Claims
+## Boundaries
 
-This profile does not claim:
+This profile is limited to the current STM32F446/ST-LINK/UART replay path.
 
+It does not promote:
+
+- BBB reset orchestration
+- dual-board observer evidence
+- timing characterization
 - sensor validation
-- calibrated measurement accuracy
-- field instrumentation readiness
-- universal STM32 support
-- general embedded-system correctness
-- universal embedded security
-- adversarial/provenance completeness
-- networked multi-node resilience
-- BBB reset authority
-- observer timing as actor-internal replay equivalence
+- Trace Authority naming
 - RPL0 witness output as semantic replay authority
-- Trace Authority rebrand completion
-
-## Support / Supplemental Material
-
-Dual-board observer, timing characterization, BBB orchestration, replay
-diagnostics, demo evidence, and RPL0 witness material may support review or
-future roadmap decisions, but are not promoted to release authority by this
-profile.
-
-The retained RPL0 witness output is support evidence that bolsters review of the
-replay/evidence path. It is not semantic replay authority.
+- general embedded-system correctness
 
 ## References
 
