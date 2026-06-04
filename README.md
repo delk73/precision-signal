@@ -49,6 +49,8 @@ Core contracts and references:
 
 - [docs/replay/FW_F446_CAPTURE_v1.md](docs/replay/FW_F446_CAPTURE_v1.md) —
   active firmware capture contract
+- [docs/hardware_profiles/single_stm32_uart_replay_v1.md](docs/hardware_profiles/single_stm32_uart_replay_v1.md) —
+  named hardware profile for the current STM32F446/ST-LINK/UART replay path
 - [docs/spec/rpl0_format_contract.md](docs/spec/rpl0_format_contract.md) —
   RPL0 serialization format
 - [docs/MATH_CONTRACT.md](docs/MATH_CONTRACT.md) —

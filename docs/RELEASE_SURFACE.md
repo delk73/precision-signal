@@ -51,6 +51,8 @@ Canonical Active Commands And Routes
   [docs/verification/releases/1.9.1/](verification/releases/1.9.1/)
 - active RPL0 firmware capture contract:
   [docs/replay/FW_F446_CAPTURE_v1.md](replay/FW_F446_CAPTURE_v1.md)
+- active hardware profile:
+  [docs/hardware_profiles/single_stm32_uart_replay_v1.md](hardware_profiles/single_stm32_uart_replay_v1.md)
 - authority and retained-evidence routing under
   [docs/verification/releases/](verification/releases/)
 
