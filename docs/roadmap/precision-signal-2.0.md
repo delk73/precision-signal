@@ -4,49 +4,27 @@
 
 Precision Signal is a deterministic execution validation system centered on replay, operated through the `precision` CLI against an attached STM32 target over UART.
 
-Precision Signal 2.0 keeps that direction narrow. It focuses on making the replay/evidence workflow understandable, repeatable, and reviewable without broadening the project into a platform, provenance system, security product, field-instrumentation suite, or Trace Authority rebrand.
+Precision Signal 2.0 focuses on replay-gap reduction and a cleaner front-facing replay/evidence path.
 
-## Current Foundation: 1.9.1 System Map
+## Current Foundation
 
-The core mental model for the current `1.9.1` foundation:
+The active retained release foundation for 2.0 is `1.9.1`.
 
-```mermaid
-%%{init: {"theme": "dark", "themeVariables": {"background": "#1a1a1a", "primaryColor": "#2d2d2d", "primaryTextColor": "#d4d4d4", "primaryBorderColor": "#555555", "lineColor": "#888888", "secondaryColor": "#252525", "tertiaryColor": "#202020", "clusterBkg": "#212121", "clusterBorder": "#444444", "titleColor": "#cccccc", "edgeLabelBackground": "#1a1a1a", "fontFamily": "monospace"}}}%%
-flowchart LR
-    Target["STM32F446 target<br/>replay-fw-f446"]
-    UART["UART capture<br/>USART2 serial"]
-    Artifact["RPL0 artifact<br/>execution evidence"]
-    Replay["Replay / comparison<br/>deterministic semantics"]
-    CLI["precision CLI<br/>operator surface"]
-    Release["Retained release evidence<br/>docs/verification/releases/1.9.1"]
+## Replay Model
 
-    Target --> UART --> Artifact --> Replay --> CLI --> Release
+In Precision Signal, replay means checking retained execution evidence or target behavior against a documented deterministic rule.
 
-    Math["Deterministic math boundary<br/>MATH_CONTRACT / Kani"]
-    Math --> Replay
+The current single-board path uses the STM32F446 UART capture path, retained RPL0 artifacts, and the `precision` CLI comparison workflow.
 
-    Reset["ST-LINK reset / flashing<br/>setup authority, not replay"]
-    Reset --> Target
+The current RPL0 witness reduces replay self-reference at the artifact parse/fold layer by checking retained RPL0 data through an independent implementation path.
 
-    Support["Support / experimental<br/>observer, timing, BBB, demos, diagnostics"]
-    Support -. "not release authority" .-> Release
-```
-
-Support/reference/experimental material includes dual-board observer evidence, timing characterization, BBB orchestration, replay diagnostics, and demo evidence. These may support review, diagnosis, or later roadmap decisions, but they are not current release authority unless explicitly promoted by a later release or roadmap.
+A two-board path becomes replay-relevant when the second board independently checks actor behavior or retained artifact expectations against the replay rule. If it only records timing or external signals without checking the replay rule, it remains support observation rather than a replay check.
 
 ## 2.0 Intent
 
-Precision Signal 2.0 promotes the current replay/evidence path from the retained `1.9.1` foundation into a clearer documented release surface.
+Precision Signal 2.0 reduces replay self-reference in the current STM32F446 UART replay path and makes the front-facing replay/evidence path easier to review.
 
-The intent is to make the existing composed system easier to review, repeat, and extend without splitting the repository into new project surfaces or broadening the release claim.
-
-2.0 is a replay/evidence-core release. It should clarify what is canonical, what is support, what is experimental, and what remains deferred.
-
-## 2.0 Release Claim
-
-Precision Signal 2.0 establishes a documented deterministic replay/evidence workflow for the current STM32F446 UART capture path, operated through the `precision` CLI, described through explicit hardware profiles, retained verification artifacts, and documented replay/flashing/reset/evidence boundaries.
-
-The 2.0 release claim is bounded to replay and retained execution evidence. It does not claim general embedded-system correctness beyond the documented replay path and retained artifacts.
+The work is centered on the `precision` CLI, retained RPL0 artifacts, explicit hardware assumptions, and local witness support evidence.
 
 ## 2.0 Scope
 
@@ -55,63 +33,24 @@ The 2.0 release claim is bounded to replay and retained execution evidence. It d
 * explicit hardware profiles and wiring assumptions
 * separation of replay, flashing, reset, observation, and retained evidence
 * retained artifact contract
-* release evidence discipline
+* front-facing documentation discipline
 * guarded release/tagging hygiene
-
-## Explicit Non-Claims
-
-Precision Signal 2.0 does not claim:
-
-* sensor validation
-* calibrated measurement accuracy
-* field instrumentation readiness
-* adversarial/provenance completeness
-* universal embedded security
-* networked multi-node resilience
-* Trace Authority rebrand completion
-* production platform status
-* support instrumentation as release authority
-* observer timing as actor-internal replay equivalence
-* BBB orchestration as current release-gating reset authority
-
-## Promotion Decisions for 2.0
-
-Precision Signal 2.0 promotes the current replay/evidence path from a retained `1.9.1` foundation into a clearer documented release surface.
-
-Promotion means:
-
-* the canonical `precision` CLI replay path is documented as the primary operator workflow
-* the STM32F446 UART capture path is documented as the active hardware-backed replay path
-* hardware profiles become explicit documentation units
-* reset, flashing, replay, observation, and retained evidence are separated in the documentation
-* release evidence remains bounded to retained artifacts and named claims
-
-Promotion does not mean:
-
-* creating a new product surface
-* completing the Trace Authority rename
-* adding sensor validation
-* promoting BBB orchestration to release authority
-* treating observer instrumentation as replay equivalence
-* claiming general embedded correctness
-* splitting replay into a separate repository or package surface during 2.0
 
 ## Replay Gap to Remedy
 
-The current replay/evidence path is useful but still has a self-diff limitation: parts of the replay comparison surface can compare artifacts or traces produced through closely related repository paths rather than through a fully independent replay witness.
+The current replay/evidence path has a self-diff limitation: parts of the replay comparison surface can compare artifacts or traces produced through closely related repository paths rather than through a fully independent replay witness.
 
 Precision Signal 2.0 begins reducing that limitation by introducing an independent RPL0 witness for the current STM32F446 UART capture path. The witness parses retained RPL0 v1 artifacts through a standalone implementation path and emits a deterministic witness digest/report separate from the main replay/comparison engine.
 
-The 2.0 remedy remains bounded:
+The 2.0 remedy is local and factual:
 
 * preserve the current `precision` CLI as the canonical operator surface
 * preserve RPL0 as the retained execution-evidence artifact
-* avoid broadening into sensor validation or general embedded correctness
 * distinguish byte/artifact identity checks from semantic replay checks
 * distinguish witness support evidence from release authority
 * retain evidence showing what was captured, what was replayed or witnessed, and what comparison or witness rule was applied
 
-The goal is not to claim universal independent equivalence. The goal is to make the replay comparison less self-referential and easier for a reviewer to trust. The independent RPL0 witness is a support check unless a later release-evidence PR explicitly retains and promotes witness output as release authority.
+The goal is to make the replay comparison less self-referential and easier for a reviewer to inspect. The independent RPL0 witness is retained support evidence at the artifact parse/fold layer. It is not semantic replay authority unless a later release-evidence change explicitly promotes that classification.
 
 ## Core Work Areas
 
@@ -120,7 +59,7 @@ The goal is not to claim universal independent equivalence. The goal is to make 
 3. Reset/flashing semantics
 4. Retained evidence contract
 5. Release hygiene and verification
-6. Documentation claim boundaries
+6. Front-facing documentation clarity
 7. Self-diff reduction / independent replay check
 
 ## Hardware Profile Model
@@ -133,14 +72,14 @@ Hardware profiles are named contracts that tie a replay or evidence path to a sp
 * wiring assumptions
 * generated artifacts
 * evidence claim
-* explicit non-claims
+* claim boundary
 
 Example profile names, not required implemented profiles:
 
 ```text
 single_stm32_uart_replay_v1
+dual_stm32_replay_witness_v1
 dual_stm32_external_observer_v1
-bbb_flash_orchestration_experimental_v1
 ```
 
 ## Replay, Flashing, Reset, Observation, and Evidence Boundaries
@@ -151,16 +90,15 @@ The 2.0 documentation must keep these boundaries explicit:
 flashing != replay
 reset != evidence
 transport != target behavior
-observer timing != actor internal timing
-support instrumentation != release authority
-release evidence != universal correctness
+external observation != actor-internal replay
+support instrumentation != release evidence
 ```
 
 **Flashing** establishes what firmware image is believed to be on the target.
 
 **Reset** establishes the starting or attach condition.
 
-**Replay** applies deterministic stimulus through the canonical command/interface path.
+**Replay** checks retained execution evidence or target behavior against a documented deterministic rule.
 
 **Observation** records target or external observer behavior.
 
@@ -185,14 +123,14 @@ Generated artifacts should not be edited after capture. Manual context should be
 
 Precision Signal 2.0 release criteria:
 
-* roadmap and claim boundaries documented
+* roadmap and replay boundaries documented
 * canonical CLI replay path documented
 * hardware profile model documented
 * replay/flashing/reset/evidence separation documented
 * retained evidence contract documented
-* release verification artifacts retained
+* retained verification artifacts mapped to the replay claim
 * release/tagging process guarded and documented
-* independent replay check for the STM32F446 UART capture path documented, with witness output retained or explicitly deferred from release authority with rationale
+* independent replay check for the STM32F446 UART capture path documented with local witness classification
 
 ## Current Criteria Status
 
@@ -202,38 +140,17 @@ The current documentation and evidence chain satisfies or partially satisfies th
 
 | Criterion | Current status |
 | --- | --- |
-| roadmap and claim boundaries documented | satisfied by this roadmap |
+| roadmap and replay boundaries documented | satisfied by this roadmap |
 | canonical CLI replay path documented | satisfied by README, release surface, replay index, and CLI contract |
 | hardware profile model documented | satisfied by the hardware profile model in this roadmap and the active `single_stm32_uart_replay_v1` profile |
 | replay/flashing/reset/evidence separation documented | satisfied by roadmap, release surface, firmware capture contract, and hardware profile |
 | retained evidence contract documented | satisfied by `docs/verification/releases/index.md` and retained `1.9.1` evidence |
-| release verification artifacts retained | satisfied for the current `1.9.1` foundation |
+| retained verification artifacts mapped to the replay claim | satisfied for the current `1.9.1` foundation |
 | release/tagging process guarded and documented | satisfied by retained release mechanics and guarded release tag flow |
-| independent replay check documented | satisfied as retained support evidence by the RPL0 witness report for `fw_capture.bin` |
+| independent replay check documented with local witness classification | satisfied as retained support evidence by the RPL0 witness report for `fw_capture.bin` |
 
-The independent RPL0 witness report is retained support evidence. It reduces replay self-reference at the artifact parse/fold layer, but it is not semantic replay authority and is not promoted to release authority by this roadmap.
-
-A future `2.0` release bundle, if created, should either retain corresponding witness output or explicitly defer witness authority promotion with rationale.
-
-## Deferred to 2.1
-
-Sensors are intentionally deferred to 2.1.
-
-Precision Signal 2.1 may introduce the first sensor-profile evidence path. Precision Signal 2.0 remains replay/evidence-core only.
-
-## Rename / Trace Authority Boundary
-
-The repository may eventually be archived, renamed, or rebranded toward Trace Authority. Precision Signal 2.0 does not complete that transition.
-
-For 2.0, naming remains tied to the current artifact:
-
-* `precision-signal` names the current repository and release line
-* `precision` names the current CLI operator surface
-* replay/evidence language should describe the concrete current system
-* Trace Authority language should not be used to imply broader authority, provenance, platform, or security claims
-
-The 2.0 roadmap may identify rename pressure, but it should not split the current system into new repositories, new packages, or new product surfaces unless a later roadmap explicitly promotes that work.
+The independent RPL0 witness report is retained support evidence. It reduces replay self-reference at the artifact parse/fold layer, but it is not semantic replay authority and is not treated as release evidence by this roadmap.
 
 ## Success Definition
 
-Precision Signal 2.0 succeeds if a technically competent reader can understand the deterministic replay/evidence workflow, the hardware assumptions, the retained artifact model, and the exact limits of the release claim without inferring broader platform, sensor, provenance, or security claims.
+Precision Signal 2.0 succeeds if a technically competent reader can understand the current replay model, the hardware assumptions, the retained artifact model, the replay self-reference gap, the RPL0 witness classification, and the retained `1.9.1` evidence foundation from the front-facing documentation.
