@@ -71,7 +71,7 @@ comma := ,
 FW_FEATURES_EFFECTIVE = $(if $(strip $(FW_FEATURES)),$(strip $(FW_FEATURES)),$(strip $(REPLAY_FW_FEATURES)))
 FW_FEATURES_ARG = $(if $(strip $(FW_FEATURES_EFFECTIVE)),--features $(subst $(space),$(comma),$(strip $(FW_FEATURES_EFFECTIVE))),)
 
-.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check bench-check rpl0-witness-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur hil-dual-observer-run hil-dual-observer-scratch demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-summary firmware-release-check fw-release-archive-current fw-release-archive release release-proof release-summary release-tag release-1.7.0 release-1.8.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
+.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check bench-check rpl0-witness-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur hil-dual-observer-run hil-dual-observer-scratch hil-dual-replay-witness-run hil-dual-replay-witness-scratch demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-summary firmware-release-check fw-release-archive-current fw-release-archive release release-proof release-summary release-tag release-1.7.0 release-1.8.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
 
 help:
 	echo "Active operator / validation path:"
@@ -93,6 +93,10 @@ help:
 	echo "    Run retained dual-board observer instrumentation using artifacts/hil_timing_dual/<id>/run_context.json."
 	echo "  make hil-dual-observer-scratch RUN=<id>"
 	echo "    Run the same confirmed alias context into /tmp/dual_observer_probe for scratch validation."
+	echo "  make hil-dual-replay-witness-run RUN=<id>"
+	echo "    Run non-retained dual-board replay witness validation using artifacts/hil_replay_witness_dual/<id>/run_context.json."
+	echo "  make hil-dual-replay-witness-scratch RUN=<id>"
+	echo "    Run the witness path into /tmp/dual_replay_witness_probe for scratch validation."
 	echo "  make help-all"
 
 help-all:
@@ -346,6 +350,14 @@ hil-dual-observer-run:
 hil-dual-observer-scratch:
 	@test -n "$(RUN)" || { echo "FAIL: RUN is required. Usage: make hil-dual-observer-scratch RUN=0003"; exit 1; }
 	$(PYTHON) scripts/hil_dual_observer_run.py --run-id "$(RUN)" --out /tmp/dual_observer_probe --scratch --overwrite-generated
+
+hil-dual-replay-witness-run:
+	@test -n "$(RUN)" || { echo "FAIL: RUN is required. Usage: make hil-dual-replay-witness-run RUN=0001"; exit 1; }
+	$(PYTHON) scripts/hil_dual_replay_witness_run.py --run-id "$(RUN)"
+
+hil-dual-replay-witness-scratch:
+	@test -n "$(RUN)" || { echo "FAIL: RUN is required. Usage: make hil-dual-replay-witness-scratch RUN=0001"; exit 1; }
+	$(PYTHON) scripts/hil_dual_replay_witness_run.py --run-id "$(RUN)" --out /tmp/dual_replay_witness_probe --scratch --overwrite-generated
 
 demo-signal:
 	echo "Signal demo runs on two machines."

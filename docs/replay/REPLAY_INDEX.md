@@ -58,6 +58,8 @@ not current authoritative replay inputs.
   (`crates/replay-fw-f446`)
 - [docs/hardware_profiles/single_stm32_uart_replay_v1.md](../hardware_profiles/single_stm32_uart_replay_v1.md):
   named hardware profile for the active STM32F446/ST-LINK/UART replay path
+- [docs/hardware_profiles/dual_stm32_replay_witness_v1.md](../hardware_profiles/dual_stm32_replay_witness_v1.md):
+  hardware replay witness path where a second STM32 checks externally visible actor behavior against a documented replay rule; distinct from timing-only observation and not a replacement for the canonical `precision` CLI comparison workflow
 - [docs/replay/INTERVAL_CAPTURE_CONTRACT_v1.md](INTERVAL_CAPTURE_CONTRACT_v1.md): timing
   characterization/support contract for STM32 self-stimulus interval CSV
   capture (`crates/replay-fw-f446-timing`)
