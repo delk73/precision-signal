@@ -133,7 +133,12 @@ def prepare_output_context(context_path: Path, out_dir: Path) -> None:
 
 
 def capture_command(
-    out_dir: Path, witness_vcp: str, baud: int, timeout: float, overwrite: bool
+    out_dir: Path,
+    witness_vcp: str,
+    baud: int,
+    timeout: float,
+    overwrite: bool,
+    retention: str,
 ) -> list[str]:
     command = [
         sys.executable,
@@ -146,6 +151,8 @@ def capture_command(
         str(baud),
         "--timeout",
         str(timeout),
+        "--retention",
+        retention,
     ]
     if overwrite:
         command.append("--overwrite")
@@ -153,11 +160,16 @@ def capture_command(
 
 
 def start_capture(
-    out_dir: Path, witness_vcp: str, baud: int, timeout: float, overwrite: bool
+    out_dir: Path,
+    witness_vcp: str,
+    baud: int,
+    timeout: float,
+    overwrite: bool,
+    retention: str,
 ) -> subprocess.Popen[str]:
     print(f"starting replay witness listener on {witness_vcp}", flush=True)
     return subprocess.Popen(
-        capture_command(out_dir, witness_vcp, baud, timeout, overwrite),
+        capture_command(out_dir, witness_vcp, baud, timeout, overwrite, retention),
         cwd=REPO_ROOT,
         text=True,
     )
@@ -198,6 +210,7 @@ def run(args: argparse.Namespace) -> int:
         validate_scratch_existing(out_dir)
     validate_output_directory(out_dir, args.overwrite_generated)
     prepare_output_context(context_path, out_dir)
+    retention = "non_retained_scratch" if args.scratch else "retained_hardware_witness"
 
     capture_proc: subprocess.Popen[str] | None = None
     try:
@@ -216,6 +229,7 @@ def run(args: argparse.Namespace) -> int:
             args.baud,
             args.timeout,
             args.overwrite_generated,
+            retention,
         )
         try:
             require_flash_identity("actor", "actor active", actor)

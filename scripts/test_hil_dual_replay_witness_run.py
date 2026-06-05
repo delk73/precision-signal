@@ -122,8 +122,25 @@ class Harness:
             self.events.append(("vcp-ready", vcp))
             return vcp
 
-        def fake_start_capture(out_dir: Path, witness_vcp: str, baud: int, timeout: float, overwrite: bool) -> FakeCaptureProc:
-            self.events.append(("capture-start", {"out": out_dir, "vcp": witness_vcp, "overwrite": overwrite}))
+        def fake_start_capture(
+            out_dir: Path,
+            witness_vcp: str,
+            baud: int,
+            timeout: float,
+            overwrite: bool,
+            retention: str,
+        ) -> FakeCaptureProc:
+            self.events.append(
+                (
+                    "capture-start",
+                    {
+                        "out": out_dir,
+                        "vcp": witness_vcp,
+                        "overwrite": overwrite,
+                        "retention": retention,
+                    },
+                )
+            )
             return FakeCaptureProc(self, out_dir)
 
         runner.run_flash = fake_run_flash
@@ -183,6 +200,28 @@ def main() -> int:
         for name in ("witness_report.txt", "meta.json", "wiring.txt", "run_context.json"):
             if not (out_dir / name).is_file():
                 raise AssertionError(f"success: missing {name}")
+        capture_events = [event for event in harness.events if event[0] == "capture-start"]
+        if capture_events[0][1]["retention"] != "non_retained_scratch":
+            raise AssertionError(
+                f"success: wrong scratch retention {capture_events[0][1]['retention']!r}"
+            )
+
+        retained_root = root / "retained_runs"
+        retained_run = retained_root / "0001"
+        write_context(retained_run / "run_context.json")
+        original_run_root = runner.DEFAULT_RUN_ROOT
+        runner.DEFAULT_RUN_ROOT = retained_root
+        try:
+            with Harness() as harness:
+                rc, _stdout, stderr = run_main(["--run-id", "0001"])
+        finally:
+            runner.DEFAULT_RUN_ROOT = original_run_root
+        assert_ok("retained_success", rc, stderr)
+        capture_events = [event for event in harness.events if event[0] == "capture-start"]
+        if capture_events[0][1]["retention"] != "retained_hardware_witness":
+            raise AssertionError(
+                f"retained_success: wrong retention {capture_events[0][1]['retention']!r}"
+            )
 
         outside = runner.REPO_ROOT / "witness_probe"
         rc, _stdout, stderr = run_main(["--context", str(context_path), "--out", str(outside), "--scratch", "--overwrite-generated"])

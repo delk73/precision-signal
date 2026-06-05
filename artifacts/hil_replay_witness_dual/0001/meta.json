@@ -1,0 +1,18 @@
+{
+  "actor_board": "STM32F446RE",
+  "actor_event_count": 10007,
+  "actor_firmware": "sync_trigger_out+sync_trigger_in+sync_timing_capture",
+  "artifact_kind": "hil_replay_witness",
+  "claim": "A second STM32F446RE board observed the existing actor PA6/PA1 event path through PB8/PB9 and applied a fixed count/order/channel rule.",
+  "digest_tuple": "event_index/channel/timer_delta",
+  "error": "none",
+  "event_window": "all_observed_events",
+  "first_invalid_event": "none",
+  "profile": "dual_stm32_replay_witness_v1",
+  "result": "PASS",
+  "retention": "retained_hardware_witness",
+  "rule_id": "dual_stm32_pa6_pa1_pair_v0",
+  "witness_board": "STM32F446RE",
+  "witness_digest": "5a7d75864a26dbd2",
+  "witness_firmware": "replay_witness_observer"
+}

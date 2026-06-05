@@ -1,0 +1,12 @@
+RESULT: PASS
+PROFILE: dual_stm32_replay_witness_v1
+RULE_ID: dual_stm32_pa6_pa1_pair_v0
+ACTOR_EVENT_COUNT: 10007
+WITNESS_DIGEST: 5a7d75864a26dbd2
+FIRST_INVALID_EVENT: none
+ERROR: none
+ACTOR_BOARD: STM32F446RE
+WITNESS_BOARD: STM32F446RE
+ACTOR_FIRMWARE: sync_trigger_out+sync_trigger_in+sync_timing_capture
+WITNESS_FIRMWARE: replay_witness_observer
+EVENT_WINDOW: all_observed_events

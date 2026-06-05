@@ -1,0 +1,4 @@
+actor PA6/D12 -> witness PB8/TIM4_CH3
+actor PA1/A1  -> witness PB9/TIM4_CH4
+actor PA6/D12 -> actor PA0/A0
+actor GND     -> witness GND
