@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import json
 import subprocess
 import sys
 import tempfile
@@ -27,18 +28,23 @@ EVENT_WINDOW: all_observed_events
 """
 
 
-def run_capture(report: str, out_dir: Path) -> subprocess.CompletedProcess[str]:
+def run_capture(
+    report: str, out_dir: Path, retention: str | None = None
+) -> subprocess.CompletedProcess[str]:
     report_path = out_dir.parent / f"{out_dir.name}.txt"
     report_path.write_text(report, encoding="utf-8")
+    command = [
+        "python3",
+        "scripts/hil_replay_witness_capture.py",
+        "--input",
+        str(report_path),
+        "--out",
+        str(out_dir),
+    ]
+    if retention is not None:
+        command.extend(["--retention", retention])
     return subprocess.run(
-        [
-            "python3",
-            "scripts/hil_replay_witness_capture.py",
-            "--input",
-            str(report_path),
-            "--out",
-            str(out_dir),
-        ],
+        command,
         cwd=REPO_ROOT,
         text=True,
         capture_output=True,
@@ -72,6 +78,18 @@ def main() -> int:
         for name in ("witness_report.txt", "meta.json", "wiring.txt"):
             if not (out / name).is_file():
                 raise AssertionError(f"valid_pass: missing {name}")
+        meta = json.loads((out / "meta.json").read_text(encoding="utf-8"))
+        if meta["retention"] != "non_retained_scratch":
+            actual = meta["retention"]
+            raise AssertionError(f"valid_pass: wrong default retention {actual!r}")
+
+        retained_out = root / "retained"
+        proc = run_capture(valid_report(), retained_out, "retained_hardware_witness")
+        assert_ok("retained_metadata", proc)
+        meta = json.loads((retained_out / "meta.json").read_text(encoding="utf-8"))
+        if meta["retention"] != "retained_hardware_witness":
+            actual = meta["retention"]
+            raise AssertionError(f"retained_metadata: wrong retention {actual!r}")
 
         cases = [
             ("missing_field", valid_report().replace("ERROR: none\n", ""), "missing required"),

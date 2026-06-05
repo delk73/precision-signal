@@ -60,6 +60,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     parser.add_argument("--baud", type=int, default=115200)
     parser.add_argument("--timeout", type=float, default=20.0)
     parser.add_argument("--overwrite", action="store_true")
+    parser.add_argument("--retention", default="non_retained_scratch")
     return parser.parse_args(argv)
 
 
@@ -198,14 +199,16 @@ def validate_output_directory(out_dir: Path, overwrite: bool) -> None:
         )
 
 
-def write_artifact(out_dir: Path, report: str, fields: dict[str, str], overwrite: bool) -> None:
+def write_artifact(
+    out_dir: Path, report: str, fields: dict[str, str], overwrite: bool, retention: str
+) -> None:
     validate_output_directory(out_dir, overwrite)
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / "witness_report.txt").write_text(report, encoding="utf-8")
     (out_dir / "wiring.txt").write_text(WIRING_TEXT, encoding="utf-8")
     meta = {
         "artifact_kind": "hil_replay_witness",
-        "retention": "non_retained_scratch",
+        "retention": retention,
         "profile": fields["PROFILE"],
         "rule_id": fields["RULE_ID"],
         "result": fields["RESULT"],
@@ -233,7 +236,7 @@ def main(argv: list[str] | None = None) -> int:
             args.serial, args.baud, args.timeout
         )
         fields = parse_report(report)
-        write_artifact(Path(args.out), report, fields, args.overwrite)
+        write_artifact(Path(args.out), report, fields, args.overwrite, args.retention)
     except (OSError, RuntimeError, TimeoutError, ValueError) as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1
