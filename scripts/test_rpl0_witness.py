@@ -40,12 +40,18 @@ def _build_v1_artifact(
     version: int = 1,
     magic: bytes = _MAGIC,
     samples: list[int] | None = None,
+    flags: int = 0,
+    reserved: int = 0,
+    schema: bytes | None = None,
 ) -> bytes:
     """Build a minimal valid RPL0 v1 artifact."""
     if header_len is None:
         header_len = _V1_MIN_HEADER_LEN
 
-    schema = b"\x00" * schema_len
+    if schema is None:
+        schema = b"\x00" * schema_len
+    else:
+        schema_len = len(schema)
     schema_hash = hashlib.sha256(schema).digest()
 
     header = bytearray(header_len)
@@ -54,10 +60,11 @@ def _build_v1_artifact(
     struct.pack_into("<H", header, 0x06, header_len)
     struct.pack_into("<I", header, 0x08, frame_count)
     struct.pack_into("<H", header, 0x0C, frame_size)
-    struct.pack_into("<H", header, 0x0E, 0)      # flags
+    struct.pack_into("<H", header, 0x0E, flags)
     struct.pack_into("<I", header, 0x10, schema_len)
     header[0x14:0x14 + 32] = schema_hash         # schema_hash
     # build_hash, config_hash, board_id, clock_profile remain zero
+    struct.pack_into("<H", header, 0x96, reserved)
 
     if samples is None:
         samples = [i & 0xFF for i in range(frame_count)]
@@ -78,6 +85,22 @@ def _field(report: str, key: str) -> str:
         if line.startswith(f"{key}:"):
             return line.split(":", 1)[1].strip()
     return ""
+
+
+def _field_names(report: str) -> list[str]:
+    return [line.split(":", 1)[0] for line in report.splitlines() if ":" in line]
+
+
+def _assert_common_shape(report: str, result: str) -> None:
+    assert _field(report, "RESULT") == result, f"unexpected result:\n{report}"
+    assert _field(report, "ARTIFACT_COUNT") == "1", f"missing artifact count:\n{report}"
+    assert _field(report, "WITNESS_DIGEST") != "", f"missing digest field:\n{report}"
+    assert _field(report, "FIRST_INVALID_FRAME") != "", f"missing invalid-frame field:\n{report}"
+
+
+def _assert_core_field_order(report: str, expected: list[str]) -> None:
+    names = _field_names(report)
+    assert names[:len(expected)] == expected, f"unexpected field order {names}:\n{report}"
 
 
 # ---------------------------------------------------------------------------
@@ -105,6 +128,48 @@ def test_zero_frames_passes() -> None:
     report = rpl0_witness.witness(data, "synthetic")
     assert _result(report) == "PASS", f"expected PASS:\n{report}"
     assert _field(report, "FRAME_COUNT") == "0"
+
+
+def test_pass_report_shape_order() -> None:
+    data = _build_v1_artifact(frame_count=3, schema_len=0)
+    report = rpl0_witness.witness(data, "synthetic")
+    _assert_common_shape(report, "PASS")
+    _assert_core_field_order(
+        report,
+        [
+            "RESULT",
+            "ARTIFACT_COUNT",
+            "FRAME_SIZE",
+            "FRAME_COUNT",
+            "WITNESS_DIGEST",
+            "FIRST_INVALID_FRAME",
+        ],
+    )
+    assert _field(report, "FRAME_SIZE") == "16"
+    assert _field(report, "FRAME_COUNT") == "3"
+    assert _field(report, "FIRST_INVALID_FRAME") == "none"
+    assert _field(report, "WITNESS_DIGEST") != "none"
+
+
+def test_fail_report_shape_order_for_pre_frame_error() -> None:
+    report = rpl0_witness.witness(b"", "synthetic")
+    _assert_common_shape(report, "FAIL")
+    _assert_core_field_order(
+        report,
+        [
+            "RESULT",
+            "ARTIFACT_COUNT",
+            "FRAME_SIZE",
+            "FRAME_COUNT",
+            "WITNESS_DIGEST",
+            "FIRST_INVALID_FRAME",
+            "ERROR",
+        ],
+    )
+    assert _field(report, "FRAME_SIZE") == "none"
+    assert _field(report, "FRAME_COUNT") == "none"
+    assert _field(report, "WITNESS_DIGEST") == "none"
+    assert _field(report, "FIRST_INVALID_FRAME") == "none"
 
 
 def test_bad_magic_fails() -> None:
@@ -170,6 +235,70 @@ def test_non_monotonic_frame_idx_fails() -> None:
     assert _result(report) == "FAIL", f"expected FAIL:\n{report}"
     assert "non-monotonic" in _field(report, "ERROR").lower()
     assert _field(report, "FIRST_INVALID_FRAME") == "2"
+
+
+def test_trailing_bytes_fail() -> None:
+    data = _build_v1_artifact(frame_count=3, schema_len=0) + b"\xAA\xBB"
+    report = rpl0_witness.witness(data, "synthetic")
+    assert _result(report) == "FAIL", f"expected FAIL:\n{report}"
+    assert "size mismatch" in _field(report, "ERROR").lower()
+    assert _field(report, "FRAME_SIZE") == "16"
+    assert _field(report, "FRAME_COUNT") == "3"
+    assert _field(report, "FIRST_INVALID_FRAME") == "none"
+
+
+def test_nonzero_flags_fail() -> None:
+    data = _build_v1_artifact(flags=1)
+    report = rpl0_witness.witness(data, "synthetic")
+    assert _result(report) == "FAIL", f"expected FAIL:\n{report}"
+    assert "flags" in _field(report, "ERROR").lower()
+    assert _field(report, "FIRST_INVALID_FRAME") == "none"
+
+
+def test_nonzero_reserved_fail() -> None:
+    data = _build_v1_artifact(reserved=1)
+    report = rpl0_witness.witness(data, "synthetic")
+    assert _result(report) == "FAIL", f"expected FAIL:\n{report}"
+    assert "reserved" in _field(report, "ERROR").lower()
+    assert _field(report, "FIRST_INVALID_FRAME") == "none"
+
+
+def test_mutated_header_schema_hash_fails() -> None:
+    data = bytearray(_build_v1_artifact(frame_count=1, schema=b"schema-v1"))
+    data[0x14] ^= 0x01
+    report = rpl0_witness.witness(bytes(data), "synthetic")
+    assert _result(report) == "FAIL", f"expected FAIL:\n{report}"
+    assert "schema_hash" in _field(report, "ERROR").lower()
+    assert _field(report, "FIRST_INVALID_FRAME") == "none"
+
+
+def test_mutated_schema_bytes_with_old_header_hash_fails() -> None:
+    data = bytearray(_build_v1_artifact(frame_count=1, schema=b"schema-v1"))
+    data[_V1_MIN_HEADER_LEN + 2] ^= 0x01
+    report = rpl0_witness.witness(bytes(data), "synthetic")
+    assert _result(report) == "FAIL", f"expected FAIL:\n{report}"
+    assert "schema_hash" in _field(report, "ERROR").lower()
+    assert _field(report, "FIRST_INVALID_FRAME") == "none"
+
+
+def test_declared_frame_count_leaves_extra_bytes_fails() -> None:
+    data = bytearray(_build_v1_artifact(frame_count=2, schema_len=0))
+    struct.pack_into("<I", data, 0x08, 1)
+    report = rpl0_witness.witness(bytes(data), "synthetic")
+    assert _result(report) == "FAIL", f"expected FAIL:\n{report}"
+    assert "size mismatch" in _field(report, "ERROR").lower()
+    assert _field(report, "FRAME_COUNT") == "1"
+    assert _field(report, "FIRST_INVALID_FRAME") == "none"
+
+
+def test_declared_schema_len_consumes_frame_bytes_fails() -> None:
+    data = bytearray(_build_v1_artifact(frame_count=2, schema=b"abc"))
+    struct.pack_into("<I", data, 0x10, 19)
+    struct.pack_into("<I", data, 0x08, 1)
+    report = rpl0_witness.witness(bytes(data), "synthetic")
+    assert _result(report) == "FAIL", f"expected FAIL:\n{report}"
+    assert "schema_hash" in _field(report, "ERROR").lower()
+    assert _field(report, "FIRST_INVALID_FRAME") == "none"
 
 
 def test_empty_file_fails() -> None:
@@ -248,6 +377,8 @@ _TESTS = [
     test_valid_minimal_v1_passes,
     test_valid_with_schema_passes,
     test_zero_frames_passes,
+    test_pass_report_shape_order,
+    test_fail_report_shape_order_for_pre_frame_error,
     test_bad_magic_fails,
     test_unsupported_version_fails,
     test_version_2_fails,
@@ -256,6 +387,13 @@ _TESTS = [
     test_truncated_schema_fails,
     test_truncated_frame_region_fails,
     test_non_monotonic_frame_idx_fails,
+    test_trailing_bytes_fail,
+    test_nonzero_flags_fail,
+    test_nonzero_reserved_fail,
+    test_mutated_header_schema_hash_fails,
+    test_mutated_schema_bytes_with_old_header_hash_fails,
+    test_declared_frame_count_leaves_extra_bytes_fails,
+    test_declared_schema_len_consumes_frame_bytes_fails,
     test_empty_file_fails,
     test_digest_is_stable,
     test_digest_changes_when_input_sample_changes,

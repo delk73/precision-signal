@@ -19,6 +19,7 @@ Exit codes:
 """
 
 import argparse
+import hashlib
 import struct
 import sys
 from pathlib import Path
@@ -40,6 +41,9 @@ _OFF_FRAME_COUNT = 0x08    # u32 little-endian
 _OFF_FRAME_SIZE = 0x0C     # u16 little-endian
 _OFF_FLAGS = 0x0E          # u16 little-endian
 _OFF_SCHEMA_LEN = 0x10     # u32 little-endian
+_OFF_SCHEMA_HASH = 0x14    # [u8; 32]
+# Safe after v1 minimum header_len check.
+_OFF_RESERVED = 0x96       # u16 little-endian
 
 # Frame layout (16 bytes, EventFrame0)
 FRAME_SIZE = 16
@@ -93,13 +97,29 @@ WITNESS_ID = "rpl0-independent-witness-v1"
 CLAIM = "independent parse and deterministic fold of retained RPL0 artifact"
 
 
-def _fail_report(path: str, error: str, first_invalid_frame: str = "none") -> str:
+def _format_optional(value: int | None) -> str:
+    if value is None:
+        return "none"
+    return str(value)
+
+
+def _fail_report(
+    path: str,
+    error: str,
+    frame_size: int | None = None,
+    frame_count: int | None = None,
+    first_invalid_frame: str = "none",
+) -> str:
     return (
         f"RESULT: FAIL\n"
+        f"ARTIFACT_COUNT: 1\n"
+        f"FRAME_SIZE: {_format_optional(frame_size)}\n"
+        f"FRAME_COUNT: {_format_optional(frame_count)}\n"
+        f"WITNESS_DIGEST: none\n"
+        f"FIRST_INVALID_FRAME: {first_invalid_frame}\n"
+        f"ERROR: {error}\n"
         f"WITNESS: {WITNESS_ID}\n"
         f"INPUT: {path}\n"
-        f"ERROR: {error}\n"
-        f"FIRST_INVALID_FRAME: {first_invalid_frame}\n"
         f"CLAIM: {CLAIM}\n"
     )
 
@@ -113,15 +133,16 @@ def _pass_report(
 ) -> str:
     return (
         f"RESULT: PASS\n"
+        f"ARTIFACT_COUNT: 1\n"
+        f"FRAME_SIZE: {FRAME_SIZE}\n"
+        f"FRAME_COUNT: {frame_count}\n"
+        f"WITNESS_DIGEST: {digest}\n"
+        f"FIRST_INVALID_FRAME: none\n"
         f"WITNESS: {WITNESS_ID}\n"
         f"INPUT: {path}\n"
         f"FORMAT: RPL0/v1\n"
         f"HEADER_LEN: {header_len}\n"
         f"SCHEMA_LEN: {schema_len}\n"
-        f"FRAME_COUNT: {frame_count}\n"
-        f"FRAME_SIZE: {FRAME_SIZE}\n"
-        f"FIRST_INVALID_FRAME: none\n"
-        f"WITNESS_DIGEST: {digest}\n"
         f"CLAIM: {CLAIM}\n"
     )
 
@@ -160,19 +181,64 @@ def witness(data: bytes, path: str) -> str:
     frame_count = struct.unpack_from("<I", data, _OFF_FRAME_COUNT)[0]
     frame_size = struct.unpack_from("<H", data, _OFF_FRAME_SIZE)[0]
     if frame_size != FRAME_SIZE:
-        return _fail_report(path, f"unexpected frame_size {frame_size} (witness expects {FRAME_SIZE})")
+        return _fail_report(
+            path,
+            f"unexpected frame_size {frame_size} (witness expects {FRAME_SIZE})",
+            frame_size=frame_size,
+            frame_count=frame_count,
+        )
     if frame_count > _MAX_FRAME_COUNT:
-        return _fail_report(path, f"frame_count {frame_count} exceeds sanity cap {_MAX_FRAME_COUNT}")
+        return _fail_report(
+            path,
+            f"frame_count {frame_count} exceeds sanity cap {_MAX_FRAME_COUNT}",
+            frame_size=frame_size,
+            frame_count=frame_count,
+        )
+
+    # --- flags / reserved ---
+    flags = struct.unpack_from("<H", data, _OFF_FLAGS)[0]
+    if flags != 0:
+        return _fail_report(
+            path,
+            f"unsupported flags value {flags} (expected 0)",
+            frame_size=frame_size,
+            frame_count=frame_count,
+        )
+    reserved = struct.unpack_from("<H", data, _OFF_RESERVED)[0]
+    if reserved != 0:
+        return _fail_report(
+            path,
+            f"reserved must be 0 for v1 (got {reserved})",
+            frame_size=frame_size,
+            frame_count=frame_count,
+        )
 
     # --- schema_len / schema region ---
     schema_len = struct.unpack_from("<I", data, _OFF_SCHEMA_LEN)[0]
     if schema_len > _MAX_SCHEMA_LEN:
-        return _fail_report(path, f"schema_len {schema_len} exceeds sanity cap {_MAX_SCHEMA_LEN}")
+        return _fail_report(
+            path,
+            f"schema_len {schema_len} exceeds sanity cap {_MAX_SCHEMA_LEN}",
+            frame_size=frame_size,
+            frame_count=frame_count,
+        )
     schema_end = header_len + schema_len
     if len(data) < schema_end:
         return _fail_report(
             path,
             f"truncated: file too short to contain schema (need {schema_end}, have {len(data)})",
+            frame_size=frame_size,
+            frame_count=frame_count,
+        )
+    schema_block = data[header_len:schema_end]
+    schema_hash = data[_OFF_SCHEMA_HASH : _OFF_SCHEMA_HASH + 32]
+    computed_schema_hash = hashlib.sha256(schema_block).digest()
+    if computed_schema_hash != schema_hash:
+        return _fail_report(
+            path,
+            "schema_hash mismatch",
+            frame_size=frame_size,
+            frame_count=frame_count,
         )
 
     # --- frame region ---
@@ -184,6 +250,15 @@ def witness(data: bytes, path: str) -> str:
             path,
             f"truncated: file too short to contain frame region "
             f"(need {frame_region_end}, have {len(data)})",
+            frame_size=frame_size,
+            frame_count=frame_count,
+        )
+    if len(data) != frame_region_end:
+        return _fail_report(
+            path,
+            f"size mismatch: expected {frame_region_end}, got {len(data)}",
+            frame_size=frame_size,
+            frame_count=frame_count,
         )
 
     # --- parse frames ---
@@ -196,6 +271,8 @@ def witness(data: bytes, path: str) -> str:
             return _fail_report(
                 path,
                 f"non-monotonic frame_idx at position {i}: expected {i}, got {frame_idx}",
+                frame_size=frame_size,
+                frame_count=frame_count,
                 first_invalid_frame=str(i),
             )
         frames.append(frame)

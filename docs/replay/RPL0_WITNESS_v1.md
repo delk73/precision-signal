@@ -37,41 +37,60 @@ The initial accepted input class is the current STM32F446 UART RPL0 v1 capture a
 - `version = 1`
 - `header_len >= 0x98`
 - `frame_size = 16`
+- `flags = 0`
+- v1 reserved field at `0x96` equals `0`
+- `schema_hash = SHA256(schema_block)`
 - frame count within sanity cap
 - frame region structurally complete
+- no trailing bytes after the declared frame region
 - frame indices monotonic from 0
 
 The witness is intentionally narrower than future RPL0 evolution. It does not accept v0 artifacts or artifacts with non-standard frame sizes.
 
 ## Report Format
 
-The witness emits line-oriented text to stdout. All reports include:
+The witness emits line-oriented text to stdout. Reports use stable field names and deterministic field order. Core fields appear first and remain parseable even when a value is unavailable.
+
+PASS reports begin with:
 
 ```text
-RESULT: PASS | FAIL
+RESULT: PASS
+ARTIFACT_COUNT: 1
+FRAME_SIZE: 16
+FRAME_COUNT: <n>
+WITNESS_DIGEST: <16 hex digits>
+FIRST_INVALID_FRAME: none
+```
+
+FAIL reports begin with:
+
+```text
+RESULT: FAIL
+ARTIFACT_COUNT: 1
+FRAME_SIZE: none | <declared frame_size>
+FRAME_COUNT: none | <declared frame_count>
+WITNESS_DIGEST: none
+FIRST_INVALID_FRAME: none | <frame index>
+ERROR: <specific deterministic error string>
+```
+
+All reports also include:
+
+```text
 WITNESS: rpl0-independent-witness-v1
 INPUT: <path>
 CLAIM: independent parse and deterministic fold of retained RPL0 artifact
 ```
 
-Additional fields on PASS:
+PASS reports additionally include:
 
 ```text
 FORMAT: RPL0/v1
 HEADER_LEN: <n>
 SCHEMA_LEN: <n>
-FRAME_COUNT: <n>
-FRAME_SIZE: 16
-FIRST_INVALID_FRAME: none
-WITNESS_DIGEST: <16 hex digits>
 ```
 
-Additional fields on FAIL:
-
-```text
-ERROR: <specific deterministic error string>
-FIRST_INVALID_FRAME: none | <frame index>
-```
+`FIRST_INVALID_FRAME` is a frame index only for frame-order or frame-parse failures. It is `none` for header, schema, size, hash, trailing-byte, and other pre-frame failures.
 
 The `WITNESS_DIGEST` is a deterministic fold over parsed frame fields (`frame_idx`, `irq_id`, `flags`, `rsv`, `timer_delta`, `input_sample`). It is not the canonical RPL identity hash (`SHA-256(header + schema + frames)`). It is an independent witness path over the same frame data.
 
@@ -108,4 +127,4 @@ Implemented in `scripts/rpl0_witness.py`.
 
 Tests are in `scripts/test_rpl0_witness.py`.
 
-The implementation uses only Python 3 standard library (`struct`, `argparse`, `pathlib`). It does not import `inspect_artifact`, `artifact_tool`, or any other module from the existing replay/comparison path.
+The implementation uses only Python 3 standard library (`struct`, `argparse`, `hashlib`, `pathlib`). It does not import `inspect_artifact`, `artifact_tool`, or any other module from the existing replay/comparison path.
