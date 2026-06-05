@@ -24,7 +24,7 @@ A two-board path becomes replay-relevant when the second board independently che
 
 Precision Signal 2.0 reduces replay self-reference in the current STM32F446 UART replay path and makes the front-facing replay/evidence path easier to review.
 
-The work is centered on the `precision` CLI, retained RPL0 artifacts, explicit hardware assumptions, and local witness support evidence.
+The work is centered on the `precision` CLI, retained RPL0 artifacts, explicit hardware profiles, and local witness support evidence.
 
 ## 2.0 Scope
 
@@ -38,19 +38,18 @@ The work is centered on the `precision` CLI, retained RPL0 artifacts, explicit h
 
 ## Replay Gap to Remedy
 
-The current replay/evidence path has a self-diff limitation: parts of the replay comparison surface can compare artifacts or traces produced through closely related repository paths rather than through a fully independent replay witness.
+The current replay/evidence path has a self-reference gap: the same project defines the retained RPL0 format and provides the main replay/comparison path that checks it.
 
-Precision Signal 2.0 begins reducing that limitation by introducing an independent RPL0 witness for the current STM32F446 UART capture path. The witness parses retained RPL0 v1 artifacts through a standalone implementation path and emits a deterministic witness digest/report separate from the main replay/comparison engine.
+Precision Signal 2.0 reduces that gap with a small independent RPL0 witness. The witness does not duplicate the replay engine. It independently parses and folds retained RPL0 v1 artifacts so the retained artifact has a second check outside the main CLI comparison path.
 
-The 2.0 remedy is local and factual:
+This remedy is intentionally narrow:
 
-* preserve the current `precision` CLI as the canonical operator surface
-* preserve RPL0 as the retained execution-evidence artifact
-* distinguish byte/artifact identity checks from semantic replay checks
-* distinguish witness support evidence from release authority
-* retain evidence showing what was captured, what was replayed or witnessed, and what comparison or witness rule was applied
+* keep the `precision` CLI as the canonical operator surface
+* keep RPL0 as the retained execution-evidence artifact
+* separate artifact identity checks from semantic replay checks
+* classify witness output as support evidence, not semantic replay authority
 
-The goal is to make the replay comparison less self-referential and easier for a reviewer to inspect. The independent RPL0 witness is retained support evidence at the artifact parse/fold layer. It is not semantic replay authority unless a later release-evidence change explicitly promotes that classification.
+The independent RPL0 witness improves review confidence at the artifact parse/fold layer. It does not replace the CLI comparison workflow or become semantic replay authority unless a later release-evidence change explicitly promotes that classification.
 
 ## Core Work Areas
 
@@ -149,8 +148,8 @@ The current documentation and evidence chain satisfies or partially satisfies th
 | release/tagging process guarded and documented | satisfied by retained release mechanics and guarded release tag flow |
 | independent replay check documented with local witness classification | satisfied as retained support evidence by the RPL0 witness report for `fw_capture.bin` |
 
-The independent RPL0 witness report is retained support evidence. It reduces replay self-reference at the artifact parse/fold layer, but it is not semantic replay authority and is not treated as release evidence by this roadmap.
+The independent RPL0 witness report is retained support evidence. It reduces replay self-reference at the artifact parse/fold layer, but it is not semantic replay authority and does not replace the retained release evidence path.
 
 ## Success Definition
 
-Precision Signal 2.0 succeeds if a technically competent reader can understand the current replay model, the hardware assumptions, the retained artifact model, the replay self-reference gap, the RPL0 witness classification, and the retained `1.9.1` evidence foundation from the front-facing documentation.
+Precision Signal 2.0 succeeds if the current STM32F446 UART replay path has an independent retained artifact check, the role of that check is clearly bounded, and the front-facing documentation lets a reviewer follow the replay/evidence path without reconstructing it from scattered files.
