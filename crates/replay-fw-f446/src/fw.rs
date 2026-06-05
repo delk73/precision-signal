@@ -84,6 +84,8 @@ const DEMO_PERSISTENT_DIVERGENCE_FRAME: usize = 4_096;
 compile_error!("demo-divergence and demo-persistent-divergence are mutually exclusive");
 #[cfg(all(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 compile_error!("sync_timing_capture and sync_timing_observer are mutually exclusive");
+#[cfg(all(feature = "replay_witness_observer", feature = "sync_timing_capture"))]
+compile_error!("replay_witness_observer must not be combined with sync_timing_capture");
 #[cfg(all(
     feature = "sync_timing_capture",
     not(feature = "sync_timing_observer"),
@@ -100,11 +102,28 @@ compile_error!(
 
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 const SYNC_TIMING_TRIGGER_TARGET: u32 = 10_000;
+#[cfg(feature = "replay_witness_observer")]
+const REPLAY_WITNESS_PROFILE: &str = "dual_stm32_replay_witness_v1";
+#[cfg(feature = "replay_witness_observer")]
+const REPLAY_WITNESS_EVENT_PAIR_COUNT: u32 =
+    SYNC_TIMING_TRIGGER_TARGET + SYNC_TIMING_EVIDENCE_WINDOW_START_TRIGGER - 1;
+#[cfg(feature = "replay_witness_observer")]
+const REPLAY_WITNESS_RULE_ID: &str = "dual_stm32_pa6_pa1_pair_v0";
+#[cfg(feature = "replay_witness_observer")]
+const REPLAY_WITNESS_DIGEST_OFFSET: u64 = 0xcbf2_9ce4_8422_2325;
+#[cfg(feature = "replay_witness_observer")]
+const REPLAY_WITNESS_DIGEST_PRIME: u64 = 0x0000_0100_0000_01b3;
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 const SYNC_TIMING_EVIDENCE_WINDOW_START_TRIGGER: u32 = 8;
-#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+#[cfg(all(
+    any(feature = "sync_timing_capture", feature = "sync_timing_observer"),
+    not(feature = "replay_witness_observer")
+))]
 const SYNC_TIMING_TIMER_HZ: u32 = 90_000_000;
-#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+#[cfg(all(
+    any(feature = "sync_timing_capture", feature = "sync_timing_observer"),
+    not(feature = "replay_witness_observer")
+))]
 const SYNC_TIMING_THRESHOLD_TICKS: u32 = 9;
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 const SYNC_TIMING_ACK_GRACE_POLLS: u32 = 10_000;
@@ -229,6 +248,16 @@ static TIMING_CAPTURE_SR_BEFORE_CLEAR: AtomicU32 = AtomicU32::new(0);
 static TIMING_CAPTURE_SR_AFTER_CLEAR: AtomicU32 = AtomicU32::new(0);
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 static TIMING_CAPTURE_SR_AFTER_ARM: AtomicU32 = AtomicU32::new(0);
+#[cfg(feature = "replay_witness_observer")]
+static WITNESS_EVENT_INDEX: AtomicU32 = AtomicU32::new(0);
+#[cfg(feature = "replay_witness_observer")]
+static WITNESS_ACCEPTED_EVENT_COUNT: AtomicU32 = AtomicU32::new(0);
+#[cfg(feature = "replay_witness_observer")]
+static WITNESS_FIRST_INVALID_EVENT: AtomicU32 = AtomicU32::new(u32::MAX);
+#[cfg(feature = "replay_witness_observer")]
+static WITNESS_DIGEST_HI: AtomicU32 = AtomicU32::new((REPLAY_WITNESS_DIGEST_OFFSET >> 32) as u32);
+#[cfg(feature = "replay_witness_observer")]
+static WITNESS_DIGEST_LO: AtomicU32 = AtomicU32::new(REPLAY_WITNESS_DIGEST_OFFSET as u32);
 
 pub fn fw_main() -> ! {
     let dp = loop {
@@ -376,6 +405,9 @@ pub fn fw_main() -> ! {
         stop_tim2_sync_hardware_ack();
         stop_tim4_sync_timing_capture();
         finalize_sync_timing_capture();
+        #[cfg(feature = "replay_witness_observer")]
+        dump_replay_witness_report();
+        #[cfg(not(feature = "replay_witness_observer"))]
         dump_sync_timing_report();
         TIMING_REPORT_READY.store(true, Ordering::Release);
         loop {
@@ -493,12 +525,22 @@ fn drain_tim4_sync_timing_capture() {
             let mut clear_mask = 0u32;
 
             if have_ack {
-                if have_trigger {
-                    process_sync_timing_passive_trigger(tim4.ccr3().read().ccr().bits() as u16);
+                let trigger_ts = tim4.ccr3().read().ccr().bits() as u16;
+                let ack_ts = tim4.ccr4().read().ccr().bits() as u16;
+                #[cfg(feature = "replay_witness_observer")]
+                let ack_before_trigger = ack_ts.wrapping_sub(trigger_ts) > 0x8000;
+                #[cfg(not(feature = "replay_witness_observer"))]
+                let ack_before_trigger = false;
+                if have_trigger && !ack_before_trigger {
+                    process_sync_timing_passive_trigger(trigger_ts);
                     clear_mask |= TIM_SR_CC3IF;
                 }
-                process_sync_timing_ack(tim4.ccr4().read().ccr().bits() as u16);
+                process_sync_timing_ack(ack_ts);
                 clear_mask |= TIM_SR_CC4IF;
+                if have_trigger && ack_before_trigger {
+                    process_sync_timing_passive_trigger(trigger_ts);
+                    clear_mask |= TIM_SR_CC3IF;
+                }
             } else if have_trigger {
                 process_sync_timing_passive_trigger(tim4.ccr3().read().ccr().bits() as u16);
                 clear_mask |= TIM_SR_CC3IF;
@@ -903,6 +945,17 @@ fn reset_sync_timing_state() {
     TIMING_CAPTURE_SR_BEFORE_CLEAR.store(0, Ordering::Release);
     TIMING_CAPTURE_SR_AFTER_CLEAR.store(0, Ordering::Release);
     TIMING_CAPTURE_SR_AFTER_ARM.store(0, Ordering::Release);
+    #[cfg(feature = "replay_witness_observer")]
+    {
+        WITNESS_EVENT_INDEX.store(0, Ordering::Release);
+        WITNESS_ACCEPTED_EVENT_COUNT.store(0, Ordering::Release);
+        WITNESS_FIRST_INVALID_EVENT.store(u32::MAX, Ordering::Release);
+        WITNESS_DIGEST_HI.store(
+            (REPLAY_WITNESS_DIGEST_OFFSET >> 32) as u32,
+            Ordering::Release,
+        );
+        WITNESS_DIGEST_LO.store(REPLAY_WITNESS_DIGEST_OFFSET as u32, Ordering::Release);
+    }
 }
 
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
@@ -1060,6 +1113,17 @@ fn process_sync_timing_passive_trigger(timestamp: u16) {
     };
     #[cfg(not(feature = "sync_timing_observer"))]
     let trigger_count = TIMING_TRIGGER_COUNT.load(Ordering::Acquire);
+
+    #[cfg(feature = "replay_witness_observer")]
+    {
+        let event_index = WITNESS_EVENT_INDEX.fetch_add(1, Ordering::AcqRel);
+        if event_index % 2 != 0 || TIMING_LATEST_TRIGGER_VALID.load(Ordering::Acquire) {
+            mark_witness_invalid(event_index);
+        } else {
+            update_witness_digest(event_index, 1, 0);
+        }
+    }
+
     // Replacing an unpaired trigger does not increment missed_ack_count here;
     // finalization derives misses as trigger_count - paired_ack_count.
     TIMING_LATEST_TRIGGER_TS.store(u32::from(timestamp), Ordering::Release);
@@ -1077,7 +1141,11 @@ fn process_sync_timing_accepted_trigger(trigger_count: u32) {
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
 fn process_sync_timing_ack(timestamp: u16) {
     TIMING_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
+    #[cfg(feature = "replay_witness_observer")]
+    let event_index = WITNESS_EVENT_INDEX.fetch_add(1, Ordering::AcqRel);
     if !TIMING_LATEST_TRIGGER_VALID.swap(false, Ordering::AcqRel) {
+        #[cfg(feature = "replay_witness_observer")]
+        mark_witness_invalid(event_index);
         process_sync_timing_unexpected_ack();
         return;
     }
@@ -1085,6 +1153,14 @@ fn process_sync_timing_ack(timestamp: u16) {
     let trigger_ts = TIMING_LATEST_TRIGGER_TS.load(Ordering::Acquire) as u16;
     let trigger_count = TIMING_LATEST_TRIGGER_COUNT.load(Ordering::Acquire);
     let delta_ticks = u32::from(timestamp.wrapping_sub(trigger_ts));
+    #[cfg(feature = "replay_witness_observer")]
+    {
+        if event_index % 2 != 1 {
+            mark_witness_invalid(event_index);
+        } else {
+            update_witness_digest(event_index, 2, delta_ticks);
+        }
+    }
     TIMING_PAIRED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
     update_sync_timing_max_delta(delta_ticks);
     if trigger_count >= SYNC_TIMING_EVIDENCE_WINDOW_START_TRIGGER {
@@ -1116,6 +1192,37 @@ fn process_sync_timing_unexpected_ack() {
             TIMING_EVIDENCE_WINDOW_UNEXPECTED_ACK_COUNT.fetch_add(1, Ordering::AcqRel);
         }
     }
+}
+
+#[cfg(feature = "replay_witness_observer")]
+fn mark_witness_invalid(event_index: u32) {
+    let mut current = WITNESS_FIRST_INVALID_EVENT.load(Ordering::Acquire);
+    while event_index < current {
+        match WITNESS_FIRST_INVALID_EVENT.compare_exchange(
+            current,
+            event_index,
+            Ordering::AcqRel,
+            Ordering::Acquire,
+        ) {
+            Ok(_) => return,
+            Err(next) => current = next,
+        }
+    }
+}
+
+#[cfg(feature = "replay_witness_observer")]
+fn update_witness_digest(event_index: u32, channel: u32, timer_delta: u32) {
+    WITNESS_ACCEPTED_EVENT_COUNT.fetch_add(1, Ordering::AcqRel);
+    let mut digest = (u64::from(WITNESS_DIGEST_HI.load(Ordering::Acquire)) << 32)
+        | u64::from(WITNESS_DIGEST_LO.load(Ordering::Acquire));
+    for value in [event_index, channel, timer_delta] {
+        for byte in value.to_le_bytes() {
+            digest ^= u64::from(byte);
+            digest = digest.wrapping_mul(REPLAY_WITNESS_DIGEST_PRIME);
+        }
+    }
+    WITNESS_DIGEST_HI.store((digest >> 32) as u32, Ordering::Release);
+    WITNESS_DIGEST_LO.store(digest as u32, Ordering::Release);
 }
 
 #[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
@@ -1180,7 +1287,100 @@ fn finalize_sync_timing_capture() {
     );
 }
 
-#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+#[cfg(feature = "replay_witness_observer")]
+fn dump_replay_witness_report() {
+    cortex_m::interrupt::free(|cs| {
+        if let Some(usart2) = USART2_DEV.borrow(cs).borrow().as_ref() {
+            let expected_count = REPLAY_WITNESS_EVENT_PAIR_COUNT;
+            let trigger_count = TIMING_TRIGGER_COUNT.load(Ordering::Acquire);
+            let ack_count = TIMING_ACK_COUNT.load(Ordering::Acquire);
+            let paired_ack_count = TIMING_PAIRED_ACK_COUNT.load(Ordering::Acquire);
+            let missed_ack_count = TIMING_MISSED_ACK_COUNT.load(Ordering::Acquire);
+            let unexpected_ack_count = TIMING_UNEXPECTED_ACK_COUNT.load(Ordering::Acquire);
+            let capture_error_count = TIMING_CAPTURE_ERROR_COUNT.load(Ordering::Acquire);
+            let first_invalid = WITNESS_FIRST_INVALID_EVENT.load(Ordering::Acquire);
+            let accepted_event_count = WITNESS_ACCEPTED_EVENT_COUNT.load(Ordering::Acquire);
+            let digest = (u64::from(WITNESS_DIGEST_HI.load(Ordering::Acquire)) << 32)
+                | u64::from(WITNESS_DIGEST_LO.load(Ordering::Acquire));
+            let pass = trigger_count == expected_count
+                && ack_count == expected_count
+                && paired_ack_count == expected_count
+                && missed_ack_count == 0
+                && unexpected_ack_count == 0
+                && capture_error_count == 0
+                && first_invalid == u32::MAX;
+            let error = if pass {
+                "none"
+            } else if first_invalid != u32::MAX {
+                "rule_mismatch"
+            } else if capture_error_count != 0 {
+                "capture_error"
+            } else if trigger_count != expected_count
+                || ack_count != expected_count
+                || paired_ack_count != expected_count
+                || missed_ack_count != 0
+            {
+                "event_count_mismatch"
+            } else if unexpected_ack_count != 0 {
+                "unexpected_ack"
+            } else {
+                "rule_failure"
+            };
+
+            write_witness_str(usart2, "RESULT", if pass { "PASS" } else { "FAIL" });
+            write_witness_str(usart2, "PROFILE", REPLAY_WITNESS_PROFILE);
+            write_witness_str(usart2, "RULE_ID", REPLAY_WITNESS_RULE_ID);
+            write_witness_u32(usart2, "ACTOR_EVENT_COUNT", expected_count);
+            if accepted_event_count == 0 {
+                write_witness_str(usart2, "WITNESS_DIGEST", "none");
+            } else {
+                write_witness_hex64(usart2, "WITNESS_DIGEST", digest);
+            }
+            if first_invalid == u32::MAX {
+                write_witness_str(usart2, "FIRST_INVALID_EVENT", "none");
+            } else {
+                write_witness_u32(usart2, "FIRST_INVALID_EVENT", first_invalid);
+            }
+            write_witness_str(usart2, "ERROR", error);
+            write_witness_str(usart2, "ACTOR_BOARD", "STM32F446RE");
+            write_witness_str(usart2, "WITNESS_BOARD", "STM32F446RE");
+            write_witness_str(
+                usart2,
+                "ACTOR_FIRMWARE",
+                "sync_trigger_out+sync_trigger_in+sync_timing_capture",
+            );
+            write_witness_str(usart2, "WITNESS_FIRMWARE", "replay_witness_observer");
+            write_witness_str(usart2, "EVENT_WINDOW", "all_observed_events");
+            wait_tc(usart2);
+        }
+    });
+}
+
+#[cfg(feature = "replay_witness_observer")]
+fn write_witness_str(usart2: &pac::USART2, key: &str, value: &str) {
+    let mut line = LineBuf::new();
+    let _ = writeln!(&mut line, "{key}: {value}");
+    write_bytes(usart2, line.as_bytes());
+}
+
+#[cfg(feature = "replay_witness_observer")]
+fn write_witness_u32(usart2: &pac::USART2, key: &str, value: u32) {
+    let mut line = LineBuf::new();
+    let _ = writeln!(&mut line, "{key}: {value}");
+    write_bytes(usart2, line.as_bytes());
+}
+
+#[cfg(feature = "replay_witness_observer")]
+fn write_witness_hex64(usart2: &pac::USART2, key: &str, value: u64) {
+    let mut line = LineBuf::new();
+    let _ = writeln!(&mut line, "{key}: {value:016x}");
+    write_bytes(usart2, line.as_bytes());
+}
+
+#[cfg(all(
+    any(feature = "sync_timing_capture", feature = "sync_timing_observer"),
+    not(feature = "replay_witness_observer")
+))]
 fn dump_sync_timing_report() {
     cortex_m::interrupt::free(|cs| {
         if let Some(usart2) = USART2_DEV.borrow(cs).borrow().as_ref() {
@@ -1396,21 +1596,30 @@ fn dump_sync_timing_report() {
     });
 }
 
-#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+#[cfg(all(
+    any(feature = "sync_timing_capture", feature = "sync_timing_observer"),
+    not(feature = "replay_witness_observer")
+))]
 fn write_report_u32(usart2: &pac::USART2, key: &str, value: u32) {
     let mut line = LineBuf::new();
     let _ = writeln!(&mut line, "{key}={value}");
     write_bytes(usart2, line.as_bytes());
 }
 
-#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+#[cfg(all(
+    any(feature = "sync_timing_capture", feature = "sync_timing_observer"),
+    not(feature = "replay_witness_observer")
+))]
 fn write_report_u64(usart2: &pac::USART2, key: &str, value: u64) {
     let mut line = LineBuf::new();
     let _ = writeln!(&mut line, "{key}={value}");
     write_bytes(usart2, line.as_bytes());
 }
 
-#[cfg(any(feature = "sync_timing_capture", feature = "sync_timing_observer"))]
+#[cfg(all(
+    any(feature = "sync_timing_capture", feature = "sync_timing_observer"),
+    not(feature = "replay_witness_observer")
+))]
 fn write_report_str(usart2: &pac::USART2, key: &str, value: &str) {
     let mut line = LineBuf::new();
     let _ = writeln!(&mut line, "{key}={value}");

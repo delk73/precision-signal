@@ -6,7 +6,10 @@ import sys
 import time
 from pathlib import Path
 
-import serial
+try:
+    import serial
+except ModuleNotFoundError:
+    serial = None
 
 
 REPORT_SCHEMA = "SYNC_TIMING_CAPTURE_V1"
@@ -341,6 +344,8 @@ def report_complete(lines: list[str], profile: dict[str, object]) -> bool:
 def capture_report(
     serial_path: str, baud: int, timeout: float, profile: dict[str, object]
 ) -> str:
+    if serial is None:
+        raise RuntimeError("pyserial is required for live timing capture")
     deadline = time.monotonic() + timeout
     lines: list[str] = []
 
@@ -558,7 +563,7 @@ def main() -> int:
             report = capture_report(args.serial, args.baud, args.timeout, profile)
         fields = parse_report(report, profile)
         write_artifact(Path(args.out), report, fields, profile, args.overwrite)
-    except (OSError, TimeoutError, ValueError) as exc:
+    except (OSError, RuntimeError, TimeoutError, ValueError) as exc:
         print(f"FAIL: {exc}", file=sys.stderr)
         return 1
 
