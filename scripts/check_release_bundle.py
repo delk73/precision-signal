@@ -189,7 +189,7 @@ def requires_authority_bundle(version: str) -> bool:
     return parsed is not None and parsed >= AUTHORITY_BUNDLE_MIN_VERSION
 
 
-def validate_authority_bundle(bundle_dir: Path, repo_root: Path) -> tuple[list[str], list[str]]:
+def validate_authority_bundle(bundle_dir: Path) -> tuple[list[str], list[str]]:
     errors: list[str] = []
     warnings: list[str] = []
 
@@ -450,7 +450,7 @@ def validate_bundle(bundle_dir: Path, repo_root: Path, strict_paths: bool) -> tu
         return [f"retained release bundle directory does not exist: {display_path(bundle_dir, repo_root)}"], []
 
     if requires_authority_bundle(bundle_dir.name):
-        return validate_authority_bundle(bundle_dir, repo_root)
+        return validate_authority_bundle(bundle_dir)
 
     file_names = {path.name for path in bundle_dir.iterdir() if path.is_file()}
     rel_file_names = {
