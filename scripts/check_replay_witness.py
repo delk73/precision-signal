@@ -88,6 +88,8 @@ def check_release_witness(version: str, release_root: Path) -> str:
 
     try:
         retained_report = retained_report_path.read_text(encoding="utf-8")
+    except UnicodeDecodeError as exc:
+        raise WitnessCheckError(f"cannot decode retained witness report: {retained_report_path}: {exc}") from exc
     except OSError as exc:
         raise WitnessCheckError(f"cannot read retained witness report: {retained_report_path}: {exc}") from exc
     try:
