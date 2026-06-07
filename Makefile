@@ -71,7 +71,7 @@ comma := ,
 FW_FEATURES_EFFECTIVE = $(if $(strip $(FW_FEATURES)),$(strip $(FW_FEATURES)),$(strip $(REPLAY_FW_FEATURES)))
 FW_FEATURES_ARG = $(if $(strip $(FW_FEATURES_EFFECTIVE)),--features $(subst $(space),$(comma),$(strip $(FW_FEATURES_EFFECTIVE))),)
 
-.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check bench-check rpl0-witness-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur hil-dual-observer-run hil-dual-observer-scratch hil-dual-replay-witness-run hil-dual-replay-witness-scratch demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-summary firmware-release-check fw-release-archive-current fw-release-archive release release-proof release-summary release-tag release-1.7.0 release-1.8.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
+.PHONY: help help-all help-demos help-firmware fixture-drift-check shell-check stflash-check bench-check rpl0-witness-check replay-witness-check fw fw-bin flash flash-verify flash-compare flash-ur flash-verify-ur flash-compare-ur hil-dual-observer-run hil-dual-observer-scratch hil-dual-replay-witness-run hil-dual-replay-witness-scratch demo-signal demo-signal-flash demo-signal-host-baseline demo-signal-host-perturb demo-signal-pi-baseline demo-signal-pi-perturb demo-signal-diff fw-capture-check fw-repeat-check rpl0-replay-check rpl0-replay-repeat-check rpl0-replay-repeat-auto fw-gate firmware-release-summary firmware-release-check fw-release-archive-current fw-release-archive release release-proof release-summary release-tag release-1.7.0 release-1.8.0 release-bundle release-bundle-check capture-demo-A capture-demo-B demo-captured-verify demo-captured-release demo-divergence demo-evidence-package replay-demo-audit debug-session tim2-smoke doc-link-check check-workspace test authoritative-replay-cli-tests parser-tests replay-tool-tests replay-tests gate gate-full ci-local conformance-audit kill-switch-audit stream-purity clean
 
 help:
 	echo "Active operator / validation path:"
@@ -84,6 +84,7 @@ help:
 	echo "  make release VERSION=1.9.1"
 	echo "  make release-bundle VERSION=1.9.1"
 	echo "  make release-bundle-check VERSION=1.9.1"
+	echo "  make replay-witness-check VERSION=1.9.1"
 	echo "  make release-tag VERSION=1.9.1"
 	echo "  make doc-link-check"
 	echo "  make check-workspace"
@@ -110,6 +111,7 @@ help-all:
 	echo "  make release VERSION=1.9.1"
 	echo "  make release-bundle VERSION=1.9.1"
 	echo "  make release-bundle-check VERSION=1.9.1"
+	echo "  make replay-witness-check VERSION=1.9.1"
 	echo "  make release-tag VERSION=1.9.1"
 	echo "  make doc-link-check"
 	echo "  make check-workspace"
@@ -473,6 +475,11 @@ rpl0-replay-repeat-auto: stflash-check
 
 rpl0-witness-check:
 	$(PYTHON) scripts/test_rpl0_witness.py
+	$(PYTHON) scripts/test_check_replay_witness.py
+
+replay-witness-check:
+	@test -n "$(VERSION)" || { echo "FAIL: VERSION is required. Usage: make replay-witness-check VERSION=<version>"; exit 1; }
+	$(PYTHON) scripts/check_replay_witness.py --version "$(VERSION)"
 
 fw-gate:
 	@test -n "$(SERIAL)" || { echo "FAIL: SERIAL is required. Pass SERIAL=/dev/ttyACM<N> for the STM32 ST-LINK VCP."; exit 1; }
