@@ -14,6 +14,29 @@ RUN_ID_RE = re.compile(r"run_\d{8}T\d{6}Z")
 SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 RUN_DIR_REL_RE = re.compile(r"^artifacts/replay_runs/(run_\d{8}T\d{6}Z)$")
 RPL0_MANUAL_RESET_MAX_VERSION = (1, 8, 0)
+AUTHORITY_BUNDLE_MIN_VERSION = (2, 0, 0)
+
+AUTHORITY_REQUIRED_FILES = (
+    "index.md",
+    "summary.md",
+    "summary.json",
+    "fw_capture.bin",
+    "rpl0_witness_fw_capture.txt",
+)
+
+AUTHORITY_INDEX_NAMES = (
+    "fw_capture.bin",
+    "rpl0_witness_fw_capture.txt",
+    "summary.md",
+    "summary.json",
+)
+
+AUTHORITY_SUMMARY_COMMANDS = (
+    "make gate",
+    "make authoritative-replay-cli-tests",
+    "make replay-witness-check VERSION={version}",
+    "make release-bundle-check VERSION={version}",
+)
 
 NON_FIRMWARE_REQUIRED_FILES = (
     "index.md",
@@ -159,6 +182,72 @@ def required_rpl0_reset_mode(version: str) -> str:
     if parsed is not None and parsed <= RPL0_MANUAL_RESET_MAX_VERSION:
         return "manual"
     return "stlink"
+
+
+def requires_authority_bundle(version: str) -> bool:
+    parsed = parse_version_tuple(version)
+    return parsed is not None and parsed >= AUTHORITY_BUNDLE_MIN_VERSION
+
+
+def validate_authority_bundle(bundle_dir: Path, repo_root: Path) -> tuple[list[str], list[str]]:
+    errors: list[str] = []
+    warnings: list[str] = []
+
+    for rel_path in AUTHORITY_REQUIRED_FILES:
+        if not (bundle_dir / rel_path).is_file():
+            errors.append(f"missing required retained authority file: {rel_path}")
+    if errors:
+        return errors, warnings
+
+    summary_json = bundle_dir / "summary.json"
+    try:
+        summary = json.loads(load_text(summary_json))
+    except json.JSONDecodeError as exc:
+        errors.append(f"summary.json is not valid JSON: {exc}")
+        return errors, warnings
+
+    if summary.get("schema") != "precision.release_summary.v1":
+        errors.append("summary.json schema must be precision.release_summary.v1")
+    if summary.get("version") != bundle_dir.name:
+        errors.append(f"summary.json version must match bundle directory name: {bundle_dir.name}")
+    hashes = summary.get("hashes")
+    if not isinstance(hashes, dict):
+        errors.append("summary.json hashes must be an object")
+        return errors, warnings
+
+    actual_files = {
+        path.relative_to(bundle_dir).as_posix(): sha256_file(path)
+        for path in bundle_dir.rglob("*")
+        if path.is_file() and path.name != "summary.json"
+    }
+    if set(hashes) != set(actual_files):
+        missing = sorted(set(actual_files) - set(hashes))
+        extra = sorted(set(hashes) - set(actual_files))
+        if missing:
+            errors.append(f"summary.json missing hash entries: {missing}")
+        if extra:
+            errors.append(f"summary.json has stale hash entries: {extra}")
+    for rel_path, actual_sha in actual_files.items():
+        summary_sha = hashes.get(rel_path)
+        if summary_sha is not None and summary_sha != actual_sha:
+            errors.append(f"summary.json hash mismatch for {rel_path}")
+
+    index_text = load_text(bundle_dir / "index.md")
+    for name in AUTHORITY_INDEX_NAMES:
+        if name not in index_text:
+            errors.append(f"index.md missing retained authority route/name: {name}")
+
+    summary_text = load_text(bundle_dir / "summary.md")
+    if "# Release Bundle Summary" not in summary_text:
+        errors.append("summary.md missing release summary heading")
+    if "## Hashes" not in summary_text:
+        errors.append("summary.md missing hashes section")
+    for command_template in AUTHORITY_SUMMARY_COMMANDS:
+        command = command_template.format(version=bundle_dir.name)
+        if command not in summary_text:
+            errors.append(f"summary.md missing authority validation command: {command}")
+
+    return errors, warnings
 
 
 def validate_rpl0_archive_bundle(bundle_dir: Path, repo_root: Path) -> tuple[list[str], list[str]]:
@@ -359,6 +448,9 @@ def validate_run_dir(
 def validate_bundle(bundle_dir: Path, repo_root: Path, strict_paths: bool) -> tuple[list[str], list[str]]:
     if not bundle_dir.is_dir():
         return [f"retained release bundle directory does not exist: {display_path(bundle_dir, repo_root)}"], []
+
+    if requires_authority_bundle(bundle_dir.name):
+        return validate_authority_bundle(bundle_dir, repo_root)
 
     file_names = {path.name for path in bundle_dir.iterdir() if path.is_file()}
     rel_file_names = {
