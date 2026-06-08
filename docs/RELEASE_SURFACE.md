@@ -18,7 +18,7 @@ For release and verification routing, use:
   [docs/verification/releases/<version>/](verification/releases/)
 - canonical operator path: `make gate`
 - retained release records: [docs/verification/releases/](verification/releases/)
-- active workspace/package version: `1.9.1`
+- active workspace/package version: `2.0.0`
 - active retained release record: `1.9.1`
 - latest retained release record currently present in-tree:
   [docs/verification/releases/1.9.1/](verification/releases/1.9.1/)
@@ -34,6 +34,30 @@ document wins.
 
 If a capability is not listed in this document, it is not part of the release
 surface.
+
+## Pending 2.0.0 Authority Activation
+
+The workspace/package version is prepared for `2.0.0`. Public retained-release
+routing intentionally remains on `1.9.1` until the operator-provided retained
+`2.0.0` authority record exists in-tree and validates.
+
+Phase B must update these public-surface entries after retained `2.0.0`
+evidence exists:
+
+- README current-surface retained release evidence row and evaluation commands
+- this document's active retained release record, latest retained release
+  record, canonical operator surface text, and support/reference text that
+  identifies `1.9.1` as active
+- retained-release index active retained release record and active retained
+  release paths
+
+Phase B requires these retained `2.0.0` files from the operator:
+
+- `docs/verification/releases/2.0.0/fw_capture.bin`
+- `docs/verification/releases/2.0.0/rpl0_witness_fw_capture.txt`
+- `docs/verification/releases/2.0.0/summary.md`
+- `docs/verification/releases/2.0.0/summary.json`
+- `docs/verification/releases/2.0.0/index.md`
 
 ## Classification
 

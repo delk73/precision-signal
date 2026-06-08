@@ -8,6 +8,7 @@ validated through the `precision` CLI.
 
 | Surface | Scope | Entry point |
 | --- | --- | --- |
+| Workspace/package version | `2.0.0` | [Cargo.toml](Cargo.toml) |
 | Software validation | Host / software-only | `make gate` |
 | Authoritative CLI tests | Host / software-only | `make authoritative-replay-cli-tests` |
 | Retained release evidence | `1.9.1` | [docs/verification/releases/1.9.1/index.md](docs/verification/releases/1.9.1/index.md) |

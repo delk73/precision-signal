@@ -7,6 +7,42 @@
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-06-08
+
+### Added
+
+- added the 2.0 roadmap and independent RPL0 witness path for retained
+  single-board replay evidence.
+- added retained `1.9.1` witness evidence and routed the single-STM32 UART
+  replay profile into the replay documentation path.
+- added local-only `make release-tag VERSION=<version>` support for guarded
+  annotated release tagging.
+- added `make replay-witness-check VERSION=<version>` for retained release
+  inputs only, recomputing the RPL0 witness for `fw_capture.bin` and comparing
+  it with the retained `rpl0_witness_fw_capture.txt` report.
+- added negative retained-witness failure coverage for missing retained inputs,
+  malformed or non-PASS witness reports, digest mismatches, stale or
+  sibling-version witness output, invalid retained captures, and non-mutating
+  failure behavior.
+
+### Changed
+
+- defined the 2.0 release authority path around retained single-board replay
+  evidence plus host-side independent RPL0 witness verification, while keeping
+  dual-board and timing evidence outside 2.0.0 release authority.
+- tightened `release-bundle-check` for 2.0-style authority bundles by requiring
+  retained authority files, coherent summary hashes, indexed authority
+  artifacts, and recorded authority validation commands while preserving `1.9.1`
+  retained-bundle compatibility.
+- gated `make release-tag VERSION=<version>` through retained release-bundle
+  validation and the 2.0 authority chain's retained replay-witness check.
+
+
+### Notes
+
+- dual-STM32 witness work remains support evidence and is not promoted into
+  `2.0.0` release authority.
+
 ## [1.9.1] - 2026-06-02
 
 ### Maintenance
