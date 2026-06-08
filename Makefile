@@ -76,6 +76,7 @@ FW_FEATURES_ARG = $(if $(strip $(FW_FEATURES_EFFECTIVE)),--features $(subst $(sp
 help:
 	echo "Active operator / validation path:"
 	echo "  make gate"
+	echo "  make authoritative-replay-cli-tests"
 	echo "Active hardware-backed validation:"
 	echo "  make bench-check"
 	echo "  make fw-gate"
@@ -103,6 +104,7 @@ help:
 help-all:
 	echo "Active operator / validation:"
 	echo "  make gate"
+	echo "  make authoritative-replay-cli-tests"
 	echo "Active hardware-backed validation:"
 	echo "  make bench-check"
 	echo "  make fw-gate"
@@ -624,6 +626,7 @@ test:
 
 authoritative-replay-cli-tests:
 	$(CARGO) test -p $(PRECISION_CLI_PKG) --test precision_authoritative_surface --locked
+	$(PYTHON) scripts/test_replay_command_contract.py
 
 parser-tests:
 	$(XTASK_WORKFLOW) parser-tests
