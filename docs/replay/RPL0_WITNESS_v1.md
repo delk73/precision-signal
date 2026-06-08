@@ -1,6 +1,8 @@
 # RPL0 Witness v1
 
-**Status:** support evidence only. Not release authority unless retained and promoted by a later release process.
+**Status:** support evidence by default. It becomes release authority only when
+retained in a per-version release bundle and explicitly promoted by that
+release's authority chain.
 
 The RPL0 witness is an independent support check for retained RPL0 artifacts.
 
@@ -111,20 +113,37 @@ Exit codes:
 
 ```bash
 make rpl0-witness-check
+make replay-witness-check VERSION=<version>
 ```
 
-Runs `scripts/test_rpl0_witness.py`. Does not require hardware, firmware, or network access.
+`make rpl0-witness-check` runs the local witness regression tests. It does not
+require hardware, firmware, or network access.
+
+`make replay-witness-check VERSION=<version>` validates retained release
+witness evidence under `docs/verification/releases/<version>/` by recomputing
+the witness from `fw_capture.bin` and comparing it with the retained
+`rpl0_witness_fw_capture.txt` digest.
 
 ## Boundary
 
-This witness is support evidence. The `rpl0-witness-check` target is not wired into `make gate`, `make fw-gate`, `make bench-check`, or release-bundle checks.
+This witness is support evidence unless a release authority chain names the
+retained witness check as required. The `rpl0-witness-check` target is not wired
+into `make gate`, `make fw-gate`, or `make bench-check`.
 
-To promote retained witness output to release authority, a later release-evidence PR must explicitly include witness output in the retained bundle and update the release surface classification accordingly.
+For 2.0-style authority bundles, `make release-bundle-check VERSION=<version>`
+checks that the retained witness report exists, is indexed, and is included in
+the generated summary hashes. It does not recompute witness semantics; that is
+the job of `make replay-witness-check VERSION=<version>`.
+
+To promote retained witness output to release authority, a release-evidence PR
+must explicitly include witness output in the retained bundle and name
+`make replay-witness-check VERSION=<version>` in the authority chain.
 
 ## Implementation
 
 Implemented in `scripts/rpl0_witness.py`.
 
-Tests are in `scripts/test_rpl0_witness.py`.
+Tests are in `scripts/test_rpl0_witness.py` and
+`scripts/test_check_replay_witness.py`.
 
 The implementation uses only Python 3 standard library (`struct`, `argparse`, `hashlib`, `pathlib`). It does not import `inspect_artifact`, `artifact_tool`, or any other module from the existing replay/comparison path.

@@ -35,7 +35,8 @@
   artifacts, and recorded authority validation commands while preserving `1.9.1`
   retained-bundle compatibility.
 - gated `make release-tag VERSION=<version>` through retained release-bundle
-  validation and the 2.0 authority chain's retained replay-witness check.
+  validation; the 2.0 authority chain separately names the retained
+  replay-witness check as a required validation command.
 
 
 ### Notes
