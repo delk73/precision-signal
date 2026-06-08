@@ -27,6 +27,7 @@
 
 ### Changed
 
+- decoupled the mathematical core crate (`geom-signal`) from the application crate (`precision-math`) by relocating inner-loop benchmarks and removing the dev-dependency cycle.
 - defined the 2.0 release authority path around retained single-board replay
   evidence plus host-side independent RPL0 witness verification, while keeping
   dual-board and timing evidence outside 2.0.0 release authority.

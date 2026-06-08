@@ -14,7 +14,6 @@ fixed = { workspace = true, features = ["num-traits"] }
 [dev-dependencies]
 proptest = "1.4"
 criterion = "0.5"
-precision-math = { workspace = true }
 
 # Allow Kani configuration flags
 [lints.rust]
@@ -22,8 +21,4 @@ unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
 
 [[bench]]
 name = "trig_throughput"
-harness = false
-
-[[bench]]
-name = "signal_inner_loop"
 harness = false

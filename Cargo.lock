@@ -479,7 +479,6 @@ version = "2.0.0"
 dependencies = [
  "criterion",
  "fixed",
- "precision-math",
  "proptest",
 ]
 
@@ -768,6 +767,7 @@ dependencies = [
 name = "precision-math"
 version = "2.0.0"
 dependencies = [
+ "criterion",
  "geom-signal",
  "geom-spatial",
  "hex",

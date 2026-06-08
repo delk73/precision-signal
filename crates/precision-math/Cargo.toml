@@ -23,6 +23,7 @@ rppal = "0.22.1"
 geom-spatial = { workspace = true }
 # libm is needed for dev-tests (verification) but not for the library core.
 libm = "0.2"
+criterion = "0.5"
 
 [features]
 default = []
@@ -35,3 +36,7 @@ runtime-hash = ["verification-runtime"]
 
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(kani)'] }
+
+[[bench]]
+name = "signal_inner_loop"
+harness = false
