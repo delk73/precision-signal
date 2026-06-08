@@ -233,13 +233,12 @@ Evidence becomes 2.0 release authority only when it:
 * is named in the release authority chain and recorded by the retained release summary
 
 Evidence is authority only when all promotion requirements are satisfied and the
-retained release record names the required validation command. Evidence that is merely
-retained, linked,
-cited, hardware-backed, impressive, or historically important remains support
-evidence.
+retained release record names the required validation command. Evidence that is
+merely retained, linked, cited, hardware-backed, impressive, or historically
+important remains support evidence.
 
 Authority is not inherited from proximity to release work; it is granted only by
-explicit inclusion in the authority chain and enforcement by a release command.
+explicit inclusion in the authority chain and retention in the release summary.
 
 The following are outside 2.0 release authority unless separately promoted under
 the rule:
