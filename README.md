@@ -18,6 +18,7 @@ validated through the `precision` CLI.
 ```bash
 make gate
 make authoritative-replay-cli-tests
+make replay-witness-check VERSION=1.9.1
 make release-bundle-check VERSION=1.9.1
 ```
 
