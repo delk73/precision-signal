@@ -11,7 +11,7 @@ validated through the `precision` CLI.
 | Workspace/package version | `2.0.0` | [Cargo.toml](Cargo.toml) |
 | Software validation | Host / software-only | `make gate` |
 | Authoritative CLI tests | Host / software-only | `make authoritative-replay-cli-tests` |
-| Retained release evidence | `1.9.1` | [docs/verification/releases/1.9.1/index.md](docs/verification/releases/1.9.1/index.md) |
+| Retained release evidence | `2.0.0` | [docs/verification/releases/2.0.0/index.md](docs/verification/releases/2.0.0/index.md) |
 | Hardware-backed validation | STM32F446 / ST-LINK / UART | `make bench-check`, `make fw-gate` |
 
 ## Evaluate 1.9.1
