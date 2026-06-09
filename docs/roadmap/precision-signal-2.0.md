@@ -50,10 +50,13 @@ This remedy is intentionally narrow:
 * keep RPL0 as the retained execution-evidence artifact
 * separate artifact identity checks from semantic replay checks
 * promote witness output to 2.0 authority only when the retained output is
-  checked by `make replay-witness-check VERSION=2.0.0` and that command is
-  required by the release validation or guarded tag path
+  checked by `make replay-witness-check VERSION=2.0.0` as a required
+  step in the named release authority chain
 
-The independent RPL0 witness improves review confidence at the artifact parse/fold layer. It does not replace the CLI comparison workflow. For 2.0, it becomes release authority only as part of the named 2.0 authority chain and only when an enforced release command requires it.
+The independent RPL0 witness improves review confidence at the artifact parse/fold
+layer. It does not replace the CLI comparison workflow. For 2.0, it becomes
+release authority only as part of the named 2.0 authority chain and only when
+the retained release record names the required validation command.
 
 ## Core Work Areas
 
@@ -160,7 +163,7 @@ Supporting evidence matters, but it does not block 2.0 unless explicitly promote
 | CLI replay comparison | Documented `precision` replay workflow and retained release surface | The canonical operator comparison path is defined and reviewable | Yes | No separate retained `2.0` release bundle yet | Keep the CLI path front-facing and bounded |
 | retained `1.9.1` release foundation | Retained `1.9.1` release evidence | 2.0 is building from an understood retained release foundation | Yes | 2.0 has not yet superseded it with a retained bundle | Preserve the foundation boundary in 2.0 docs |
 | RPL0 retained artifact path | RPL0 retained artifacts and firmware capture contract | Execution evidence has a retained artifact path | Yes | Artifact evidence is not the whole semantic replay authority | Keep artifact and CLI comparison roles separated |
-| independent RPL0 witness | RPL0 witness report for `fw_capture.bin` | The retained artifact parse/fold layer has an independent host-side check | Yes | It is 2.0 authority only when retained output is checked by `make replay-witness-check VERSION=2.0.0` and required by release validation or the guarded tag path | Keep witness promotion tied to the authority chain |
+| independent RPL0 witness | RPL0 witness report for `fw_capture.bin` | The retained artifact parse/fold layer has an independent host-side check | Yes | It is 2.0 authority only when retained output is checked by `make replay-witness-check VERSION=2.0.0` as a required step in the named release authority chain | Keep witness promotion tied to the authority chain |
 | single-STM32 UART replay profile | `single_stm32_uart_replay_v1` profile | The STM32F446 UART target replay path has a named hardware profile | Yes | Profile clarity does not itself prove target behavior | Keep profile links and boundaries visible |
 | dual-STM32 replay witness | Retained run under `artifacts/hil_replay_witness_dual/0001/` | A second STM32F446RE can externally check PA6/PA1 actor behavior against `dual_stm32_pa6_pa1_pair_v0` and accept 10007 ordered `TRIGGER, ACK` pairs | No, supporting retained hardware evidence | It is not release authority by default and does not replace CLI replay comparison | Retain as supporting evidence unless later promoted |
 | timing observer evidence | Dual timing observer artifacts | External timing behavior has support observation | No, supporting observation | Timing evidence is not replay authority unless it checks a replay rule | Keep timing claims outside replay authority |
@@ -200,9 +203,10 @@ make release-bundle-check VERSION=2.0.0
 -> make release-tag VERSION=2.0.0
 ```
 
-`make replay-witness-check VERSION=2.0.0` is a planned required 2.0 authority
-command. This roadmap documents the requirement but does not implement the
-command.
+`make replay-witness-check VERSION=2.0.0` is the implemented retained-witness
+validation command for the 2.0 authority chain. It recomputes the independent
+RPL0 witness from the retained `fw_capture.bin` and compares it with the
+retained `rpl0_witness_fw_capture.txt` report.
 
 The promoted 2.0 authority evidence is:
 
@@ -226,16 +230,15 @@ Evidence becomes 2.0 release authority only when it:
 * is rerunnable or verifiable from retained release inputs
 * failure invalidates the release record
 * has negative coverage
-* is named in the authority chain
-* is required by release validation or the guarded tag path
+* is named in the release authority chain and recorded by the retained release summary
 
-Evidence is authority only when all promotion requirements are satisfied and an
-enforced release command requires it. Evidence that is merely retained, linked,
-cited, hardware-backed, impressive, or historically important remains support
-evidence.
+Evidence is authority only when all promotion requirements are satisfied and the
+retained release record names the required validation command. Evidence that is
+merely retained, linked, cited, hardware-backed, impressive, or historically
+important remains support evidence.
 
 Authority is not inherited from proximity to release work; it is granted only by
-explicit inclusion in the authority chain and enforcement by a release command.
+explicit inclusion in the authority chain and retention in the release summary.
 
 The following are outside 2.0 release authority unless separately promoted under
 the rule:
@@ -291,13 +294,13 @@ The current documentation and evidence chain satisfies or partially satisfies th
 | release/tagging process guarded and documented | satisfied by retained release mechanics and guarded release tag flow |
 | 2.0 authority chain documented with required release commands | satisfied by the Release Authority Governance section in this roadmap |
 | retained `2.0.0` authority files documented | satisfied by the Release Authority Governance section in this roadmap; the retained `2.0.0` release record is not created by this roadmap |
-| independent replay check promoted through the 2.0 authority chain | satisfied as a documented requirement; `make replay-witness-check VERSION=2.0.0` remains a planned required authority command |
+| independent replay check promoted through the 2.0 authority chain | satisfied as a documented and implemented retained-witness validation command; the retained `2.0.0` authority record is still required before activation |
 | support evidence excluded from 2.0 authority unless separately promoted under the governance rule | satisfied by the Release Authority Governance section in this roadmap |
 
 The independent RPL0 witness report reduces replay self-reference at the
 artifact parse/fold layer. For 2.0, it becomes authority only when its retained
-output is checked by `make replay-witness-check VERSION=2.0.0` and that command
-is required by release validation or the guarded tag path. The retained
+output is checked by `make replay-witness-check VERSION=2.0.0` as a required
+step in the named release authority chain. The retained
 dual-STM32 replay witness is support evidence unless explicitly promoted later.
 
 ## Success Definition

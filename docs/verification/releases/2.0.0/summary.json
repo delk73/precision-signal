@@ -1,0 +1,10 @@
+{
+  "schema": "precision.release_summary.v1",
+  "version": "2.0.0",
+  "hashes": {
+    "fw_capture.bin": "f79e71d6ed645f6bc9f7c3d2b4a8980e0a8cee11cc17082e649966ffba20e765",
+    "index.md": "986047174537e60a60d307b27e2b2de8302dadae7e208cd280d41def72ac4af9",
+    "rpl0_witness_fw_capture.txt": "0ef79977e4f6c19f89b1b46ddc7fd91fa1e51c63fd30cbf083adc52c785f961e",
+    "summary.md": "ee7a358072f5e1c57f797b5c9d75bf433549cf498a34c11b7895b1e0be8e54fc"
+  }
+}

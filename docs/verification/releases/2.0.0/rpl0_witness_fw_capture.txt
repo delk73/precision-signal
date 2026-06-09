@@ -1,0 +1,12 @@
+RESULT: PASS
+ARTIFACT_COUNT: 1
+FRAME_SIZE: 16
+FRAME_COUNT: 10000
+WITNESS_DIGEST: 3ce1b44f8fe85fa1
+FIRST_INVALID_FRAME: none
+WITNESS: rpl0-independent-witness-v1
+INPUT: docs/verification/releases/2.0.0/fw_capture.bin
+FORMAT: RPL0/v1
+HEADER_LEN: 152
+SCHEMA_LEN: 91
+CLAIM: independent parse and deterministic fold of retained RPL0 artifact
